@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment and secrets
+.env
+.env.*
+*.env
+credentials.json
+secrets.json
+**/secrets/
+*apikey*
+*api_key*
+*secret_key*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Temporary files
+temp/
+tmp/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
