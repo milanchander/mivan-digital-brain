@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mivan Digital Brain — Knowledge Portal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --sidebar-bg: #161b22;
+      --panel-bg: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #2dd4bf;
+      --accent-dark: #14b8a6;
+      --active-bg: rgba(45,212,191,0.1);
+      --card-bg: #1c2128;
+      --card-hover: #262d35;
+      --sidebar-w: 260px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sb-head {
+      padding: 18px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .logo-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #0d1117;
+      flex-shrink: 0;
+    }
+
+    .logo-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .logo-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    #nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+
+    #nav::-webkit-scrollbar { width: 3px; }
+    #nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .nl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: color .15s, background .15s;
+      user-select: none;
+    }
+
+    .nl:hover { color: var(--text); background: rgba(255,255,255,.04); }
+
+    .nl.active {
+      color: var(--accent);
+      background: var(--active-bg);
+      border-left-color: var(--accent);
+    }
+
+    .nl.parent { color: var(--text); font-weight: 500; }
+    .nl .ico { width: 18px; text-align: center; font-size: 13px; flex-shrink: 0; }
+    .nl .lbl { flex: 1; }
+    .nl .chev { font-size: 9px; color: var(--muted); transition: transform .2s; flex-shrink: 0; }
+    .nl.open .chev { transform: rotate(90deg); }
+
+    .nc { display: none; background: rgba(0,0,0,.15); }
+    .nc.open { display: block; }
+
+    .ncl {
+      display: flex;
+      align-items: center;
+      padding: 6px 14px 6px 38px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: color .15s, background .15s;
+      gap: 6px;
+    }
+
+    .ncl::before { content: '·'; color: var(--border); }
+    .ncl:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .ncl.active { color: var(--accent); background: var(--active-bg); border-left-color: var(--accent); }
+
+    .ndivider { height: 1px; background: var(--border); margin: 8px 14px; }
+
+    .nl-ask { color: var(--accent) !important; }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 46px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      flex-shrink: 0;
+    }
+
+    .bc { font-size: 13px; color: var(--muted); }
+    .bc span { color: var(--text); }
+
+    #cwrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 36px 44px;
+    }
+
+    #cwrap::-webkit-scrollbar { width: 5px; }
+    #cwrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    #content {
+      max-width: 880px;
+      margin: 0 auto;
+      animation: fadeIn .2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── OVERVIEW ── */
+    .ov-header {
+      text-align: center;
+      padding: 36px 0 28px;
+    }
+
+    .ov-logo {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; color: #0d1117;
+      margin: 0 auto 18px;
+    }
+
+    .ov-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .ov-header p  { font-size: 14px; color: var(--muted); }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin: 28px 0 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      background: var(--card-hover);
+      transform: translateY(-2px);
+    }
+
+    .cbadge {
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      color: var(--accent);
+      background: rgba(45,212,191,.1);
+      border: 1px solid rgba(45,212,191,.25);
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin-bottom: 10px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .card p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    .ov-banner {
+      background: rgba(45,212,191,.07);
+      border: 1px solid rgba(45,212,191,.2);
+      border-radius: 8px;
+      padding: 18px 22px;
+      display: flex; align-items: center; gap: 14px;
+      cursor: pointer;
+      transition: background .15s;
+      margin-top: 8px;
+    }
+
+    .ov-banner:hover { background: rgba(45,212,191,.12); }
+    .ov-banner-ico { font-size: 22px; flex-shrink: 0; }
+    .ov-banner h4  { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 3px; }
+    .ov-banner p   { font-size: 12px; color: var(--muted); }
+
+    /* ── LOADING ── */
+    .loading {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 80px;
+      color: var(--muted); font-size: 14px;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MARKDOWN ── */
+    .md h1 {
+      font-size: 24px; font-weight: 700;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+
+    .md h2 {
+      font-size: 18px; font-weight: 600;
+      margin-top: 38px; margin-bottom: 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 20px;
+    }
+
+    .md h3 {
+      font-size: 15px; font-weight: 600;
+      margin-top: 26px; margin-bottom: 10px;
+      scroll-margin-top: 20px;
+    }
+
+    .md h4 {
+      font-size: 12px; font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase; letter-spacing: .6px;
+      margin-top: 18px; margin-bottom: 6px;
+    }
+
+    .md p  { font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
+    .md ul, .md ol { margin: 0 0 12px 22px; }
+    .md li { font-size: 14px; line-height: 1.7; margin-bottom: 4px; }
+
+    .md code {
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: 12px;
+      background: rgba(45,212,191,.08);
+      border: 1px solid rgba(45,212,191,.18);
+      color: var(--accent);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .md pre {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin-bottom: 14px;
+    }
+
+    .md pre code {
+      background: none; border: none; color: var(--text);
+      padding: 0; font-size: 12px;
+    }
+
+    .md table {
+      width: 100%; border-collapse: collapse;
+      margin-bottom: 18px; font-size: 13px;
+    }
+
+    .md th {
+      background: var(--panel-bg);
+      color: var(--muted); font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      padding: 9px 13px; text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .md td {
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .md tr:hover td { background: rgba(255,255,255,.02); }
+
+    .md blockquote {
+      border-left: 3px solid var(--accent);
+      background: rgba(45,212,191,.05);
+      border-radius: 0 5px 5px 0;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .md blockquote p { margin: 0; color: var(--muted); font-size: 13px; }
+    .md strong { font-weight: 600; }
+    .md a { color: var(--accent); text-decoration: none; }
+    .md a:hover { text-decoration: underline; }
+    .md hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+    /* ── CHAT BUTTON ── */
+    #chat-btn {
+      position: fixed; bottom: 26px; right: 26px;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 18px rgba(45,212,191,.35);
+      transition: transform .2s, box-shadow .2s;
+      z-index: 200;
+    }
+
+    #chat-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 22px rgba(45,212,191,.5);
+    }
+
+    #chat-btn svg { width: 22px; height: 22px; fill: #0d1117; }
+
+    /* ── CHAT PANEL ── */
+    #chat-panel {
+      position: fixed; bottom: 88px; right: 26px;
+      width: 400px; height: 500px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0,0,0,.55);
+      z-index: 200;
+      overflow: hidden;
+    }
+
+    #chat-panel.open {
+      display: flex;
+      animation: slideUp .18s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .cp-head {
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 15px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .cp-head-l { display: flex; align-items: center; gap: 9px; }
+
+    .cp-ico {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #0d1117;
+    }
+
+    .cp-title { font-size: 13px; font-weight: 600; }
+    .cp-sub   { font-size: 11px; color: var(--accent); }
+
+    #chat-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 4px; border-radius: 4px;
+      display: flex; align-items: center;
+      transition: color .15s;
+    }
+
+    #chat-close:hover { color: var(--text); }
+
+    /* API key */
+    #apikey-section {
+      flex: 1; padding: 20px;
+      display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    }
+
+    #apikey-section p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    #apikey-input {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 9px 11px;
+      color: var(--text); font-size: 13px;
+      font-family: 'SF Mono', Consolas, monospace;
+      width: 100%; outline: none;
+    }
+
+    #apikey-input:focus { border-color: var(--accent); }
+
+    #apikey-save {
+      background: var(--accent); color: #0d1117;
+      border: none; border-radius: 6px;
+      padding: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity .15s;
+    }
+
+    #apikey-save:hover { opacity: .88; }
+
+    /* Chat interface */
+    #chat-ui {
+      flex: 1; display: none;
+      flex-direction: column; overflow: hidden;
+    }
+
+    #chat-msgs {
+      flex: 1; overflow-y: auto;
+      padding: 14px; display: flex;
+      flex-direction: column; gap: 10px;
+    }
+
+    #chat-msgs::-webkit-scrollbar { width: 3px; }
+    #chat-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .bubble {
+      max-width: 88%; padding: 9px 13px;
+      border-radius: 10px; font-size: 13px; line-height: 1.5;
+    }
+
+    .bubble.user {
+      background: rgba(45,212,191,.14);
+      border: 1px solid rgba(45,212,191,.25);
+      align-self: flex-end; border-bottom-right-radius: 3px;
+    }
+
+    .bubble.bot {
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      align-self: flex-start; border-bottom-left-radius: 3px;
+    }
+
+    .bubble.err {
+      background: rgba(248,81,73,.08);
+      border: 1px solid rgba(248,81,73,.3);
+      color: #f85149; align-self: flex-start;
+    }
+
+    .typing {
+      display: flex; align-items: center; gap: 4px;
+      padding: 9px 13px;
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px; border-bottom-left-radius: 3px;
+      align-self: flex-start;
+    }
+
+    .dot {
+      width: 6px; height: 6px;
+      background: var(--muted); border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes bounce {
+      0%,60%,100% { transform: translateY(0); }
+      30%          { transform: translateY(-5px); }
+    }
+
+    /* Suggestions */
+    #suggestions {
+      padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sg-label {
+      font-size: 10px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 2px;
+    }
+
+    .sg {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 7px 11px;
+      font-size: 12px; color: var(--muted);
+      cursor: pointer; text-align: left;
+      transition: border-color .15s, color .15s;
+    }
+
+    .sg:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Input */
+    .chat-input-row {
+      border-top: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex; gap: 8px; flex-shrink: 0;
+    }
+
+    #chat-in {
+      flex: 1; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 8px 11px; color: var(--text); font-size: 13px;
+      outline: none; font-family: inherit;
+    }
+
+    #chat-in:focus { border-color: var(--accent); }
+
+    #chat-send-btn {
+      background: var(--accent); color: #0d1117;
+      border: none; border-radius: 6px;
+      padding: 8px 13px; font-size: 13px; font-weight: 600;
+      cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .15s;
+    }
+
+    #chat-send-btn:hover { opacity: .88; }
+    #chat-send-btn:disabled { opacity: .35; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <div class="sb-head">
+    <div class="logo">
+      <div class="logo-circle">MH</div>
+      <div>
+        <div class="logo-name">Mivan Digital Brain</div>
+        <div class="logo-sub">Knowledge Portal</div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+
+    <div class="nl active" data-page="overview">
+      <span class="ico">⌂</span>
+      <span class="lbl">Overview</span>
+    </div>
+
+    <div class="nl parent" data-page="l1" data-url="knowledge/L1-enterprise/mivan-enterprise-context.md">
+      <span class="ico">🏢</span>
+      <span class="lbl">L1 — Enterprise Context</span>
+    </div>
+
+    <div class="nl parent" data-page="l2" data-url="knowledge/L2-domain/health-payer-domain.md" data-exp="1">
+      <span class="ico">🏥</span>
+      <span class="lbl">L2 — Health Payer Domain</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="nc" id="nc-l2">
+      <div class="ncl" data-page="l2-lifecycle"   data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims lifecycle">Claims Lifecycle</div>
+      <div class="ncl" data-page="l2-intake"      data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims intake">Claims Intake &amp; Editing</div>
+      <div class="ncl" data-page="l2-elig"        data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="eligibility">Eligibility &amp; Benefits</div>
+      <div class="ncl" data-page="l2-adj"         data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="adjudication engine">Adjudication Engine</div>
+      <div class="ncl" data-page="l2-pricing"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="pricing">Pricing &amp; Fee Schedules</div>
+      <div class="ncl" data-page="l2-payment"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims payment">Claims Payment</div>
+      <div class="ncl" data-page="l2-cob"         data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="coordination of benefits">COB</div>
+      <div class="ncl" data-page="l2-overpay"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="overpayment">Overpayment &amp; Recovery</div>
+    </div>
+
+    <div class="nl parent" data-page="l3" data-url="knowledge/L3-systems/mivan-system-landscape.md" data-exp="1">
+      <span class="ico">⚙️</span>
+      <span class="lbl">L3 — System Landscape</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="nc" id="nc-l3">
+      <div class="ncl" data-page="l3-arch"   data-url="knowledge/L3-systems/mivan-system-landscape.md" data-sec="micps architecture">MiCPS Architecture</div>
+      <div class="ncl" data-page="l3-int"    data-url="knowledge/L3-systems/mivan-system-landscape.md" data-sec="integration landscape">Integration Landscape</div>
+      <div class="ncl" data-page="l3-batch"  data-url="knowledge/L3-systems/mivan-system-landscape.md" data-sec="batch feed">Batch Feed Architecture</div>
+      <div class="ncl" data-page="l3-data"   data-url="knowledge/L3-systems/mivan-system-landscape.md" data-sec="data architecture">Data Architecture</div>
+      <div class="ncl" data-page="l3-modern" data-url="knowledge/L3-systems/mivan-system-landscape.md" data-sec="modernization">Modernization Architecture</div>
+    </div>
+
+    <div class="nl parent" data-page="l4" data-url="knowledge/L4-application/micps-application-knowledge.md" data-exp="1">
+      <span class="ico">📦</span>
+      <span class="lbl">L4 — Application Knowledge</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="nc" id="nc-l4">
+      <div class="ncl" data-page="l4-m1" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 1">Module 1: Claims Intake</div>
+      <div class="ncl" data-page="l4-m2" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 2">Module 2: Eligibility</div>
+      <div class="ncl" data-page="l4-m3" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 3">Module 3: Adjudication Engine</div>
+      <div class="ncl" data-page="l4-m4" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 4">Module 4: Pricing</div>
+      <div class="ncl" data-page="l4-m5" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 5">Module 5: Claims Payment</div>
+      <div class="ncl" data-page="l4-m6" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 6">Module 6: COB</div>
+      <div class="ncl" data-page="l4-m7" data-url="knowledge/L4-application/micps-application-knowledge.md" data-sec="module 7">Module 7: Overpayment</div>
+    </div>
+
+    <div class="nl parent" data-page="l5" data-url="knowledge/L5-business-rules/claims-business-rules.md">
+      <span class="ico">📋</span>
+      <span class="lbl">L5 — Business Rules</span>
+    </div>
+
+    <div class="ndivider"></div>
+
+    <div class="nl nl-ask" id="nav-ask">
+      <span class="ico">💬</span>
+      <span class="lbl">Ask the Digital Brain</span>
+    </div>
+
+  </nav>
+</aside>
+
+<!-- ── MAIN ── -->
+<main id="main">
+  <div class="topbar">
+    <div class="bc" id="bc">
+      <span>Mivan Digital Brain</span> / Overview
+    </div>
+  </div>
+  <div id="cwrap">
+    <div id="content"></div>
+  </div>
+</main>
+
+<!-- ── CHAT BUTTON ── -->
+<button id="chat-btn" title="Ask the Digital Brain">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+</button>
+
+<!-- ── CHAT PANEL ── -->
+<div id="chat-panel">
+
+  <div class="cp-head">
+    <div class="cp-head-l">
+      <div class="cp-ico">MB</div>
+      <div>
+        <div class="cp-title">Ask the Digital Brain</div>
+        <div class="cp-sub">MiCPS Knowledge Assistant</div>
+      </div>
+    </div>
+    <button id="chat-close" title="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- API key entry -->
+  <div id="apikey-section">
+    <p>Connect your Anthropic API key to chat with the Mivan Digital Brain about MiCPS, claims processing, and the modernization program.</p>
+    <input type="password" id="apikey-input" placeholder="sk-ant-api03-..." autocomplete="off">
+    <button id="apikey-save">Connect →</button>
+  </div>
+
+  <!-- Chat interface -->
+  <div id="chat-ui">
+    <div id="chat-msgs"></div>
+    <div id="suggestions">
+      <div class="sg-label">Suggested questions</div>
+      <button class="sg">I am a new developer on the MiCPS Adjudication Engine. What do I need to know?</button>
+      <button class="sg">What are the highest tribal knowledge risks in MiCPS?</button>
+      <button class="sg">Walk me through how a commercial claim flows through MiCPS</button>
+      <button class="sg">What is being migrated in Wave 1 and why?</button>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-in" placeholder="Ask about MiCPS, claims processing...">
+      <button id="chat-send-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const RAW = 'https://raw.githubusercontent.com/milanchander/mivan-digital-brain/main/';
+const SYSTEM = `You are the Mivan Digital Brain — an AI-native knowledge layer built for the Mivan Health Plan MiCPS claims processing system. You have deep expertise in MiCPS architecture, IBM z/OS mainframe COBOL, JCL, CICS, VSAM, DB2 patterns, commercial claims processing lifecycle, and Mivan's cloud-native modernization program using Java 21, Spring Boot, AWS EKS, Aurora PostgreSQL, DynamoDB, and Kafka. Answer questions as an expert who knows MiCPS inside out. Be specific, technical, and reference MiCPS program names (MADJDRV0, MCOVDET0, MROUTNG0 etc), DB2 table names, VSAM file names, and JCL job names where relevant. When discussing the modernization program reference the correct migration waves. Keep answers concise but complete. If asked who you are, say you are the Mivan Digital Brain.`;
+
+let cache = {};
+let history = [];
+
+// ── MARKED CONFIG ──
+marked.use({ gfm: true, breaks: false });
+
+// ── ACTIVE STATE ──
+function setActive(page) {
+  document.querySelectorAll('.nl, .ncl').forEach(el => el.classList.remove('active'));
+  const el = document.querySelector(`[data-page="${page}"]`);
+  if (!el) return;
+  el.classList.add('active');
+  if (el.classList.contains('ncl')) {
+    const parentNl = el.closest('.nc').previousElementSibling;
+    if (parentNl) parentNl.classList.add('active');
+  }
+}
+
+function setBc(label) {
+  document.getElementById('bc').innerHTML = `<span>Mivan Digital Brain</span> / ${label}`;
+}
+
+// ── NAV WIRING ──
+document.querySelectorAll('.nl[data-page]').forEach(el => {
+  el.addEventListener('click', () => {
+    const page = el.dataset.page;
+    if (page === 'overview') { showOverview(); return; }
+    const url = el.dataset.url;
+    const label = el.querySelector('.lbl').textContent.trim();
+    const nc = el.nextElementSibling;
+    if (el.dataset.exp && nc && nc.classList.contains('nc')) {
+      nc.classList.toggle('open');
+      el.classList.toggle('open');
+    }
+    if (url) loadPage(page, url, null, label);
+  });
+});
+
+document.querySelectorAll('.ncl[data-page]').forEach(el => {
+  el.addEventListener('click', () => {
+    loadPage(el.dataset.page, el.dataset.url, el.dataset.sec, el.textContent.trim());
+  });
+});
+
+document.getElementById('nav-ask').addEventListener('click', openChat);
+
+// ── PAGE LOAD ──
+async function loadPage(page, relUrl, sec, label) {
+  setActive(page);
+  setBc(label);
+  const wrap = document.getElementById('cwrap');
+  const content = document.getElementById('content');
+  content.innerHTML = `<div class="loading"><div class="spinner"></div>Loading…</div>`;
+
+  const url = RAW + relUrl;
+  try {
+    if (!cache[url]) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      cache[url] = await r.text();
+    }
+    const md = cache[url].replace(/^---[\s\S]*?---\n/, '');
+    content.innerHTML = `<div class="md">${marked.parse(md)}</div>`;
+    content.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+
+    if (sec) {
+      setTimeout(() => scrollTo(sec), 80);
+    } else {
+      wrap.scrollTop = 0;
+    }
+  } catch(e) {
+    content.innerHTML = `<div class="loading" style="color:#f85149">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function scrollTo(keyword) {
+  const kw = keyword.toLowerCase();
+  const heads = document.querySelectorAll('#content h1,#content h2,#content h3');
+  for (const h of heads) {
+    if (h.textContent.toLowerCase().includes(kw)) {
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+  }
+}
+
+// ── OVERVIEW ──
+function showOverview() {
+  setActive('overview');
+  setBc('Overview');
+  document.getElementById('cwrap').scrollTop = 0;
+  document.getElementById('content').innerHTML = `
+    <div>
+      <div class="ov-header">
+        <div class="ov-logo">MH</div>
+        <h1>Mivan Digital Brain — Knowledge Portal</h1>
+        <p>AI-native knowledge layer for MiCPS Claims Processing</p>
+      </div>
+      <div class="card-grid">
+        <div class="card" onclick="loadPage('l1','knowledge/L1-enterprise/mivan-enterprise-context.md',null,'L1 — Enterprise Context')">
+          <div class="cbadge">L1</div>
+          <h3>Enterprise Context</h3>
+          <p>Org structure, technology landscape, and transformation mandate.</p>
+        </div>
+        <div class="card" onclick="loadPage('l2','knowledge/L2-domain/health-payer-domain.md',null,'L2 — Health Payer Domain')">
+          <div class="cbadge">L2</div>
+          <h3>Health Payer Domain</h3>
+          <p>End-to-end claims lifecycle, adjudication, COB, and overpayment.</p>
+        </div>
+        <div class="card" onclick="loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md',null,'L3 — System Landscape')">
+          <div class="cbadge">L3</div>
+          <h3>System Landscape</h3>
+          <p>MiCPS architecture, batch feeds, and modernization roadmap.</p>
+        </div>
+        <div class="card" onclick="loadPage('l4','knowledge/L4-application/micps-application-knowledge.md',null,'L4 — Application Knowledge')">
+          <div class="cbadge">L4</div>
+          <h3>Application Knowledge</h3>
+          <p>Module-level COBOL programs, DB2 tables, batch jobs, complexity areas.</p>
+        </div>
+        <div class="card" onclick="loadPage('l5','knowledge/L5-business-rules/claims-business-rules.md',null,'L5 — Business Rules')">
+          <div class="cbadge">L5</div>
+          <h3>Business Rules</h3>
+          <p>Claims editing, adjudication, COB, and overpayment rules.</p>
+        </div>
+      </div>
+      <div class="ov-banner" onclick="openChat()">
+        <div class="ov-banner-ico">💬</div>
+        <div>
+          <h4>Ask the Digital Brain</h4>
+          <p>Ask anything about MiCPS — click the chat button in the bottom right to get started.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── CHAT ──
+const panel = document.getElementById('chat-panel');
+
+document.getElementById('chat-btn').addEventListener('click', openChat);
+document.getElementById('chat-close').addEventListener('click', () => panel.classList.remove('open'));
+
+function openChat() {
+  panel.classList.add('open');
+  if (sessionStorage.getItem('mdb_key')) activateChatUI();
+}
+
+document.getElementById('apikey-save').addEventListener('click', () => {
+  const k = document.getElementById('apikey-input').value.trim();
+  if (!k) return;
+  sessionStorage.setItem('mdb_key', k);
+  activateChatUI();
+});
+
+document.getElementById('apikey-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('apikey-save').click();
+});
+
+function activateChatUI() {
+  document.getElementById('apikey-section').style.display = 'none';
+  document.getElementById('chat-ui').style.display = 'flex';
+}
+
+document.querySelectorAll('.sg').forEach(btn => {
+  btn.addEventListener('click', () => {
+    sendMsg(btn.textContent.trim());
+    document.getElementById('suggestions').style.display = 'none';
+  });
+});
+
+document.getElementById('chat-send-btn').addEventListener('click', () => {
+  const v = document.getElementById('chat-in').value.trim();
+  if (!v) return;
+  document.getElementById('chat-in').value = '';
+  document.getElementById('suggestions').style.display = 'none';
+  sendMsg(v);
+});
+
+document.getElementById('chat-in').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('chat-send-btn').click();
+});
+
+function addBubble(role, text) {
+  const d = document.createElement('div');
+  d.className = 'bubble ' + role;
+  d.textContent = text;
+  document.getElementById('chat-msgs').appendChild(d);
+  document.getElementById('chat-msgs').scrollTop = 99999;
+  return d;
+}
+
+function showTyping() {
+  const d = document.createElement('div');
+  d.id = 'typing'; d.className = 'typing';
+  d.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  document.getElementById('chat-msgs').appendChild(d);
+  document.getElementById('chat-msgs').scrollTop = 99999;
+}
+
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMsg(text) {
+  const key = sessionStorage.getItem('mdb_key');
+  if (!key) { openChat(); return; }
+
+  addBubble('user', text);
+  document.getElementById('chat-send-btn').disabled = true;
+  showTyping();
+
+  const pageCtx = (document.getElementById('content').innerText || '').slice(0, 3000);
+
+  const msgs = [];
+  if (pageCtx && history.length === 0) {
+    msgs.push({ role: 'user',      content: 'Current page context:\n\n' + pageCtx });
+    msgs.push({ role: 'assistant', content: 'I have reviewed the current page context. How can I help?' });
+  }
+  history.forEach(m => msgs.push(m));
+  msgs.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-inaccessible': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM,
+        messages: msgs
+      })
+    });
+
+    hideTyping();
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      addBubble('err', 'Error: ' + (e.error?.message || res.statusText));
+    } else {
+      const data = await res.json();
+      const reply = data.content[0].text;
+      history.push({ role: 'user', content: text });
+      history.push({ role: 'assistant', content: reply });
+      addBubble('bot', reply);
+    }
+  } catch(e) {
+    hideTyping();
+    addBubble('err', 'Request failed: ' + e.message);
+  }
+
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+// ── INIT ──
+showOverview();
+</script>
+</body>
+</html>
