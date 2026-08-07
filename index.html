@@ -900,9 +900,17 @@
       <span class="ico">🧪</span>
       <span class="lbl">QE Track Agenda</span>
     </div>
-    <div class="nl" data-page="onboarding">
+    <div class="nl parent" data-page="onboarding" data-exp="1">
       <span class="ico">🎓</span>
       <span class="lbl">Onboarding</span>
+      <span class="chev">&#9654;</span>
+    </div>
+    <div class="nc" id="nc-onboarding">
+      <div class="ncl" data-page="ob_cobol">🖥️ COBOL Developer</div>
+      <div class="ncl" data-page="ob_java">☕ Java Developer</div>
+      <div class="ncl" data-page="ob_qe">🧪 QE Engineer</div>
+      <div class="ncl" data-page="ob_techlead">🏗️ Tech Lead / Architect</div>
+      <div class="ncl" data-page="ob_ba">📋 Business Analyst</div>
     </div>
     <div class="nl nl-ask" id="nav-ask">
       <span class="ico">💬</span>
@@ -5792,7 +5800,6 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
     if (page === 'lifecycle') { showLifecycle(); return; }
-    if (page === 'onboarding') { showOnboardingHub(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -5806,7 +5813,16 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
 
 document.querySelectorAll('.ncl[data-page]').forEach(el => {
   el.addEventListener('click', () => {
-    loadPage(el.dataset.page, el.dataset.url, el.dataset.sec, el.textContent.trim());
+    const pg = el.dataset.page;
+    if (pg.startsWith('ob_')) {
+      const role = pg.slice(3);
+      const t = ONBOARDING_TRACKS[role];
+      setActive(pg);
+      setBc(t ? t.title + ' \u2014 Onboarding' : 'Onboarding');
+      selectObRole(role);
+      return;
+    }
+    loadPage(pg, el.dataset.url, el.dataset.sec, el.textContent.trim());
   });
 });
 
@@ -6623,7 +6639,6 @@ const LC_STAGES = [
       }).join('');
       content.innerHTML = '<div class="ob-page">'
         + '<div class="ob-track-hdr">'
-        + '<button class="ob-back-btn" onclick="obGoBack()">&#8592; All Roles</button>'
         + '<span class="ob-track-icon">' + t.icon + '</span>'
         + '<span class="ob-track-title">' + t.title + ' &mdash; 5-Day Onboarding</span>'
         + '</div>' + progressHtml
