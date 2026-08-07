@@ -2,6 +2,7 @@ package com.mivan.micps.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mivan.micps.model.ClaimPayment;
 import com.mivan.micps.model.MatchType;
+import com.mivan.micps.repository.ClaimPaymentRepository;
 import com.mivan.micps.service.DuplicateClaimDetectionService;
 import com.mivan.micps.service.DuplicateClaimDetectionService.EvaluationResult;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ class DuplicateClaimControllerTest {
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
     @MockBean DuplicateClaimDetectionService service;
+    @MockBean ClaimPaymentRepository repository;
     @Test void evaluate_nearDup() throws Exception {
         when(service.evaluate(any())).thenReturn(EvaluationResult.nearDup("CLM-NEW-002","CLM-ORIG-001",MatchType.AMT_VAR));
         mockMvc.perform(post("/api/v1/claims/evaluate").contentType(MediaType.APPLICATION_JSON)
@@ -42,6 +44,13 @@ class DuplicateClaimControllerTest {
         when(service.evaluate(any())).thenReturn(EvaluationResult.clean(null));
         mockMvc.perform(post("/api/v1/claims/evaluate").contentType(MediaType.APPLICATION_JSON).content("{}"))
             .andExpect(status().isOk());
+    }
+    @Test void seed_returnsSavedClaim() throws Exception {
+        ClaimPayment c = claim();
+        when(repository.save(any())).thenReturn(c);
+        mockMvc.perform(post("/api/v1/claims/seed").contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(c)))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.claimId").value("CLM-NEW-002"));
     }
     private ClaimPayment claim() {
         return ClaimPayment.builder().claimId("CLM-NEW-002").memberId("MBR-12345")
