@@ -77,6 +77,13 @@ Activate this skill when a developer provides a COBOL program and asks to migrat
 
 This skill produces a production-quality Java 21 Spring Boot service with full paragraph-level traceability, a shadow mode validation harness, and migration notes. It will not generate code until copybook/schema gaps are acknowledged by the developer.
 
+### Java Test Generator
+Location: `skills/java-test-generator.md`
+
+Activate this skill when a developer provides a Java class and asks to generate tests, write tests for it, or improve test coverage. Read `skills/java-test-generator.md` for the full skill definition before proceeding.
+
+This skill produces a JUnit 5 test suite with happy path, boundary value, negative path, exception, acceptance criteria, and migration parity tests. The richer the context (Jira story, COBOL equivalent), the more complete the suite.
+
 ## Conventions
 
 - Knowledge artifacts are Markdown files with YAML frontmatter (`layer`, `domain`, `source`, `last_synced`)
