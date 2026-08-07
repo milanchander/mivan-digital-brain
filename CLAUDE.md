@@ -84,6 +84,13 @@ Activate this skill when a developer provides a Java class and asks to generate 
 
 This skill produces a JUnit 5 test suite with happy path, boundary value, negative path, exception, acceptance criteria, and migration parity tests. The richer the context (Jira story, COBOL equivalent), the more complete the suite.
 
+### Java Code Reviewer
+Location: `skills/java-code-reviewer.md`
+
+Activate this skill when a developer provides Java code and asks to review it, do a code review, or check it against standards. Read `skills/java-code-reviewer.md` for the full skill definition before proceeding.
+
+This skill reviews across six dimensions: AC alignment, Mivan coding standards, Spring Boot best practices, test quality, migration traceability, and security/data. Every finding is cited by class, method, and line number. Output is a structured report with APPROVED / APPROVED WITH COMMENTS / CHANGES REQUIRED verdict.
+
 ## Conventions
 
 - Knowledge artifacts are Markdown files with YAML frontmatter (`layer`, `domain`, `source`, `last_synced`)
