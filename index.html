@@ -789,6 +789,29 @@
     .ob-grad-icon { font-size: 32px; margin-bottom: 10px; }
     .ob-grad-msg  { font-size: 14px; font-weight: 600; color: var(--accent); }
 
+
+    /* ── ONBOARDING JAVA TRACK EXTENSIONS ── */
+    .ob-why { background: rgba(45,212,191,.07); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 13px; color: var(--text); line-height: 1.6; }
+    .ob-why strong { color: var(--accent); display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 6px; font-weight: 700; }
+    .ob-section-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .ob-section-link { background: var(--panel-bg); border: 1px solid var(--border); color: var(--accent); padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: background .15s, border-color .15s; }
+    .ob-section-link:hover { background: var(--card-hover); border-color: var(--accent); }
+    .ob-criteria-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 7px; }
+    .ob-criteria-item { font-size: 13px; color: var(--text); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+    .ob-criteria-icon { color: var(--accent); flex-shrink: 0; font-size: 14px; min-width: 16px; }
+    .ob-exercise { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 16px; }
+    .ob-exercise-label { font-size: 10px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .ob-exercise-q { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 12px; font-style: italic; }
+    .ob-ask-btn { background: var(--accent); color: #0d1117; border: none; padding: 7px 18px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s; }
+    .ob-ask-btn:hover { background: var(--accent-dark); }
+    .ob-story-block { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 10px 0 16px; font-family: Consolas,Monaco,monospace; font-size: 12px; color: var(--text); line-height: 1.8; white-space: pre-wrap; overflow-x: auto; max-height: 380px; overflow-y: auto; }
+    .ob-copy-btn { background: var(--panel-bg); border: 1px solid var(--border); color: var(--muted); padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: color .15s; }
+    .ob-copy-btn:hover { color: var(--text); border-color: var(--text); }
+    .ob-grad-card { background: linear-gradient(135deg,rgba(45,212,191,.15),rgba(46,160,67,.12)); border: 1px solid var(--accent); border-radius: 12px; padding: 28px 24px; text-align: center; margin-top: 20px; }
+    .ob-grad-card-icon { font-size: 48px; margin-bottom: 14px; }
+    .ob-grad-card-title { font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+    .ob-grad-card-msg { font-size: 14px; color: var(--text); line-height: 1.8; }
+
 </style>
 </head>
 <body>
@@ -6551,6 +6574,336 @@ const LC_STAGES = [
       if (_obRole) { renderObTrack(_obRole); } else { renderObRoleSelector(); }
     }
 
+    
+    // ── MICPS-4472 STORY TEXT ──────────────────────────────────────────────────────
+    var MICPS4472_STORY = "Issue Key: MICPS-4472\n"
+      + "Summary: Add frequency limit check to near-duplicate detection\n"
+      + "         — flag members with more than 3 near-duplicate flags\n"
+      + "           in a rolling 30-day window\n\n"
+      + "Background:\n"
+      + "MICPS-4471 implemented near-duplicate detection at the claim level.\n"
+      + "The SIU has identified a secondary pattern — providers submitting a\n"
+      + "high volume of near-duplicate claims over time that individually fall\n"
+      + "below the detection threshold but collectively represent systematic\n"
+      + "billing abuse.\n\n"
+      + "Enhancement Required:\n"
+      + "After near-duplicate evaluation check whether the member has accumulated\n"
+      + "more than 3 NEAR_DUP flags in the last 30 days. If yes escalate from\n"
+      + "PEND to FRAUD-REVIEW status and assign to the SIU queue.\n\n"
+      + "Acceptance Criteria:\n"
+      + "1. A member with 3 or fewer NEAR_DUP flags in the last 30 days\n"
+      + "   is processed normally\n"
+      + "2. A member with more than 3 NEAR_DUP flags in the last 30 days\n"
+      + "   is escalated to FRAUD-REVIEW status\n"
+      + "3. Escalated claims written to new SIU_QUEUE DB2 table\n"
+      + "4. New REST endpoint GET /api/v1/claims/siu-queue returns all\n"
+      + "   claims in FRAUD-REVIEW status\n"
+      + "5. Existing NEAR_DUP detection logic is not modified\n\n"
+      + "Technical Notes:\n"
+      + "- New DB2 table: SIU_QUEUE\n"
+      + "- New service method: checkFrequencyLimit\n"
+      + "- Rolling 30-day window based on NEAR_DUP_QUEUE.NDUP_CREATE_DT\n"
+      + "- Threshold of 3 flags as a named constant\n\n"
+      + "Definition of Done:\n"
+      + "- Java implementation passing all JUnit tests\n"
+      + "- All 5 acceptance criteria have tests\n"
+      + "- Code reviewed and approved\n"
+      + "- README updated";
+
+    // ── JAVA TRACK - STRUCTURED DAY DATA ──────────────────────────────────────────
+    var JAVA_OB_DAYS = [
+      {
+        title: 'The Business You Are Building For',
+        objective: 'Understand claims processing well enough to write meaningful business logic without asking a domain expert every hour.',
+        whyMatters: 'Every line of Java you write implements a business rule. If you do not understand the rule you cannot implement it correctly — and no amount of unit tests will catch a business logic error you did not know to test for.',
+        sections: [
+          { label: 'L1: Transformation Mandate',    pageKey: 'l1' },
+          { label: 'L2: Claims Lifecycle',           pageKey: 'l2' },
+          { label: 'L2: Adjudication Engine',        pageKey: 'l2' },
+          { label: 'L2: Pricing & Fee Schedules',    pageKey: 'l2' }
+        ],
+        questions: [
+          'Walk me through how a commercial claim flows through MiCPS from EDI intake to EFT payment',
+          'What is the difference between auto-adjudication and manual review and what triggers each?',
+          'What is a CARC code and why does a Java developer need to know what it means?',
+          'Explain the difference between a deductible, copay, coinsurance, and OOP max'
+        ],
+        criteria: [
+          'Can explain adjudication in plain English',
+          'Can explain what a denial is',
+          'Can explain member cost-share',
+          'Can answer the exercise question'
+        ],
+        exercise: {
+          question: 'I am building a cost-share calculator in Java. What business rules do I need to implement for a member who has met their deductible but not their OOP max?'
+        }
+      },
+      {
+        title: 'The System You Are Replacing',
+        objective: 'Understand MiCPS well enough to know what your Java service is replacing, what data it consumes, and what the coexistence pattern means for your code.',
+        whyMatters: 'You are not building greenfield software. Every Java service you write has a COBOL equivalent running in production today. If you do not understand the COBOL system you will miss business rules, get data models wrong, and break shadow mode validation.',
+        sections: [
+          { label: 'L3: MiCPS High-Level Architecture', pageKey: 'l3' },
+          { label: 'L3: Batch Feed Architecture',       pageKey: 'l3' },
+          { label: 'L3: Modernization Architecture',    pageKey: 'l3' },
+          { label: 'L3: Coexistence Pattern',           pageKey: 'l3' }
+        ],
+        questions: [
+          'What is the strangler fig pattern and how does Mivan apply it to MiCPS?',
+          'What is shadow mode and what does it mean for how I write my Java service?',
+          'What data does my Java service get from S3 and SQL Server feeds and how often?',
+          'What is the coexistence router and how does it decide whether to call MiCPS or my Java service?'
+        ],
+        criteria: [
+          'Understands shadow mode and its implications',
+          'Understands what the coexistence router does',
+          'Understands what happens if Java and COBOL return different results for the same input'
+        ],
+        exercise: {
+          question: 'My Java service is in shadow mode. MiCPS says a claim should be denied CO-50. My service says it should be approved. Walk me through how I investigate and resolve this discrepancy.'
+        }
+      },
+      {
+        title: 'The Module You Are Working In',
+        objective: 'Know the specific MiCPS module your Java work maps to — its programs, tables, complexity areas, and migration wave.',
+        whyMatters: 'L4 contains the exact program names, DB2 tables, VSAM files, and known complexity areas for each module. This is the context that separates a developer who writes correct code from one who writes code that passes unit tests but fails in production.',
+        sections: [
+          { label: 'L4: Module 2 — Eligibility & Benefits', pageKey: 'l4' },
+          { label: 'L4: Module 5 — Claims Payment',         pageKey: 'l4' },
+          { label: 'L4: Module 3 — Adjudication Engine',    pageKey: 'l4' },
+          { label: 'L4: Technical Debt section',            pageKey: 'l4' }
+        ],
+        questions: [
+          'What does MELIGDR0 do and what is its Java equivalent in the modernization program?',
+          'What is the ACCUM-FILE concurrency issue and how does DynamoDB solve it?',
+          'What are the Wave 1 modules and what is the cutover gate condition for each?',
+          'What hardcoded parameters in MiCPS need to become configurable properties in the Java services?'
+        ],
+        criteria: [
+          'Can identify which MiCPS module their story maps to',
+          'Can name the DB2 tables it accesses',
+          'Knows the migration wave and cutover gate condition'
+        ],
+        exercise: {
+          question: 'I have been assigned to build the Member Accumulator Service in Wave 2. What does ACCUM-FILE currently do in MiCPS, what are its known complexity areas, and what do I need to be careful about when building the DynamoDB replacement?'
+        }
+      },
+      {
+        title: 'The Live Codebase',
+        objective: 'Work with actual code — understand the existing Java service, run the tests, use the Swagger UI, and understand how the parallel build works.',
+        whyMatters: 'DuplicateClaimDetectionService is your reference implementation. It shows you exactly how a MiCPS COBOL program gets translated to Java. Every Java service you build should follow this pattern.',
+        sections: [
+          { label: 'Live Development: MICPS-4471 Story',                     pageKey: 'micps4471'    },
+          { label: 'Live Development: COBOL MOVPDUP1',                       pageKey: 'movpdup1_cobol' },
+          { label: 'Live Development: Java DuplicateClaimDetectionService', pageKey: 'java_service'  }
+        ],
+        actions: [
+          'Step 1 — Run the service: cd src/java/duplicate-detection && mvn spring-boot:run',
+          'Step 2 — Open Swagger UI: http://localhost:8080/swagger-ui.html',
+          'Step 3 — Run the tests: mvn test (confirm: 13 tests, 0 failures)'
+        ],
+        questions: [
+          'Walk me through DuplicateClaimDetectionService method by method and explain what each does',
+          'How does the Java service implement the same logic as MOVPDUP1 paragraph 3100-EVALUATE-MATCH?',
+          'Why are there 3 match types — DATE_DRIFT, AMT_VAR, and MODIFIER — and what business rule drives each?',
+          'What would I need to add to support institutional 837I claims in addition to professional 837P?'
+        ],
+        criteria: [
+          'Service is running locally',
+          'All 13 tests pass',
+          'Hit the Swagger UI endpoint live',
+          'Can explain the parallel build approach'
+        ],
+        exercise: {
+          question: 'Review DuplicateClaimDetectionService against the MICPS-4471 acceptance criteria and tell me if anything is missing or could be improved.'
+        }
+      },
+      {
+        title: 'Build Something',
+        objective: 'Use the AI-native SDLC skills to implement a real story from scratch — proving you are job-ready.',
+        whyMatters: 'Reading and understanding is not the same as doing. This is your graduation exercise — implement a new story using the skills and the Digital Brain with no hand-holding.',
+        isGradDay: true,
+        setupActions: [
+          'Open Claude Code in the mivan-digital-brain project',
+          'Type: show me the skills in this project',
+          'Read: skills/java-feature-builder.md'
+        ],
+        instructions: [
+          'Paste MICPS-4472 into Claude Code',
+          'Say: implement this story',
+          'Watch the Java Feature Builder skill activate',
+          'Review and confirm the Step 1 analysis',
+          'Let it generate all code',
+          'Run mvn test — confirm all new tests pass',
+          'Run the service and test the new endpoint in Swagger'
+        ],
+        questions: [
+          'What is the Java Feature Builder skill and what will it do with MICPS-4472?',
+          'Before I implement MICPS-4472 what do I need to know about the existing NEAR_DUP_QUEUE table?',
+          'After implementing MICPS-4472 what migration wave would the frequency limit check belong to?'
+        ],
+        criteria: [
+          'MICPS-4472 fully implemented',
+          'All tests pass',
+          'New endpoint live in Swagger',
+          'README updated'
+        ]
+      }
+    ];
+
+    // ── JAVA TRACK RENDERER ────────────────────────────────────────────────────────
+    function renderJavaObTrack(prog) {
+      var content = document.getElementById('content');
+      var completedCount = prog.length;
+      var t = ONBOARDING_TRACKS['java'];
+
+      var segs = JAVA_OB_DAYS.map(function(_, i) {
+        var cls = prog.includes(i) ? 'done' : (i === completedCount ? 'current' : '');
+        return '<div class="ob-prog-seg ' + cls + '"></div>';
+      }).join('');
+
+      var progressHtml = '<div class="ob-progress-wrap">'
+        + '<div class="ob-progress-label">' + completedCount + ' of 5 days complete</div>'
+        + '<div class="ob-progress-track">' + segs + '</div></div>';
+
+      var dayCards = JAVA_OB_DAYS.map(function(day, i) {
+        var isDone     = prog.includes(i);
+        var isCurrent  = !isDone && i === completedCount;
+        var isExpanded = i === _obExpandedDay;
+        var cardCls = 'ob-day-card' + (isDone?' complete':'') + (isCurrent?' current':'') + (isExpanded?' expanded':'');
+
+        var badge = isDone
+          ? '<span class="ob-complete-badge">&#10003; Complete</span>'
+          : (isCurrent ? '<span class="ob-current-badge">Today</span>' : '');
+
+        // ── Why this matters ──
+        var whyHtml = '<div class="ob-why"><strong>Why this matters</strong>' + escH(day.whyMatters) + '</div>';
+
+        // ── Sections to read ──
+        var sectionsHtml = '';
+        if (day.sections && day.sections.length) {
+          var links = day.sections.map(function(s) {
+            return '<button class="ob-section-link" onclick="navObSection(\'' + s.pageKey + '\',\'' + s.label.replace(/'/g,'&#39;') + '\')">'
+              + '&#128196; ' + escH(s.label) + '</button>';
+          }).join('');
+          sectionsHtml = '<div class="ob-section-hdr">Sections to Read</div><div class="ob-section-links">' + links + '</div>';
+        }
+
+        // ── Setup actions (Day 5 only) ──
+        var setupHtml = '';
+        if (day.setupActions && day.setupActions.length) {
+          var items = day.setupActions.map(function(a) { return '<li class="ob-item">' + escH(a) + '</li>'; }).join('');
+          setupHtml = '<div class="ob-section-hdr">Setup</div><ul class="ob-item-list">' + items + '</ul>';
+        }
+
+        // ── Actions to complete (Day 4) ──
+        var actionsHtml = '';
+        if (day.actions && day.actions.length) {
+          var acts = day.actions.map(function(a) { return '<li class="ob-item">' + escH(a) + '</li>'; }).join('');
+          actionsHtml = '<div class="ob-section-hdr">Actions to Complete</div><ul class="ob-item-list">' + acts + '</ul>';
+        }
+
+        // ── Graduation story block (Day 5) ──
+        var storyHtml = '';
+        if (day.isGradDay) {
+          var instrItems = day.instructions.map(function(s, idx) {
+            return '<li class="ob-item"><span style="color:var(--accent);font-weight:700;min-width:18px;display:inline-block;">' + (idx+1) + '.</span>' + escH(s) + '</li>';
+          }).join('');
+          storyHtml = '<div class="ob-section-hdr">The Graduation Story — MICPS-4472</div>'
+            + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+            + '<span style="font-size:13px;font-weight:700;color:var(--accent);">Frequency Limit Check</span>'
+            + '<button class="ob-copy-btn" onclick="copyMicps4472()">Copy Story</button></div>'
+            + '<div class="ob-story-block">' + escH(MICPS4472_STORY) + '</div>'
+            + '<div class="ob-section-hdr">Instructions</div>'
+            + '<ul class="ob-item-list">' + instrItems + '</ul>';
+        }
+
+        // ── Digital Brain questions ──
+        var questionsHtml = '';
+        if (day.questions && day.questions.length) {
+          var qs = day.questions.map(function(q, qi) {
+            return '<li class="ob-q-item" onclick="openChatWithQ(\'' + q.replace(/'/g,'&#39;') + '\')">'
+              + '<span class="ob-q-icon">&#128172;</span>'
+              + '<span><strong>' + (qi+1) + '.</strong> ' + escH(q) + '</span></li>';
+          }).join('');
+          questionsHtml = '<div class="ob-section-hdr">Digital Brain Questions</div><ul class="ob-q-list">' + qs + '</ul>';
+        }
+
+        // ── Completion criteria ──
+        var criteriaHtml = '';
+        if (day.criteria && day.criteria.length) {
+          var cItems = day.criteria.map(function(c) {
+            return '<li class="ob-criteria-item">'
+              + '<span class="ob-criteria-icon">' + (isDone ? '&#10003;' : '&#9675;') + '</span>'
+              + '<span>' + escH(c) + '</span></li>';
+          }).join('');
+          criteriaHtml = '<div class="ob-section-hdr">Completion Criteria</div><ul class="ob-criteria-list">' + cItems + '</ul>';
+        }
+
+        // ── Exercise ──
+        var exerciseHtml = '';
+        if (day.exercise) {
+          exerciseHtml = '<div class="ob-exercise">'
+            + '<div class="ob-exercise-label">Exercise — Ask the Digital Brain</div>'
+            + '<div class="ob-exercise-q">' + escH(day.exercise.question) + '</div>'
+            + '<button class="ob-ask-btn" onclick="openChatWithQ(\'' + day.exercise.question.replace(/'/g,'&#39;') + '\')">&#128172; Ask this</button>'
+            + '</div>';
+        }
+
+        // ── Mark complete button (linear progression) ──
+        var canMark = !isDone && i === completedCount;
+        var markBtn = isDone
+          ? '<button class="ob-mark-btn" disabled>&#10003; Day Complete</button>'
+          : (canMark
+            ? '<button class="ob-mark-btn" onclick="markObDayComplete(\'java\',' + i + ')">Mark Day ' + (i+1) + ' Complete &#10003;</button>'
+            : '<button class="ob-mark-btn" style="background:var(--panel-bg);color:var(--muted);cursor:default;" disabled>Complete Day ' + i + ' first</button>');
+
+        // ── Graduation card (Day 5 when done) ──
+        var gradHtml = '';
+        if (day.isGradDay && isDone) {
+          gradHtml = '<div class="ob-grad-card">'
+            + '<div class="ob-grad-card-icon">&#127891;</div>'
+            + '<div class="ob-grad-card-title">Congratulations — You are job-ready.</div>'
+            + '<div class="ob-grad-card-msg">You understand the domain, the system, the codebase, the parallel build approach, and the AI-native SDLC.<br><br>Pick up your first real story.</div>'
+            + '</div>';
+        }
+
+        return '<div id="ob-day-' + i + '" class="' + cardCls + '">'
+          + '<div class="ob-day-hdr" onclick="toggleObDay(' + i + ')">'
+          + '<div class="ob-day-num">' + (isDone ? '&#10003;' : (i+1)) + '</div>'
+          + '<div class="ob-day-title-wrap">'
+          + '<div class="ob-day-title">Day ' + (i+1) + ' &mdash; ' + escH(day.title) + '</div>'
+          + '<div class="ob-day-obj">' + escH(day.objective) + '</div>'
+          + '</div>' + badge
+          + '<span class="ob-day-chev">&#9654;</span></div>'
+          + '<div class="ob-day-body">'
+          + whyHtml + sectionsHtml + setupHtml + actionsHtml + storyHtml
+          + questionsHtml + criteriaHtml + exerciseHtml
+          + markBtn + gradHtml
+          + '</div></div>';
+      }).join('');
+
+      content.innerHTML = '<div class="ob-page">'
+        + '<div class="ob-track-hdr">'
+        + '<span class="ob-track-icon">' + t.icon + '</span>'
+        + '<span class="ob-track-title">' + t.title + ' &mdash; 5-Day Onboarding</span>'
+        + '</div>' + progressHtml
+        + '<div class="ob-days">' + dayCards + '</div></div>';
+    }
+
+    function navObSection(pgKey, label) {
+      loadPage(pgKey, null, null, label);
+    }
+
+    function copyMicps4472() {
+      if (!navigator.clipboard) { return; }
+      navigator.clipboard.writeText(MICPS4472_STORY).then(function() {
+        var btn = document.querySelector('.ob-copy-btn');
+        if (btn) { btn.textContent = '✓ Copied!'; setTimeout(function(){ btn.textContent = 'Copy Story'; }, 2000); }
+      });
+    }
+
+
     function renderObRoleSelector() {
       var content = document.getElementById('content');
       var roles = Object.keys(ONBOARDING_TRACKS);
@@ -6580,7 +6933,7 @@ const LC_STAGES = [
       _obRole = role;
       var prog = getObProgress(role);
       _obExpandedDay = prog.length < 5 ? prog.length : 4;
-      renderObTrack(role);
+      if (role === 'java') { renderJavaObTrack(prog); } else { renderObTrack(role); }
     }
 
     function renderObTrack(role) {
@@ -6655,7 +7008,7 @@ const LC_STAGES = [
       if (!prog.includes(dayIdx)) { prog.push(dayIdx); prog.sort(function(a,b){return a-b;}); }
       sessionStorage.setItem('onboarding_' + role + '_progress', JSON.stringify(prog));
       _obExpandedDay = prog.length < 5 ? prog.length : 4;
-      renderObTrack(role);
+      if (role === 'java') { renderJavaObTrack(prog); } else { renderObTrack(role); }
     }
 
     function getObProgress(role) {
