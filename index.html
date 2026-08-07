@@ -684,6 +684,51 @@
 
     #chat-send-btn:hover { opacity: .88; }
     #chat-send-btn:disabled { opacity: .35; cursor: not-allowed; }
+    /* ── FEATURE LIFECYCLE ── */
+    .lc-page{max-width:860px;margin:0 auto;padding:0 0 48px}
+    .lc-page-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px}
+    .lc-page-hdr h2{font-size:20px;font-weight:700;margin-bottom:4px}
+    .lc-page-hdr p{font-size:13px;color:var(--muted)}
+    .lc-run-btn{flex-shrink:0;background:var(--accent);color:#0d1117;border:none;padding:8px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .lc-run-btn:hover{background:var(--accent-dark)}
+    .lc-run-btn:disabled{opacity:.5;cursor:not-allowed}
+    .lc-timeline{position:relative;padding-left:36px}
+    .lc-timeline::before{content:'';position:absolute;left:11px;top:16px;bottom:16px;width:2px;background:linear-gradient(to bottom,var(--accent) 0%,rgba(45,212,191,.1) 100%)}
+    .lc-card{position:relative;margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);transition:border-color .2s,box-shadow .2s;overflow:hidden}
+    .lc-card.lc-active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(45,212,191,.2)}
+    .lc-card.lc-expanded{border-color:rgba(45,212,191,.35)}
+    .lc-dot{position:absolute;left:-27px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--border);border:2px solid var(--sidebar-bg);z-index:1;transition:background .2s}
+    .lc-card.lc-expanded .lc-dot,.lc-card.lc-active .lc-dot{background:var(--accent)}
+    .lc-card-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+    .lc-card-hdr:hover{background:rgba(255,255,255,.02)}
+    .lc-num{width:26px;height:26px;border-radius:50%;background:var(--panel-bg);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0;transition:all .2s}
+    .lc-card.lc-expanded .lc-num,.lc-card.lc-active .lc-num{background:rgba(45,212,191,.15);border-color:var(--accent);color:var(--accent)}
+    .lc-title-wrap{flex:1;min-width:0}
+    .lc-title{font-size:13px;font-weight:600;color:var(--text)}
+    .lc-role{font-size:11px;color:var(--muted);margin-top:1px}
+    .lc-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(45,212,191,.12);color:var(--accent);white-space:nowrap;flex-shrink:0}
+    .lc-badge-new{background:rgba(139,92,246,.12);color:#a78bfa}
+    .lc-chev{font-size:8px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+    .lc-card.lc-expanded .lc-chev{transform:rotate(90deg)}
+    .lc-card-body{display:none;padding:0 14px 14px}
+    .lc-card.lc-expanded .lc-card-body{display:block;animation:fadeIn .2s ease}
+    .lc-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+    .lc-trad,.lc-ai{border-radius:7px;padding:10px 11px;font-size:12px;line-height:1.5}
+    .lc-trad{background:rgba(255,255,255,.025);border:1px solid var(--border);color:var(--muted)}
+    .lc-ai{background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.2);color:var(--text)}
+    .lc-col-lbl{font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px}
+    .lc-trad .lc-col-lbl{color:#6e7681}
+    .lc-ai .lc-col-lbl{color:var(--accent)}
+    .lc-brain{background:rgba(45,212,191,.05);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:8px 11px;font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px}
+    .lc-brain strong{color:var(--accent);display:block;margin-bottom:3px;font-size:10px;letter-spacing:.6px}
+    .lc-art-btn{background:none;border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s}
+    .lc-art-btn:hover{background:rgba(45,212,191,.1)}
+    .lc-summary{margin-top:24px;background:var(--card-bg);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:10px;padding:18px 20px}
+    .lc-summary h4{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;margin-bottom:14px}
+    .lc-sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}
+    .lc-stat-box{text-align:center;padding:10px 8px;background:var(--panel-bg);border-radius:8px;border:1px solid var(--border)}
+    .lc-stat-val{font-size:20px;font-weight:700;color:var(--accent)}
+    .lc-stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}
   </style>
 </head>
 <body>
@@ -776,6 +821,11 @@
     </div>
 
     <div class="ndivider"></div>
+
+    <div class="nl" data-page="lifecycle">
+      <span class="ico">🔄</span>
+      <span class="lbl">Feature Lifecycle</span>
+    </div>
 
     <div class="nl nl-ask" id="nav-ask">
       <span class="ico">💬</span>
@@ -4948,6 +4998,7 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
   el.addEventListener('click', () => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
+    if (page === 'lifecycle') { showLifecycle(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -5281,6 +5332,140 @@ document.getElementById('demo-close-btn').addEventListener('click', () => {
 });
 
 // ── INIT ──
+// ── FEATURE LIFECYCLE ──
+function openChatWithQ(q) {
+  openChat();
+  setTimeout(function() { var el = document.getElementById('chat-in'); if (el) el.value = q; }, 120);
+}
+
+const LC_STAGES = [
+  {n:1, title:'Business Request', role:'SIU Analyst / Finance', badge:null,
+   trad:'Manual analysis, spreadsheet, email to IT requesting enhancement.',
+   ai:'Same request &#8212; but Digital Brain already has context on MOVPDUP0 and the $2&#8211;4M annual leakage gap.',
+   brain:'When BA asks "what does MOVPDUP0 do?" &#8212; instant answer with program detail, limitation, and financial impact.',
+   art:'View MICPS-4471 Story',
+   artFn:"openLiveDev();loadPage('micps4471','','','MICPS-4471 Story');"},
+  {n:2, title:'Story Enrichment', role:'Business Analyst + Tech Lead', badge:'2&#8211;3 weeks &#8594; 2&#8211;3 hours',
+   trad:'Multiple meetings with James Whitfield to understand the system; 2&#8211;3 weeks to write acceptance criteria.',
+   ai:'BA asks Digital Brain for context on MOVPDUP0, CLAIM_PAYMENT table, and existing pend queue logic; acceptance criteria written in hours, not weeks.',
+   brain:'Provides MOVPDUP0 program detail, DB2 table schemas, pend queue business rules, and existing denial codes &#8212; without requiring James Whitfield.',
+   art:'View MICPS-4471 Story',
+   artFn:"openLiveDev();loadPage('micps4471','','','MICPS-4471 Story');"},
+  {n:3, title:'COBOL Development (MOVPDUP1)', role:'COBOL Developer', badge:'4&#8211;6 weeks &#8594; 3&#8211;4 days',
+   trad:'Developer pairs with James Whitfield for weeks to understand CLAIM_PAYMENT schema, VSAM layouts, JCL job stream, and existing program patterns.',
+   ai:'Developer asks Digital Brain for context &#8212; gets CLAIM_PAYMENT schema, MOVPDUP0 structure, JCL conventions instantly; AI generates MOVPDUP1 first draft; developer refines.',
+   brain:'Provides full MiCPS context, generates production-quality COBOL, explains every paragraph, suggests ZUnit test cases.',
+   art:'View MOVPDUP1 Source',
+   artFn:"openLiveDev();loadPage('movpdup1_cobol','','','COBOL \u2014 MOVPDUP1');"},
+  {n:4, title:'Java Development (Parallel)', role:'Java Developer', badge:'Sequential &#8594; Parallel',
+   trad:'Would not happen in parallel &#8212; mainframe change built first; Java replacement would wait for Wave 3.',
+   ai:'Java developer picks up same story; Digital Brain provides same business context in Java/Spring Boot terms; DuplicateClaimDetectionService built in parallel.',
+   brain:'Translates MiCPS COBOL context into Java patterns; ensures business rule parity (charge tolerance, DOS drift, modifier precedence) between both implementations.',
+   art:'View Java Service',
+   artFn:"openLiveDev();loadPage('java_service','','','Java \u2014 DuplicateClaimDetectionService');"},
+  {n:5, title:'Testing', role:'QE Engineer', badge:'2&#8211;3 weeks &#8594; 2&#8211;3 days',
+   trad:'QE writes test cases from scratch; needs to understand COBOL logic manually; regression suite takes weeks to build.',
+   ai:'Digital Brain generates ZUnit test cases for COBOL and JUnit tests for Java from the acceptance criteria; QE validates and executes; 13 tests passing on Day 1.',
+   brain:'Generates test cases directly from MICPS-4471 ACs; covers all 6 COBOL scenarios (TC-01&#8211;TC-06); suggests edge cases the BA missed.',
+   art:'View Test Suite (13/0)',
+   artFn:"openLiveDev();loadPage('java_tests','','','Java Test Suite');"},
+  {n:6, title:'Code Review', role:'Tech Lead / James Whitfield', badge:'1&#8211;2 weeks &#8594; 1&#8211;2 days',
+   trad:'James Whitfield manually reviews every line; his calendar is the critical path; bottleneck.',
+   ai:'Digital Brain pre-reviews the code; explains every paragraph to the tech lead; James reviews a Digital Brain summary rather than reading raw COBOL.',
+   brain:'Explains MOVPDUP1 paragraph by paragraph; flags complexity areas; confirms business rule alignment with MICPS-4471 acceptance criteria.',
+   art:'Ask Digital Brain to Review',
+   artFn:"openChatWithQ('Review MOVPDUP1 against the MICPS-4471 acceptance criteria');"},
+  {n:7, title:'Shadow Mode Validation', role:'Tech Lead + QE', badge:'New capability',
+   trad:'Not done &#8212; no parallel build exists to validate against. Ship and pray.',
+   ai:'Java service runs in shadow mode alongside COBOL; same inputs, outputs compared; discrepancies investigated; 99.99% agreement gate before cutover.',
+   brain:'Documents shadow mode design; explains discrepancies; confirms both implementations meet the agreement gate before cutover decision.',
+   art:'View Parallel Build README',
+   artFn:"openLiveDev();loadPage('parallel_readme','','','Parallel Build README');"},
+  {n:8, title:'Deploy to TEST', role:'Release Manager + Operations', badge:'Java: 6&#8211;9 mo &#8594; days',
+   trad:'6&#8211;9 month MiCPS release cycle; change management; batch window scheduling; full regression testing.',
+   ai:'COBOL change follows standard Endevor promotion path; Java service deploys via GitHub Actions to EKS; Digital Brain documents the deployment runbook.',
+   brain:'Generates deployment runbook; explains batch job stream changes; documents rollback procedure; answers ops questions at 2 AM without waking James Whitfield.',
+   art:'View L3 System Landscape',
+   artFn:"loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md','','L3 \u2014 System Landscape');"}
+];
+
+function showLifecycle() {
+  setActive('lifecycle');
+  setBc('Feature Lifecycle');
+  document.getElementById('cwrap').scrollTop = 0;
+  var h = '<div class="lc-page">';
+  h += '<div class="lc-page-hdr"><div>';
+  h += '<h2>Feature Lifecycle &#8212; MICPS-4471</h2>';
+  h += '<p>How AI-native development transformed a 4&#8211;6 month SDLC into 3&#8211;4 weeks</p></div>';
+  h += '<button class="lc-run-btn" id="lc-run-btn" onclick="runLcDemo()">&#9654; Run Full Demo</button></div>';
+  h += '<div class="lc-timeline">';
+  LC_STAGES.forEach(function(s) {
+    var isNew = s.badge && (s.badge.indexOf('Sequential') >= 0 || s.badge.indexOf('New') >= 0);
+    var badge = s.badge ? '<span class="lc-badge' + (isNew ? ' lc-badge-new' : '') + '">' + s.badge + '</span>' : '';
+    var num = s.n < 10 ? '0' + s.n : '' + s.n;
+    h += '<div class="lc-card" id="lc-card-' + s.n + '">';
+    h += '<div class="lc-dot"></div>';
+    h += '<div class="lc-card-hdr" onclick="toggleLcCard(' + s.n + ')">';
+    h += '<div class="lc-num">' + num + '</div>';
+    h += '<div class="lc-title-wrap"><div class="lc-title">' + s.title + '</div>';
+    h += '<div class="lc-role">' + s.role + '</div></div>';
+    h += badge;
+    h += '<div class="lc-chev">&#9654;</div></div>';
+    h += '<div class="lc-card-body">';
+    h += '<div class="lc-compare">';
+    h += '<div class="lc-trad"><div class="lc-col-lbl">Traditional</div>' + s.trad + '</div>';
+    h += '<div class="lc-ai"><div class="lc-col-lbl">AI-Native &#10003;</div>' + s.ai + '</div>';
+    h += '</div>';
+    h += '<div class="lc-brain"><strong>&#129504; DIGITAL BRAIN\'S ROLE</strong>' + s.brain + '</div>';
+    h += '<button class="lc-art-btn" onclick="' + s.artFn + '">' + s.art + ' &#8594;</button>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+  h += '<div class="lc-summary"><h4>AI-Native Impact Summary</h4><div class="lc-sum-grid">';
+  [['8','Total Stages'],['6','Roles Involved'],['4&#8211;6 mo','Traditional Timeline'],['3&#8211;4 wk','AI-Native Timeline'],
+   ['0','Whitfield Consults'],['13','Tests by AI'],['~800','Lines of Code'],['$2&#8211;4M','Annual Recovery']
+  ].forEach(function(x){ h += '<div class="lc-stat-box"><div class="lc-stat-val">' + x[0] + '</div><div class="lc-stat-lbl">' + x[1] + '</div></div>'; });
+  h += '</div></div></div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+function toggleLcCard(n) {
+  var card = document.getElementById('lc-card-' + n);
+  if (card) card.classList.toggle('lc-expanded');
+}
+
+var _lcTimer = null;
+function runLcDemo() {
+  var btn = document.getElementById('lc-run-btn');
+  if (_lcTimer) {
+    clearTimeout(_lcTimer); _lcTimer = null;
+    btn.innerHTML = '&#9654; Run Full Demo'; btn.disabled = false;
+    return;
+  }
+  LC_STAGES.forEach(function(s) {
+    var c = document.getElementById('lc-card-' + s.n);
+    if (c) c.classList.remove('lc-expanded','lc-active');
+  });
+  btn.innerHTML = '&#9632; Stop Demo';
+  var idx = 0;
+  function next() {
+    if (idx >= LC_STAGES.length) {
+      btn.innerHTML = '&#9654; Run Full Demo'; _lcTimer = null; return;
+    }
+    if (idx > 0) {
+      var prev = document.getElementById('lc-card-' + LC_STAGES[idx-1].n);
+      if (prev) prev.classList.remove('lc-active');
+    }
+    var card = document.getElementById('lc-card-' + LC_STAGES[idx].n);
+    if (card) {
+      card.classList.add('lc-expanded','lc-active');
+      card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+    idx++;
+    _lcTimer = setTimeout(next, 3200);
+  }
+  next();
+}
 showOverview();
 </script>
 </body>
