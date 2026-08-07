@@ -4918,6 +4918,396 @@ knowledge into the five layers above — and two developers who had never touche
 overpayment module shipped a complete, tested, shadow-ready implementation in one sprint.
 </script>
 
+<script type="text/plain" id="md-clmpayrc">
+# CLMPAYRC.cpy -- CLAIM_PAYMENT Host Variable Layout
+
+```cobol
+      *----------------------------------------------------------------*
+      * CLMPAYRC  Host variable layout for MIVANCPS.CLAIM_PAYMENT      *
+      *----------------------------------------------------------------*
+       01  CLAIM-PAYMENT-REC.
+           05  CLAIM-ID              PIC X(20).
+           05  MEMBER-ID             PIC X(15).
+           05  PROV-NPI              PIC X(10).
+           05  DOS-FROM              PIC 9(8).
+           05  DOS-TO                PIC 9(8).
+           05  CPT-CD                PIC X(5).
+           05  MODIFIER-1            PIC X(2).
+           05  MODIFIER-2            PIC X(2).
+           05  CHARGE-AMT            PIC S9(7)V99  COMP-3.
+           05  PAID-AMT              PIC S9(7)V99  COMP-3.
+           05  PAYMENT-STATUS-CD     PIC X(2).
+           05  PAYMENT-DT            PIC 9(8).
+```
+</script>
+<script type="text/plain" id="md-ndupqrec">
+# NDUPQREC.cpy -- NEAR_DUP_QUEUE Host Variable Layout
+
+```cobol
+      *----------------------------------------------------------------*
+      * NDUPQREC  Record layout for MIVANCPS.NEAR_DUP_QUEUE            *
+      *----------------------------------------------------------------*
+       01  NEAR-DUP-QUEUE-REC.
+           05  NDUP-CLAIM-ID         PIC X(20).
+           05  NDUP-ORIG-CLAIM-ID    PIC X(20).
+           05  NDUP-MEMBER-ID        PIC X(15).
+           05  NDUP-PROV-NPI         PIC X(10).
+           05  NDUP-DOS              PIC 9(8).
+           05  NDUP-CPT-CD           PIC X(5).
+           05  NDUP-CHARGE-AMT       PIC S9(7)V99  COMP-3.
+           05  NDUP-MATCH-TYPE       PIC X(10).
+           05  NDUP-PEND-REASON      PIC X(20)     VALUE 'NEAR-DUP-REVIEW'.
+           05  NDUP-CREATE-DT        PIC 9(8).
+           05  NDUP-STATUS           PIC X(1)      VALUE 'P'.
+```
+</script>
+<script type="text/plain" id="md-near-dup-ddl">
+# NEAR_DUP_QUEUE.sql -- DB2 z/OS DDL (MICPS-4471)
+
+```sql
+------------------------------------------------------------------
+-- NEAR_DUP_QUEUE.sql  DB2 for z/OS DDL — MICPS-4471
+-- Schema: MIVANCPS   Subsystem: DB2P
+------------------------------------------------------------------
+CREATE STOGROUP MIVANCPS_OVP_STG
+  VOLUMES (MIVOVP1, MIVOVP2)
+  VCAT MIVCAT;
+
+CREATE TABLESPACE NDUPQTS
+  IN MIVANCPS
+  USING STOGROUP MIVANCPS_OVP_STG
+  PRIQTY 720 SECQTY 72
+  LOCKSIZE PAGE
+  BUFFERPOOL BP2
+  COMPRESS YES;
+
+CREATE TABLE MIVANCPS.NEAR_DUP_QUEUE (
+    NDUP_CLAIM_ID        CHAR(20)         NOT NULL,
+    NDUP_ORIG_CLAIM_ID   CHAR(20)         NOT NULL,
+    NDUP_MEMBER_ID       CHAR(15)         NOT NULL,
+    NDUP_PROV_NPI        CHAR(10)         NOT NULL,
+    NDUP_DOS             DECIMAL(8,0)     NOT NULL,
+    NDUP_CPT_CD          CHAR(5)          NOT NULL,
+    NDUP_CHARGE_AMT      DECIMAL(9,2)     NOT NULL,
+    NDUP_MATCH_TYPE      CHAR(10)         NOT NULL,
+    NDUP_PEND_REASON     CHAR(20)         NOT NULL DEFAULT 'NEAR-DUP-REVIEW',
+    NDUP_CREATE_DT       DECIMAL(8,0)     NOT NULL,
+    NDUP_STATUS          CHAR(1)          NOT NULL DEFAULT 'P',
+    CONSTRAINT NDUPQ_PK  PRIMARY KEY (NDUP_CLAIM_ID),
+    CONSTRAINT NDUPQ_FK1 FOREIGN KEY (NDUP_CLAIM_ID)
+        REFERENCES MIVANCPS.CLAIM_PAYMENT (CLAIM_ID)
+        ON DELETE RESTRICT,
+    CONSTRAINT NDUPQ_CHK_STATUS
+        CHECK (NDUP_STATUS IN ('P','A','D')),
+    CONSTRAINT NDUPQ_CHK_MATCH
+        CHECK (NDUP_MATCH_TYPE IN ('DATE-DRIFT','AMT-VAR','MODIFIER','COMBINED'))
+) IN MIVANCPS.NDUPQTS;
+
+-- Status + create-date cluster for batch sweep
+CREATE INDEX MIVANCPS.NDUPQ_IX1
+    ON MIVANCPS.NEAR_DUP_QUEUE (NDUP_STATUS ASC, NDUP_CREATE_DT ASC)
+    CLUSTER;
+
+-- Member + DOS for online lookup
+CREATE INDEX MIVANCPS.NDUPQ_IX2
+    ON MIVANCPS.NEAR_DUP_QUEUE (NDUP_MEMBER_ID, NDUP_DOS);
+
+-- Pend reason for reporting
+CREATE INDEX MIVANCPS.NDUPQ_IX3
+    ON MIVANCPS.NEAR_DUP_QUEUE (NDUP_PEND_REASON, NDUP_STATUS);
+
+GRANT SELECT, INSERT, UPDATE ON TABLE MIVANCPS.NEAR_DUP_QUEUE
+    TO MICPS_BATCH;
+GRANT SELECT ON TABLE MIVANCPS.NEAR_DUP_QUEUE
+    TO MICPS_ONLINE;
+GRANT SELECT ON TABLE MIVANCPS.NEAR_DUP_QUEUE
+    TO MICPS_REPORT;
+```
+</script>
+<script type="text/plain" id="md-movpdup1-jcl">
+# MOVPDUP1.jcl -- Overpayment Audit Job Stream
+
+```jcl
+//MOVPAUD0 JOB (MiCPS,OVPAY),'NEAR-DUP DETECTION',
+//             CLASS=A,MSGCLASS=X,MSGLEVEL=(1,1),
+//             NOTIFY=&SYSUID
+//*----------------------------------------------------------------*
+//* MOVPAUD0  Overpayment Audit Job — MICPS-4471                   *
+//* STEP010   MOVPDUP0  Exact-duplicate detection (existing)        *
+//* STEP020   MOVPDUP1  Near-duplicate detection (MICPS-4471)       *
+//* STEP030   MOVPDEM0  Demand letter generation                    *
+//* STEP040   MADJPND0  Pend queue report                           *
+//*----------------------------------------------------------------*
+//JOBLIB   DD DSN=MIVANCPS.LOADLIB,DISP=SHR
+//*
+//STEP010  EXEC PGM=IKJEFT01
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDUP0) PLAN(MOVPDUP0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//CLMWRK   DD DSN=MIVANCPS.CLAIM.WORK,
+//             DISP=(NEW,CATLG,DELETE),
+//             SPACE=(CYL,(10,5)),
+//             DCB=(RECFM=FB,LRECL=500,BLKSIZE=0)
+//*
+//STEP020  EXEC PGM=IKJEFT01,COND=(8,LE,STEP010)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDUP1) PLAN(MOVPDUP1) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//CLMWRK   DD DSN=MIVANCPS.CLAIM.WORK,DISP=SHR
+//*
+//STEP030  EXEC PGM=IKJEFT01,COND=(8,LE,STEP020)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDEM0) PLAN(MOVPDEM0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//*
+//STEP040  EXEC PGM=IKJEFT01,COND=(8,LE,STEP030)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MADJPND0) PLAN(MADJPND0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//*
+```
+</script>
+<script type="text/plain" id="md-java-ctrl">
+# DuplicateClaimController.java -- REST Endpoints
+
+```java
+package com.mivan.micps.controller;
+import com.mivan.micps.model.ClaimPayment;
+import com.mivan.micps.repository.ClaimPaymentRepository;
+import com.mivan.micps.service.DuplicateClaimDetectionService;
+import com.mivan.micps.service.DuplicateClaimDetectionService.EvaluationResult;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/claims") @RequiredArgsConstructor
+@Tag(name="Duplicate Detection",description="MICPS-4471 near-duplicate claim detection")
+public class DuplicateClaimController {
+    private final DuplicateClaimDetectionService service;
+    private final ClaimPaymentRepository repository;
+    @PostMapping("/evaluate")
+    @Operation(summary="Evaluate a claim for near-duplicate status")
+    public ResponseEntity<EvaluationResult> evaluate(@RequestBody ClaimPayment claim) {
+        return ResponseEntity.ok(service.evaluate(claim));
+    }
+    @PostMapping("/seed")
+    @Operation(summary="Seed a paid claim into CLAIM_PAYMENT for testing")
+    public ResponseEntity<ClaimPayment> seed(@RequestBody ClaimPayment claim) {
+        return ResponseEntity.ok(repository.save(claim));
+    }
+}
+```
+</script>
+<script type="text/plain" id="md-java-claim-model">
+# ClaimPayment.java -- JPA Entity
+
+```java
+package com.mivan.micps.model;
+import jakarta.persistence.*;
+import lombok.*;
+import java.math.BigDecimal;
+@Entity @Table(schema="MIVANCPS",name="CLAIM_PAYMENT")
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
+public class ClaimPayment {
+    @Id @Column(name="CLAIM_ID",length=20) private String claimId;
+    @Column(name="MEMBER_ID",length=15,nullable=false) private String memberId;
+    @Column(name="PROV_NPI",length=10,nullable=false) private String provNpi;
+    @Column(name="DOS_FROM",nullable=false) private Integer dosFrom;
+    @Column(name="DOS_TO") private Integer dosTo;
+    @Column(name="CPT_CD",length=5,nullable=false) private String cptCd;
+    @Column(name="MODIFIER_1",length=2) private String modifier1;
+    @Column(name="MODIFIER_2",length=2) private String modifier2;
+    @Column(name="CHARGE_AMT",precision=9,scale=2,nullable=false) private BigDecimal chargeAmt;
+    @Column(name="PAID_AMT",precision=9,scale=2) private BigDecimal paidAmt;
+    @Column(name="PAYMENT_STATUS_CD",length=2) private String paymentStatusCd;
+    @Column(name="PAYMENT_DT") private Integer paymentDt;
+}
+```
+</script>
+<script type="text/plain" id="md-java-req-model">
+# DuplicateCheckRequest.java -- Request DTO
+
+```java
+package com.mivan.micps.model;
+import java.math.BigDecimal;
+
+/**
+ * Inbound DTO for POST /api/v1/claims/evaluate.
+ * Decouples the REST API surface from the JPA entity.
+ */
+public record DuplicateCheckRequest(
+    String  claimId,
+    String  memberId,
+    String  provNpi,
+    Integer dosFrom,
+    Integer dosTo,
+    String  cptCd,
+    String  modifier1,
+    String  modifier2,
+    BigDecimal chargeAmt,
+    BigDecimal paidAmt,
+    String  paymentStatusCd,
+    Integer paymentDt
+) {
+    /** Convert to JPA entity for service layer. */
+    public ClaimPayment toEntity() {
+        return ClaimPayment.builder()
+            .claimId(claimId).memberId(memberId).provNpi(provNpi)
+            .dosFrom(dosFrom).dosTo(dosTo).cptCd(cptCd)
+            .modifier1(modifier1).modifier2(modifier2)
+            .chargeAmt(chargeAmt).paidAmt(paidAmt)
+            .paymentStatusCd(paymentStatusCd).paymentDt(paymentDt)
+            .build();
+    }
+}
+```
+</script>
+<script type="text/plain" id="md-java-resp-model">
+# DuplicateCheckResponse.java -- Response DTO
+
+```java
+package com.mivan.micps.model;
+import com.mivan.micps.service.DuplicateClaimDetectionService.EvaluationResult;
+
+/**
+ * Outbound DTO for POST /api/v1/claims/evaluate.
+ * Wraps EvaluationResult with a human-readable message.
+ */
+public record DuplicateCheckResponse(
+    String  claimId,
+    String  outcome,
+    String  matchType,
+    String  originalClaimId,
+    String  message
+) {
+    public static DuplicateCheckResponse from(EvaluationResult r) {
+        String msg = switch (r.outcome()) {
+            case NEAR_DUP -> "Claim pended: near-duplicate of " + r.originalClaimId() + " (" + r.matchType() + ")";
+            case CLEAN    -> "Claim passed duplicate screening";
+            case SKIPPED  -> "Claim excluded from screening (ED/override rule)";
+        };
+        return new DuplicateCheckResponse(
+            r.claimId(),
+            r.outcome().name(),
+            r.matchType() != null ? r.matchType().name() : null,
+            r.originalClaimId(),
+            msg
+        );
+    }
+}
+```
+</script>
+<script type="text/plain" id="md-java-schema">
+# schema-postgres.sql -- Aurora PostgreSQL DDL
+
+```sql
+-- schema-postgres.sql  Aurora PostgreSQL DDL — MICPS-4471
+-- Mirrors MIVANCPS DB2 z/OS schema for Java track deployment
+-- Applied via Flyway in prod; H2 uses Hibernate ddl-auto=create-drop
+
+CREATE SCHEMA IF NOT EXISTS mivancps;
+
+CREATE TABLE IF NOT EXISTS mivancps.claim_payment (
+    claim_id            VARCHAR(20)      NOT NULL,
+    member_id           VARCHAR(15)      NOT NULL,
+    prov_npi            VARCHAR(10)      NOT NULL,
+    dos_from            INTEGER          NOT NULL,
+    dos_to              INTEGER,
+    cpt_cd              VARCHAR(5)       NOT NULL,
+    modifier_1          VARCHAR(2),
+    modifier_2          VARCHAR(2),
+    charge_amt          NUMERIC(9,2)     NOT NULL,
+    paid_amt            NUMERIC(9,2),
+    payment_status_cd   VARCHAR(2),
+    payment_dt          INTEGER,
+    CONSTRAINT claim_payment_pk PRIMARY KEY (claim_id)
+);
+
+CREATE INDEX IF NOT EXISTS cp_ix1
+    ON mivancps.claim_payment (member_id, prov_npi, cpt_cd, dos_from, payment_status_cd);
+
+CREATE TABLE IF NOT EXISTS mivancps.near_dup_queue (
+    ndup_claim_id       VARCHAR(20)      NOT NULL,
+    ndup_orig_claim_id  VARCHAR(20)      NOT NULL,
+    ndup_member_id      VARCHAR(15)      NOT NULL,
+    ndup_prov_npi       VARCHAR(10)      NOT NULL,
+    ndup_dos            INTEGER          NOT NULL,
+    ndup_cpt_cd         VARCHAR(5)       NOT NULL,
+    ndup_charge_amt     NUMERIC(9,2)     NOT NULL,
+    ndup_match_type     VARCHAR(10)      NOT NULL
+                            CHECK (ndup_match_type IN (''DATE-DRIFT'',''AMT-VAR'',''MODIFIER'',''COMBINED'')),
+    ndup_pend_reason    VARCHAR(20)      NOT NULL DEFAULT ''NEAR-DUP-REVIEW'',
+    ndup_create_dt      INTEGER          NOT NULL,
+    ndup_status         CHAR(1)          NOT NULL DEFAULT ''P''
+                            CHECK (ndup_status IN (''P'',''A'',''D'')),
+    CONSTRAINT near_dup_queue_pk PRIMARY KEY (ndup_claim_id),
+    CONSTRAINT ndupq_fk1 FOREIGN KEY (ndup_claim_id)
+        REFERENCES mivancps.claim_payment (claim_id)
+        ON DELETE RESTRICT
+);
+
+CREATE INDEX IF NOT EXISTS ndupq_ix1
+    ON mivancps.near_dup_queue (ndup_status ASC, ndup_create_dt ASC);
+
+CREATE INDEX IF NOT EXISTS ndupq_ix2
+    ON mivancps.near_dup_queue (ndup_member_id, ndup_dos);
+
+CREATE INDEX IF NOT EXISTS ndupq_ix3
+    ON mivancps.near_dup_queue (ndup_pend_reason, ndup_status);
+```
+</script>
+<script type="text/plain" id="md-java-config">
+# application.yml -- Spring Boot Configuration
+
+```yaml
+spring:
+  application:
+    name: micps-duplicate-detection
+  datasource:
+    url: jdbc:h2:mem:micps;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS MIVANCPS
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        default_schema: MIVANCPS
+  h2:
+    console:
+      enabled: true
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+```
+</script>
 <!-- ── DEMO OVERLAY PANEL ── -->
 <div id="demo-panel">
   <div id="demo-hdr">
@@ -4945,7 +5335,16 @@ COBOL implementation: MOVPDUP1 — a new program that detects near-duplicate pro
 
 Java implementation: DuplicateClaimDetectionService — Spring Boot service implementing identical logic with fuzzy matching. REST endpoint: POST /api/v1/claims/evaluate. Returns EvaluationResult with outcome (CLEAN, NEAR_DUP, or SKIPPED), matchType, and matchedClaimId. 13 JUnit tests passing covering all 6 scenarios from the acceptance criteria.
 
-Both implementations produce identical outcomes for the same input — designed for shadow mode validation before cutover from mainframe to cloud-native. The cutover gate is 99.99% agreement over 30 consecutive days. Neither developer needed to consult James Whitfield — all context came from the Digital Brain knowledge layers L1 through L5.`;
+Both implementations produce identical outcomes for the same input — designed for shadow mode validation before cutover from mainframe to cloud-native. The cutover gate is 99.99% agreement over 30 consecutive days. Neither developer needed to consult James Whitfield — all context came from the Digital Brain knowledge layers L1 through L5.
+You also know the complete MICPS-4471 supporting artifacts:
+- CLMPAYRC copybook: CLAIM_PAYMENT host variable layout (CLAIM-ID, MEMBER-ID, PROV-NPI, DOS-FROM/TO, CPT-CD, MODIFIER-1/2, CHARGE-AMT, PAID-AMT, PAYMENT-STATUS-CD, PAYMENT-DT).
+- NDUPQREC copybook: NEAR_DUP_QUEUE host variable layout with NDUP-PEND-REASON defaulting to NEAR-DUP-REVIEW and NDUP-STATUS defaulting to P.
+- NEAR_DUP_QUEUE DDL: DB2 z/OS table in MIVANCPS.NDUPQTS, 3 indexes (NDUPQ_IX1 status+date cluster, NDUPQ_IX2 member+DOS, NDUPQ_IX3 pend reason+status), grants to MICPS_BATCH/ONLINE/REPORT.
+- MOVPDUP1.jcl: 4-step job MOVPAUD0 -- STEP010 MOVPDUP0 (exact-dup), STEP020 MOVPDUP1 (near-dup, cond RC), STEP030 MOVPDEM0 (demand letters), STEP040 MADJPND0 (pend report), shared CLMWRK work dataset.
+- DuplicateClaimController: POST /api/v1/claims/evaluate (returns EvaluationResult) and POST /api/v1/claims/seed (saves ClaimPayment via repository for demo seeding).
+- Java models: ClaimPayment (JPA entity, all 12 CLMPAYRC fields), DuplicateCheckRequest (record DTO with toEntity()), DuplicateCheckResponse (record DTO with from(EvaluationResult) factory and human-readable message).
+- Aurora PostgreSQL schema-postgres.sql: mirrors DB2 DDL exactly -- mivancps.claim_payment and mivancps.near_dup_queue with same constraints and indexes. Applied via Flyway in prod.
+- application.yml: H2 dev profile (MODE=PostgreSQL, MIVANCPS schema), H2 console at /h2-console, Swagger UI at /swagger-ui.html, Actuator exposing health/info/metrics.`;
 
 const KNOWLEDGE_BASE = {
   l1: document.getElementById('md-l1').textContent,
@@ -4959,7 +5358,17 @@ const KNOWLEDGE_BASE = {
   movpdup1_zunit:    document.getElementById('md-movpdup1t').textContent,
   java_service:      document.getElementById('md-java-svc').textContent,
   java_tests:        document.getElementById('md-java-tests').textContent,
-  parallel_readme:   document.getElementById('md-parallel-readme').textContent
+  parallel_readme:   document.getElementById('md-parallel-readme').textContent,
+  clmpayrc:            document.getElementById('md-clmpayrc').textContent,
+  ndupqrec:            document.getElementById('md-ndupqrec').textContent,
+  near_dup_ddl:        document.getElementById('md-near-dup-ddl').textContent,
+  movpdup1_jcl:        document.getElementById('md-movpdup1-jcl').textContent,
+  java_controller:     document.getElementById('md-java-ctrl').textContent,
+  java_claim_model:    document.getElementById('md-java-claim-model').textContent,
+  java_request_model:  document.getElementById('md-java-req-model').textContent,
+  java_response_model: document.getElementById('md-java-resp-model').textContent,
+  java_schema:         document.getElementById('md-java-schema').textContent,
+  java_config:         document.getElementById('md-java-config').textContent
 };
 
 function pageKey(page) {
