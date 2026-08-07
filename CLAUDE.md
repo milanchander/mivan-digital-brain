@@ -61,6 +61,15 @@ mivan-digital-brain/
     └── L6-task-intelligence/
 ```
 
+## Skills
+
+### Java Feature Builder
+Location: `skills/java-feature-builder.md`
+
+Activate this skill when a developer pastes a Jira story in MICPS format and asks to implement or build it. Read `skills/java-feature-builder.md` for the full skill definition before proceeding.
+
+This skill enforces a structured 8-step generation process and will not generate code until the input story passes validation.
+
 ## Conventions
 
 - Knowledge artifacts are Markdown files with YAML frontmatter (`layer`, `domain`, `source`, `last_synced`)
