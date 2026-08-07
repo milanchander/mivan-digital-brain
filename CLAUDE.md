@@ -63,25 +63,41 @@ mivan-digital-brain/
 
 ## Skills
 
-This project has four Claude Code skills. Claude Code automatically activates the appropriate skill based on developer intent.
+This project has seven Claude Code skills. Claude Code automatically activates the appropriate skill based on developer intent.
 
 Always read the relevant skill file completely before activating it. Never skip the validation or analysis steps defined in each skill.
 
-### Skill 1 — Java Feature Builder
+### Java Skills
+
+#### Skill 1 — Java Feature Builder
 File: `skills/java-feature-builder.md`
 Activate when: Developer pastes a Jira story and says "implement this" or "build this feature"
 
-### Skill 2 — COBOL to Java Migrator
+#### Skill 2 — COBOL to Java Migrator
 File: `skills/cobol-to-java-migrator.md`
 Activate when: Developer provides a COBOL program and says "migrate this" or "convert to Java"
 
-### Skill 3 — Java Test Generator
+#### Skill 3 — Java Test Generator
 File: `skills/java-test-generator.md`
 Activate when: Developer provides a Java class and says "generate tests" or "write tests for this"
 
-### Skill 4 — Java Code Reviewer
+#### Skill 4 — Java Code Reviewer
 File: `skills/java-code-reviewer.md`
 Activate when: Developer provides Java code and says "review this" or "code review"
+
+### COBOL Skills
+
+#### Skill 5 — COBOL Feature Builder
+File: `skills/cobol-feature-builder.md`
+Activate when: Developer pastes a Jira story and says "implement this in COBOL" or "build this COBOL feature"
+
+#### Skill 6 — COBOL Test Generator
+File: `skills/cobol-test-generator.md`
+Activate when: Developer provides a COBOL program and says "generate tests", "write ZUnit tests for this", or "improve test coverage"
+
+#### Skill 7 — COBOL Code Reviewer
+File: `skills/cobol-code-reviewer.md`
+Activate when: Developer provides COBOL code and says "review this", "code review", or "check this COBOL"
 
 ## Conventions
 
