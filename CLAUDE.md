@@ -63,33 +63,25 @@ mivan-digital-brain/
 
 ## Skills
 
-### Java Feature Builder
-Location: `skills/java-feature-builder.md`
+This project has four Claude Code skills. Claude Code automatically activates the appropriate skill based on developer intent.
 
-Activate this skill when a developer pastes a Jira story in MICPS format and asks to implement or build it. Read `skills/java-feature-builder.md` for the full skill definition before proceeding.
+Always read the relevant skill file completely before activating it. Never skip the validation or analysis steps defined in each skill.
 
-This skill enforces a structured 8-step generation process and will not generate code until the input story passes validation.
+### Skill 1 — Java Feature Builder
+File: `skills/java-feature-builder.md`
+Activate when: Developer pastes a Jira story and says "implement this" or "build this feature"
 
-### COBOL to Java Migrator
-Location: `skills/cobol-to-java-migrator.md`
+### Skill 2 — COBOL to Java Migrator
+File: `skills/cobol-to-java-migrator.md`
+Activate when: Developer provides a COBOL program and says "migrate this" or "convert to Java"
 
-Activate this skill when a developer provides a COBOL program and asks to migrate it, convert it to Java, or build the Java equivalent. Read `skills/cobol-to-java-migrator.md` for the full skill definition before proceeding.
+### Skill 3 — Java Test Generator
+File: `skills/java-test-generator.md`
+Activate when: Developer provides a Java class and says "generate tests" or "write tests for this"
 
-This skill produces a production-quality Java 21 Spring Boot service with full paragraph-level traceability, a shadow mode validation harness, and migration notes. It will not generate code until copybook/schema gaps are acknowledged by the developer.
-
-### Java Test Generator
-Location: `skills/java-test-generator.md`
-
-Activate this skill when a developer provides a Java class and asks to generate tests, write tests for it, or improve test coverage. Read `skills/java-test-generator.md` for the full skill definition before proceeding.
-
-This skill produces a JUnit 5 test suite with happy path, boundary value, negative path, exception, acceptance criteria, and migration parity tests. The richer the context (Jira story, COBOL equivalent), the more complete the suite.
-
-### Java Code Reviewer
-Location: `skills/java-code-reviewer.md`
-
-Activate this skill when a developer provides Java code and asks to review it, do a code review, or check it against standards. Read `skills/java-code-reviewer.md` for the full skill definition before proceeding.
-
-This skill reviews across six dimensions: AC alignment, Mivan coding standards, Spring Boot best practices, test quality, migration traceability, and security/data. Every finding is cited by class, method, and line number. Output is a structured report with APPROVED / APPROVED WITH COMMENTS / CHANGES REQUIRED verdict.
+### Skill 4 — Java Code Reviewer
+File: `skills/java-code-reviewer.md`
+Activate when: Developer provides Java code and says "review this" or "code review"
 
 ## Conventions
 
