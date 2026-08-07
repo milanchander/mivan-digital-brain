@@ -70,6 +70,13 @@ Activate this skill when a developer pastes a Jira story in MICPS format and ask
 
 This skill enforces a structured 8-step generation process and will not generate code until the input story passes validation.
 
+### COBOL to Java Migrator
+Location: `skills/cobol-to-java-migrator.md`
+
+Activate this skill when a developer provides a COBOL program and asks to migrate it, convert it to Java, or build the Java equivalent. Read `skills/cobol-to-java-migrator.md` for the full skill definition before proceeding.
+
+This skill produces a production-quality Java 21 Spring Boot service with full paragraph-level traceability, a shadow mode validation harness, and migration notes. It will not generate code until copybook/schema gaps are acknowledged by the developer.
+
 ## Conventions
 
 - Knowledge artifacts are Markdown files with YAML frontmatter (`layer`, `domain`, `source`, `last_synced`)
