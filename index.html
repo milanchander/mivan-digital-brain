@@ -979,11 +979,9 @@
     </button>
   </div>
 
-  <!-- API key entry -->
+  <!-- Connection notice (shown only if the local backend can't be reached) -->
   <div id="apikey-section">
-    <p>Connect your Anthropic API key to chat with the Mivan Digital Brain about MiCPS, claims processing, and the modernization program.</p>
-    <input type="password" id="apikey-input" placeholder="sk-ant-api03-..." autocomplete="off">
-    <button id="apikey-save">Connect →</button>
+    <p>The Mivan Digital Brain runs on a local backend powered by the Claude Agent SDK — no API key needed. Start it with <code>backend/start.ps1</code>, then reopen this chat.</p>
   </div>
 
   <!-- Chat interface -->
@@ -5945,19 +5943,8 @@ document.getElementById('chat-close').addEventListener('click', () => panel.clas
 
 function openChat() {
   panel.classList.add('open');
-  if (sessionStorage.getItem('mdb_key')) activateChatUI();
-}
-
-document.getElementById('apikey-save').addEventListener('click', () => {
-  const k = document.getElementById('apikey-input').value.trim();
-  if (!k) return;
-  sessionStorage.setItem('mdb_key', k);
   activateChatUI();
-});
-
-document.getElementById('apikey-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('apikey-save').click();
-});
+}
 
 function activateChatUI() {
   document.getElementById('apikey-section').style.display = 'none';
@@ -6005,59 +5992,88 @@ function hideTyping() {
   if (t) t.remove();
 }
 
-async function sendMsg(text) {
-  const key = sessionStorage.getItem('mdb_key');
-  if (!key) { openChat(); return; }
+// ── Claude Agent SDK backend (no API key — auth via your Claude Code login) ──
+const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + 'localhost:8000/ws/chat';
+let ws = null;
+let convoStarted = false;   // has the first message been sent on this WS?
+let botBubble = null;       // the bubble currently being streamed into
+let botRaw = '';            // accumulated markdown for the streaming bubble
 
-  addBubble('user', text);
-  document.getElementById('chat-send-btn').disabled = true;
-  showTyping();
+function connectWS() {
+  return new Promise((resolve, reject) => {
+    if (ws && ws.readyState === WebSocket.OPEN) return resolve();
+    let settled = false;
+    try { ws = new WebSocket(WS_URL); }
+    catch (e) { return reject(e); }
+    ws.onopen = () => { settled = true; resolve(); };
+    ws.onerror = () => { if (!settled) { settled = true; reject(new Error('unreachable')); } };
+    ws.onclose = () => { ws = null; convoStarted = false; };
+    ws.onmessage = onWSMessage;
+  });
+}
 
-  const pageCtx = (document.getElementById('content').innerText || '').slice(0, 3000);
+function onWSMessage(ev) {
+  let m;
+  try { m = JSON.parse(ev.data); } catch { return; }
 
-  const msgs = [];
-  if (pageCtx && history.length === 0) {
-    msgs.push({ role: 'user',      content: 'Current page context:\n\n' + pageCtx });
-    msgs.push({ role: 'assistant', content: 'I have reviewed the current page context. How can I help?' });
+  if (m.type === 'tool_call') {
+    // Agent is searching the knowledge base — keep the typing indicator visible.
+    return;
   }
-  history.forEach(m => msgs.push(m));
-  msgs.push({ role: 'user', content: text });
+
+  if (m.type === 'stream_text') {
+    hideTyping();
+    if (!botBubble) { botBubble = addBubble('bot', ''); botRaw = ''; }
+    botRaw += m.text;
+    botBubble.innerHTML = '<div class="md">' + marked.parse(botRaw) + '</div>';
+    document.getElementById('chat-msgs').scrollTop = 99999;
+    return;
+  }
+
+  if (m.type === 'complete') {
+    hideTyping();
+    if (botRaw) {
+      history.push({ role: 'assistant', content: botRaw });
+    }
+    botBubble = null; botRaw = '';
+    document.getElementById('chat-send-btn').disabled = false;
+    return;
+  }
+
+  if (m.type === 'error') {
+    hideTyping();
+    addBubble('err', 'Error: ' + m.message);
+    botBubble = null; botRaw = '';
+    document.getElementById('chat-send-btn').disabled = false;
+    return;
+  }
+}
+
+async function sendMsg(text) {
+  addBubble('user', text);
+  history.push({ role: 'user', content: text });
+  document.getElementById('chat-send-btn').disabled = true;
+  document.getElementById('suggestions').style.display = 'none';
+  showTyping();
+  botBubble = null; botRaw = '';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-inaccessible': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: SYSTEM,
-        messages: msgs
-      })
-    });
-
+    await connectWS();
+  } catch (e) {
     hideTyping();
-
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      addBubble('err', 'Error: ' + (e.error?.message || res.statusText));
-    } else {
-      const data = await res.json();
-      const reply = data.content[0].text;
-      history.push({ role: 'user', content: text });
-      history.push({ role: 'assistant', content: reply });
-      addBubble('bot', reply);
-    }
-  } catch(e) {
-    hideTyping();
-    addBubble('err', 'Request failed: ' + e.message);
+    addBubble('err', 'Cannot reach the Digital Brain backend at ' + WS_URL +
+      '. Start it first: run backend/start.ps1 (see backend/README.md).');
+    document.getElementById('chat-send-btn').disabled = false;
+    return;
   }
 
-  document.getElementById('chat-send-btn').disabled = false;
+  if (!convoStarted) {
+    convoStarted = true;
+    const pageCtx = (document.getElementById('content').innerText || '').slice(0, 4000);
+    ws.send(JSON.stringify({ message: text, system_prompt: SYSTEM, page_context: pageCtx }));
+  } else {
+    ws.send(JSON.stringify({ type: 'follow_up', message: text }));
+  }
 }
 
 
