@@ -1,0 +1,53 @@
+//MOVPAUD0 JOB (MiCPS,OVPAY),'NEAR-DUP DETECTION',
+//             CLASS=A,MSGCLASS=X,MSGLEVEL=(1,1),
+//             NOTIFY=&SYSUID
+//*----------------------------------------------------------------*
+//* MOVPAUD0  Overpayment Audit Job — MICPS-4471                   *
+//* STEP010   MOVPDUP0  Exact-duplicate detection (existing)        *
+//* STEP020   MOVPDUP1  Near-duplicate detection (MICPS-4471)       *
+//* STEP030   MOVPDEM0  Demand letter generation                    *
+//* STEP040   MADJPND0  Pend queue report                           *
+//*----------------------------------------------------------------*
+//JOBLIB   DD DSN=MIVANCPS.LOADLIB,DISP=SHR
+//*
+//STEP010  EXEC PGM=IKJEFT01
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDUP0) PLAN(MOVPDUP0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//CLMWRK   DD DSN=MIVANCPS.CLAIM.WORK,
+//             DISP=(NEW,CATLG,DELETE),
+//             SPACE=(CYL,(10,5)),
+//             DCB=(RECFM=FB,LRECL=500,BLKSIZE=0)
+//*
+//STEP020  EXEC PGM=IKJEFT01,COND=(8,LE,STEP010)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDUP1) PLAN(MOVPDUP1) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//CLMWRK   DD DSN=MIVANCPS.CLAIM.WORK,DISP=SHR
+//*
+//STEP030  EXEC PGM=IKJEFT01,COND=(8,LE,STEP020)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPDEM0) PLAN(MOVPDEM0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//*
+//STEP040  EXEC PGM=IKJEFT01,COND=(8,LE,STEP030)
+//SYSTSPRT DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MADJPND0) PLAN(MADJPND0) -
+      LIB(MIVANCPS.LOADLIB)
+  END
+//SYSPRINT DD SYSOUT=*
+//*
