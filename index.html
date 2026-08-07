@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -716,11 +716,3014 @@
 
 </div>
 
+<script type="text/plain" id="md-l1">
+---
+layer: L1
+domain: enterprise
+source: manual
+last_synced: 2026-08-06
+---
+
+# Mivan Health Plan — Enterprise Context
+
+## 1. Organization Overview
+
+- **Legal Name**: Mivan Health Plan, Inc.
+- **Business Model**: National managed care organization; fully-insured and ASO commercial plans, Medicare Advantage, and Medicaid managed care
+- **Membership**: ~150 million members across commercial, Medicare, and Medicaid lines of business
+- **Geographic Footprint**: Nationwide; licensed in all 50 states and D.C.
+- **Primary Business Segments**:
+  - **Mivan Commercial** — employer-sponsored group plans, individual marketplace
+  - **Mivan Government Programs** — Medicare Advantage and Medicaid managed care
+  - **Mivan Health Services** — care management, pharmacy benefits, specialty networks
+
+## 2. Technology Landscape
+
+### Core Claims Platform — MiCPS
+
+MiCPS (Mivan Claims Processing System) is Mivan's homegrown mainframe claims adjudication engine. It is the system of record for all commercial medical claims.
+
+| Attribute | Detail |
+|-----------|--------|
+| System Name | MiCPS — Mivan Claims Processing System |
+| Platform | IBM z/OS mainframe |
+| Languages | COBOL, JCL, CICS (online transaction processing via IBM CICS), VSAM (file management — KSDS, ESDS, RRDS file types used for reference data, work files, and intermediate claims processing) |
+| Database | IBM DB2 |
+| Lines of Business | Commercial medical claims only (Medicare Advantage adjudicated on TriStar MA Platform; Medicaid adjudicated on StateLink MCO Platform) |
+| Age | ~30 years in production; continuously extended |
+| Throughput | Processes ~4 million claims per day at peak |
+| Integration Style | Batch file exchange (SFTP), MQ messaging; no REST APIs |
+| Documentation | Sparse; system knowledge concentrated in a small group of senior engineers |
+
+### Surrounding Systems
+
+| System | Purpose | Technology |
+|--------|---------|-----------|
+| MiEDI | EDI clearinghouse gateway — 837 intake and 835 output | IBM Sterling B2B |
+| MiMember | Member eligibility and enrollment | Oracle, on-prem |
+| MiProvider | Provider master data management | SQL Server, on-prem |
+| MiPortal | Provider and member self-service web portal | Java / Spring, on-prem |
+| MiReport | Operational and regulatory reporting | Cognos, DB2 |
+| MiAuth | Prior authorization workflow | Legacy vendor platform |
+| MiDataSQL | Downstream SQL Server database receiving batch feeds from MiCPS for operational reporting and provider payment reconciliation | SQL Server, on-prem |
+| MiDataLake | AWS S3-based data lake receiving batch feeds from MiCPS in fixed-width and CSV formats for analytics, regulatory reporting, and ML model training | AWS S3, us-east-1 |
+
+**Batch Integration Note:** Batch jobs run nightly and intraday via JCL, sending outbound feeds to MiDataSQL (SQL Server) and MiDataLake (S3). Feed failures are detected via job abend monitoring and trigger automated alerts to the operations team.
+
+### Cloud Footprint (Current State)
+
+Mivan's cloud adoption is early-stage. A shared AWS landing zone exists but hosts only non-production workloads and greenfield transformation pilots. No production claims processing runs in cloud today.
+
+| Environment | AWS Account | Region | Purpose |
+|-------------|-------------|--------|---------|
+| Transformation Pilot | Mivan-Dev | us-east-1 | Cloud-native migration POCs |
+| Shared Services | Mivan-Shared | us-east-1 | CI/CD, secrets, observability |
+| Data Platform | Mivan-Data | us-east-1 | Snowflake integration, analytics |
+
+## 3. Strategic Priorities
+
+### Priority 1 — Cloud-Native Platform Migration
+
+Migrate MiCPS function-by-function to a custom cloud-native architecture on AWS. Each migrated function is re-implemented as a microservice before the mainframe equivalent is decommissioned. Target completion: 5-year program.
+
+- New platform stack: Java 21, Spring Boot, PostgreSQL/Aurora, Kafka, AWS EKS
+- Migration approach: strangler fig pattern — incremental extraction, not big-bang rewrite
+- First migrations in flight: eligibility validation, duplicate claim detection, remittance generation
+
+### Priority 2 — AI-Native SDLC
+
+Adopt an AI-native software development lifecycle across all engineering teams. This includes AI-assisted development, automated knowledge capture, intelligent testing, and AI-augmented operations.
+
+- Designated as a strategic initiative by the CTO in Q1 2026
+- Digital Brain is the foundational knowledge layer enabling this transformation
+- Goal: reduce time-to-production for new features by 40% within 18 months
+
+### Priority 3 — Knowledge Preservation and Democratization
+
+Capture the institutional knowledge embedded in MiCPS and its senior engineers before it is lost to attrition and platform migration. Make that knowledge accessible to all engineers — including those unfamiliar with mainframe.
+
+- Estimated 60–70% of MiCPS system knowledge exists only in the minds of ~12 senior engineers, most within 3–5 years of retirement
+- Digital Brain is the primary vehicle for extracting, structuring, and perpetuating this knowledge
+
+## 4. Transformation Mandate
+
+### Why Now
+
+Mivan's leadership approved the transformation program in response to compounding pain points that have reached a strategic inflection point:
+
+| Pain Point | Impact |
+|------------|--------|
+| Slow release cycles | MiCPS releases take 6–9 months end-to-end due to mainframe change management, regression testing, and batch scheduling constraints |
+| Tribal knowledge concentration | ~80% of COBOL/JCL expertise sits with ~12 engineers; 4 have announced retirement in 2026–2027 |
+| Platform velocity ceiling | Mainframe architecture cannot support real-time APIs, event streaming, or modern ML/AI integration patterns |
+| Competitive pressure | Competing payers are shipping AI-native features (real-time auth, predictive denials) that MiCPS cannot support |
+| Talent pipeline | New engineering graduates do not know COBOL; recruiting and onboarding is increasingly difficult |
+
+### Transformation Approach
+
+- **Migration Pattern**: Strangler fig — extract and replace one functional domain at a time; coexistence layer handles routing between mainframe and cloud services during transition
+- **Knowledge Strategy**: Instrument MiCPS code, JCL, and DB2 schemas before migration to capture business rules embedded in logic; this feeds L5 and L6 of the Digital Brain
+- **AI-Native SDLC**: All new cloud-native services are built within an AI-augmented developer workflow from day one
+- **Program Governance**: Transformation is governed by a cross-functional steering committee chaired by the CTO, with monthly executive reviews
+
+### Digital Brain's Role in the Transformation
+
+The Digital Brain is not a side project — it is infrastructure for the transformation itself:
+
+1. **Knowledge extraction**: Connector ingests MiCPS COBOL modules, JCL, DB2 DDL, runbooks, and Confluence docs and structures them into L3–L6 knowledge layers
+2. **Developer enablement**: The developer harness surfaces relevant MiCPS business rules, data mappings, and architectural decisions to engineers building cloud-native replacements
+3. **QE enablement**: The QE harness surfaces historical defect patterns, test scenarios, and edge cases derived from 30 years of production claims processing
+4. **Onboarding acceleration**: New engineers gain mainframe context without requiring pairing with senior COBOL developers
+
+## 5. Key Stakeholders
+
+| Name | Title | Organization | Relevance to Digital Brain |
+|------|-------|-------------|---------------------------|
+| Sandra Okafor | Chief Technology Officer | Mivan Technology | Executive sponsor; approved AI-native SDLC initiative |
+| Marcus Delgado | VP, Claims Technology | Mivan Technology | Owns MiCPS and cloud migration program; primary Digital Brain champion |
+| Priya Nair | Director, Platform Engineering | Mivan Technology | Owns AWS landing zone, EKS platform, and DevOps toolchain |
+| James Whitfield | Principal Engineer, MiCPS | Mivan Technology | 28-year mainframe veteran; primary source of tribal COBOL/JCL knowledge |
+| Anita Rosen | Director, QE and Test Automation | Mivan Technology | Owns QE harness requirements; driving test intelligence use cases |
+| Kevin Tran | Product Manager, Transformation Program | Mivan Technology | Manages migration roadmap and program governance |
+| Dr. Linda Park | VP, Government Programs | Mivan Health Plan | Stakeholder for Medicare/Medicaid knowledge domains |
+| Rachel Mbeki | Chief Compliance Officer | Mivan Health Plan | HIPAA, HITRUST, and CMS compliance requirements |
+
+## Glossary — Mivan Enterprise Terms
+
+| Term | Definition |
+|------|-----------|
+| MiCPS | Mivan Claims Processing System — the core mainframe claims adjudication platform |
+| MiEDI | Mivan's EDI clearinghouse gateway (IBM Sterling) |
+| Strangler Fig | Migration pattern: incrementally replace legacy functions with cloud-native equivalents |
+| AI-Native SDLC | Mivan's initiative to embed AI assistance throughout the software development lifecycle |
+| Digital Brain | AI-native knowledge layer being built on Accenture's framework to enable the transformation |
+| Transformation Program | The 5-year initiative to migrate MiCPS to cloud-native architecture |
+| Coexistence Layer | Routing layer that directs traffic to either mainframe or cloud service during migration |
+| Tribal Knowledge | System knowledge held informally by individuals — not documented, not transferable without them |
+
+</script>
+
+<script type="text/plain" id="md-l2">
+---
+layer: L2
+domain: health-payer
+source: web-research + manual
+last_synced: 2026-08-06
+---
+
+# Health Payer Domain Knowledge — Commercial Claims Processing
+
+> **Validation flag legend used in this document:**
+> `> ⚠️ VALIDATE:` marks a statement that requires confirmation against Mivan-specific policy, system behavior, or contractual terms before treating as authoritative.
+
+---
+
+## 1. Claims Lifecycle — End to End
+
+The commercial health insurance claims lifecycle spans from the point of care through final payment. All commercial medical claims follow the same fundamental sequence, with payer-specific variations in system implementation.
+
+```
+Patient Encounter
+      │
+      ▼
+Claim Preparation (Provider)
+  - Assign ICD-10 diagnosis codes
+  - Assign CPT / HCPCS procedure codes
+  - Complete CMS-1500 (professional) or UB-04 (institutional)
+      │
+      ▼
+Clearinghouse Submission
+  - Format translation → ANSI X12 837P or 837I
+  - Syntax and HIPAA compliance validation
+  - 999 / TA1 acknowledgement returned to provider
+      │
+      ▼
+Payer Intake
+  - Claim received and logged
+  - Duplicate detection
+  - Member and provider lookup
+      │
+      ▼
+Editing & Front-End Validation
+  - OCE / claim edits (format, code, coverage)
+  - NCCI edits (bundling, unbundling)
+  - Medical necessity screening
+      │
+      ▼
+Eligibility & Benefits Determination
+  - Member active on date of service?
+  - Correct plan / product?
+  - COB order established?
+      │
+      ▼
+Adjudication
+  - Coverage determination
+  - Prior auth check
+  - Fee schedule / repricing
+  - Cost-share calculation (deductible, copay, coinsurance, OOP max)
+      │
+      ├─── Auto-adjudicate (majority of clean claims)
+      └─── Route to manual review (complex / flagged claims)
+      │
+      ▼
+Adjudication Decision
+  - Pay
+  - Deny (with reason code)
+  - Pend (request additional information)
+  - Suspend (system hold for review)
+      │
+      ▼
+Payment
+  - EFT to provider (ACH)
+  - X12 835 ERA sent to provider
+  - EOB generated for member
+      │
+      ▼
+Post-Payment
+  - Remittance reconciliation
+  - Overpayment / recovery (if applicable)
+  - Reporting and analytics
+```
+
+### Claim Adjustment and Void
+
+After a claim has been submitted and processed, providers may need to correct or cancel it using the X12 837 frequency code in CLM05-3.
+
+| Frequency Code | Type | Description |
+|---------------|------|-------------|
+| 1 | Original | First submission of a new claim |
+| 7 | Replacement (Corrected Claim) | Corrects and replaces a previously submitted claim; supersedes the original in full |
+| 8 | Void | Cancels a previously processed claim entirely; triggers overpayment recovery if the original was paid |
+
+**Replacement Claim Rules**
+
+- The replacement claim (frequency code 7) must reference the original claim's **payer claim control number** (also called ICN — Internal Control Number, or DCN — Document Control Number) in the REF segment of Loop 2300
+- The replacement claim resubmits all service lines — it is not a partial line-level correction
+- The payer voids the original claim and adjudicates the replacement as a new claim
+
+**Void Rules**
+
+- A void (frequency code 8) cancels the original claim entirely
+- If the original claim was paid, the void triggers an overpayment recovery obligation — the full paid amount becomes subject to recoupment
+
+**MiCPS Complexity**
+
+> ⚠️ HIGH TRIBAL KNOWLEDGE AREA: Matching replacement claims to their originals via ICN/DCN, handling partial adjustments, and managing the cascading downstream impacts on accumulators (deductible, OOP max) and COB calculations are among the most error-prone areas of MiCPS. When an original paid claim is replaced or voided, accumulator rollback and COB re-calculation must occur correctly or downstream claims will be mispriced. The logic for this is embedded in COBOL batch programs and is not fully documented.
+
+### Regulatory Timelines
+
+| Claim Type | Clean Claim Payment Deadline | Source |
+|------------|-----------------------------|----|
+| Commercial (fully-insured) | Varies by state; typically 30–45 days | State prompt pay laws |
+| ERISA / self-funded | No federal mandate; contract-driven | DOL guidance |
+| Medicare Advantage | 30 days (clean claim) / 60 days (unclean) | CMS MA regulations |
+| Medicaid | Varies by state; typically 30 days | State Medicaid contracts |
+
+> ⚠️ VALIDATE: Confirm Mivan's specific prompt pay obligations by state and line of business.
+
+**Sources:** [FinThrive — Claims Lifecycle](https://finthrive.com/blog/understanding-the-claims-lifecycle-a-step-by-step-guide) · [SSI Group — Healthcare Claim Life Cycle](https://thessigroup.com/understanding-the-healthcare-claim-life-cycle-from-patient-registration-to-payment/) · [MedEvolve — Claims Submission](https://medevolve.com/revenue-cycle-101/claims-submission-rcm-process/)
+
+---
+
+## 2. Claims Intake & Editing
+
+### Submission Channels
+
+| Channel | Format | Typical Users |
+|---------|--------|--------------|
+| EDI clearinghouse | X12 837P / 837I | Large provider groups, hospitals |
+| Direct EDI (trading partner) | X12 837P / 837I | Large systems with bilateral agreements |
+| Provider web portal | Payer-proprietary form | Small practices, single providers |
+| Paper (CMS-1500 / UB-04) | Scanned / OCR | Small providers; legacy submissions |
+
+### ANSI X12 837 Format Overview
+
+The X12 837 is the HIPAA-mandated electronic format for all healthcare claim submissions. The current required version is **005010** (X12 005010X222A2 for Professional; 005010X223A3 for Institutional).
+
+#### 837P — Professional Claims
+
+Used for physician and outpatient professional services. Maps to the paper CMS-1500 form.
+
+| Key Segment | Description |
+|------------|-------------|
+| ISA / GS | Interchange and functional group headers — trading partner IDs |
+| ST 837 | Transaction set header |
+| BPR | Loop 2000A — Billing Provider |
+| Loop 2000B | Subscriber / insured information |
+| Loop 2000C | Patient information (if different from subscriber) |
+| Loop 2300 | Claim header — dates, total charge, place of service, diagnosis codes |
+| Loop 2400 | Service line detail — CPT/HCPCS, modifiers, charge, units |
+| SE | Transaction set trailer |
+
+Key data carried: NPI (billing and rendering), member ID, date of service, place of service (POS), ICD-10 diagnosis codes (up to 12), CPT / HCPCS codes, modifiers, charge amounts.
+
+#### 837I — Institutional Claims
+
+Used for inpatient and outpatient facility services. Maps to the paper UB-04 form.
+
+| Key Segment | Description |
+|------------|-------------|
+| Loop 2300 | Claim header — admission date, discharge date, bill type, DRG |
+| CLM05 | Type of bill (TOB) — 3-digit code identifying facility type and claim frequency |
+| Loop 2400 | Revenue codes (not CPT for inpatient) + HCPCS for outpatient |
+
+Key data carried: Type of bill (TOB), admission/discharge dates, DRG, revenue codes, condition codes, occurrence codes, value codes.
+
+### Acknowledgement Transactions
+
+| Transaction | Purpose |
+|-------------|---------|
+| TA1 | Interchange acknowledgement — confirms ISA-level receipt |
+| 999 (replaces 997) | Functional acknowledgement — confirms transaction-level syntax acceptance or rejection |
+
+> ⚠️ VALIDATE: Confirm whether Mivan uses 999 or legacy 997 acknowledgement with trading partners.
+
+### Edit Categories
+
+Once a claim passes EDI syntax validation, payer-side edits are applied in layers:
+
+#### Layer 1 — Front-End / Format Edits
+Validate structural completeness and HIPAA compliance before the claim enters the adjudication queue.
+
+| Edit Type | Example |
+|-----------|---------|
+| Required field missing | Member ID absent |
+| Invalid code format | NPI not 10 digits |
+| Date logic | Service date after received date |
+| Provider not credentialed | Rendering NPI not on file |
+
+#### Layer 2 — Clinical / OCE Edits
+The Outpatient Code Editor (OCE) is used by many payers (modeled after CMS's OCE for OPPS) to validate procedure and diagnosis code combinations.
+
+| Edit Type | Example |
+|-----------|---------|
+| Invalid diagnosis code | ICD-10 code not in current code set |
+| Sex / procedure conflict | Prostatectomy billed for female member |
+| Age / procedure conflict | Pediatric code on adult member |
+| Manifestation code as principal diagnosis | Code sequencing error |
+
+#### Layer 3 — NCCI / Bundling Edits
+The National Correct Coding Initiative (NCCI) defines procedure code pairs that should not be billed together. Originally a Medicare standard, widely adopted by commercial payers.
+
+| Edit Type | Example |
+|-----------|---------|
+| Mutually exclusive procedure codes | Two procedures that cannot be performed together |
+| Comprehensive / component edit | Component procedure included in a comprehensive code — unbundling |
+| Modifier override | Some NCCI edits can be bypassed with appropriate modifier (e.g., -59, XU, XS) |
+
+#### Layer 4 — Payer-Specific Business Edits
+Rules specific to the plan's coverage, policy, or contract terms.
+
+| Edit Type | Example |
+|-----------|---------|
+| Prior auth required and absent | Procedure requires auth; none on file |
+| Non-covered service | Cosmetic procedure excluded from plan benefits |
+| Frequency limit exceeded | More PT visits than plan allows per year |
+| Referral required | HMO plan requires PCP referral; none on file |
+
+### Timely Filing
+
+Timely filing is the deadline by which a claim must be submitted to be eligible for payment, measured from the date of service (DOS). Claims received after the timely filing limit are denied regardless of clinical validity.
+
+| Attribute | Detail |
+|-----------|--------|
+| Definition | Maximum period from DOS within which a claim must reach the payer to be eligible for payment |
+| Commercial range | 90 days to 365 days from DOS; some contracts allow up to 24 months |
+| Denial code | CARC CO-29 — "The time limit for filing has expired" |
+| Governing authority | Contract-driven for commercial payers — no single federal standard |
+| COB secondary claims | Typically measured from the primary payer's EOB date, not DOS |
+
+**Late Filing Exceptions**
+
+A timely filing denial may be overturned on appeal if the provider can demonstrate one of the following:
+
+| Exception | Documentation Required |
+|-----------|----------------------|
+| Coordination of benefits | Primary payer EOB showing claim was submitted to primary within timely filing window |
+| Retroactive eligibility | Proof that member's coverage was not confirmed until after the filing deadline |
+| Provider system issues | Evidence of a documented system outage or clearinghouse failure that prevented timely submission |
+| Payer error | Proof that the claim was submitted on time but rejected in error by the payer |
+
+> ⚠️ VALIDATE: Confirm Mivan's commercial timely filing limit per provider contract tier (large group, individual, facility). Confirm the COB secondary timely filing window and whether it is measured from primary EOB date or DOS.
+
+---
+
+### Split Claims
+
+A split claim is a single episode of care divided into two or more separate claims for processing purposes.
+
+**Common Triggers**
+
+| Trigger | Description |
+|---------|-------------|
+| Claim spans two benefit years | Inpatient admission beginning in December and discharging in January crosses plan year boundary; cost-share accumulators reset at year-end |
+| Claim exceeds line item maximum | Some payers impose a maximum number of service lines per claim (e.g., 50 lines); claims exceeding this must be split into multiple submissions |
+| Inpatient stay crosses two plan benefit periods | Member's benefit period resets mid-stay (e.g., Medicare benefit periods); stay must be split at the boundary |
+| Payer system constraint | Legacy systems (including MiCPS) may impose internal record size limits requiring splits for very large claims |
+
+**MiCPS Implication**
+
+> ⚠️ HIGH TRIBAL KNOWLEDGE AREA: Split claim logic is one of the most complex areas of MiCPS batch processing. The rules for when and how to split a claim, how to link the resulting claim parts, and how to correctly apply accumulators and COB across split segments are embedded in COBOL batch logic with limited documentation. This area must be a priority for knowledge extraction before migration.
+
+---
+
+**Sources:** [AccountableHQ — HIPAA EDI Transactions](https://www.accountablehq.com/post/hipaa-edi-transactions-explained-types-x12-codes-and-compliance) · [DetailRCM — ANSI X12 837](https://detailsrcm.com/blog/medical-coding/ansi-x12-837-edi-claims-file-format-healthcare-billing/) · [EDI Academy — 837 Professional](https://ediacademy.com/blog/837-professional-health-care-claim/)
+
+### MiCPS Implementation Notes — Claims Intake & Editing
+
+> [TO BE POPULATED — MiCPS-specific implementation of this function, including COBOL program names, DB2 tables, VSAM files, batch job names, and known complexity areas]
+
+---
+
+## 3. Eligibility & Benefits Verification
+
+### Real-Time Eligibility Check (EDI 270/271)
+
+At claim intake, the payer performs an eligibility verification against its membership system:
+
+| Check | Description |
+|-------|-------------|
+| Member active | Was the member enrolled and active on the date of service? |
+| Plan / product | Which product (HMO, PPO, HDHP) was the member on? |
+| Coverage effective dates | Did coverage start before and extend through the DOS? |
+| LOB routing | Commercial, Medicare Advantage, or Medicaid? Route accordingly |
+
+The EDI 270 (Eligibility Inquiry) / 271 (Eligibility Response) transaction pair is the HIPAA-standard real-time eligibility check, widely used by providers pre-service and payers at intake.
+
+### Benefit Determination
+
+Once eligibility is confirmed, the adjudication engine retrieves the member's benefit structure:
+
+| Benefit Element | Description |
+|----------------|-------------|
+| Deductible | Annual amount member must pay before plan pays |
+| Copay | Fixed dollar amount per visit or service type |
+| Coinsurance | Member's percentage of allowed amount after deductible |
+| Out-of-Pocket Maximum (OOP Max) | Annual cap on member cost-share; once reached, plan pays 100% |
+| In-Network vs. Out-of-Network | Separate accumulators and cost-share tiers typically apply |
+| Plan Exclusions | Services not covered under the benefit design |
+| Benefit Limitations | Frequency limits, visit caps, prior auth requirements |
+
+### Accumulator Tracking
+
+The adjudication engine tracks cumulative member spending against deductible and OOP max accumulators, resetting annually at the plan's benefit year start.
+
+> ⚠️ VALIDATE: Confirm whether Mivan uses calendar year or plan year benefit periods, and how mid-year enrollment affects accumulators.
+
+### COB Detection at Eligibility
+
+Most eligibility responses include COB indicators. When a member is flagged as having other coverage, COB order must be established before adjudication proceeds. See Section 7 for COB methods.
+
+**Sources:** [Stedi — COB Checks](https://www.stedi.com/docs/healthcare/coordination-of-benefits) · [Machinify — What Is COB](https://www.machinify.com/resources/what-is-coordination-of-benefits-cob) · [Aetna — Claims Coordination](https://www.aetna.com/health-care-professionals/claims-payment-reimbursement/claim-coordination-review.html)
+
+---
+
+## 4. Adjudication Engine
+
+### What Is Adjudication?
+
+Adjudication is the process by which a payer reviews a submitted claim and determines: (1) whether it is covered, (2) how much is payable, and (3) what the member owes. It is the core financial decision-making step in the claims lifecycle.
+
+### Adjudication Logic Flow
+
+```
+Claim enters adjudication queue (post-editing)
+        │
+        ▼
+1. Coverage Determination
+   - Is the service covered under the member's plan?
+   - Are there applicable exclusions or limitations?
+        │
+        ▼
+2. Prior Authorization Check
+   - Does the procedure require prior auth?
+   - Is a valid auth on file matching procedure, provider, and date?
+        │
+        ▼
+3. Medical Necessity Review
+   - Does the service meet payer's clinical coverage criteria?
+   - Does diagnosis support the procedure?
+        │
+        ▼
+4. Pricing / Fee Schedule Application
+   - Apply contracted rate (in-network) or UCR (out-of-network)
+   - Apply DRG grouper (institutional inpatient)
+        │
+        ▼
+5. Cost-Share Calculation
+   - Apply deductible accumulator
+   - Apply copay / coinsurance
+   - Check OOP max
+        │
+        ▼
+6. COB Adjustment (if applicable)
+   - Reduce payer liability based on primary plan payment
+        │
+        ▼
+7. Adjudication Decision
+   ├── Pay
+   ├── Deny (with CARC / RARC codes)
+   ├── Pend (awaiting additional information)
+   └── Suspend (internal hold for manual review)
+```
+
+### Pended vs. Suspended Claims
+
+These two statuses are frequently confused but represent distinct states in the adjudication workflow:
+
+| Status | Initiated By | Meaning | Resolution |
+|--------|-------------|---------|------------|
+| **Pended** | System or adjudicator | Claim routed to a human work queue — awaiting action by a claims examiner (e.g., missing documentation, medical record request, manual coverage determination) | Claims examiner reviews and takes action: approve, deny, or request additional info |
+| **Suspended** | System only | System-initiated hold — claim is paused pending an automated condition being met | Condition clears (e.g., COB data arrives, auth response received, eligibility confirmed) and a batch job automatically releases the claim back into adjudication |
+
+**Common Suspend Triggers**
+
+| Trigger | Condition That Clears It |
+|---------|------------------------|
+| Awaiting COB data | Primary payer EOB received via COB data exchange |
+| Awaiting prior auth response | Auth approval or denial received from MiAuth |
+| Awaiting eligibility confirmation | Retroactive enrollment processed in MiMember |
+| Awaiting coordination with another claim | Related claim (e.g., split claim part 1) adjudicates first |
+
+**MiCPS Implementation**
+
+In MiCPS, suspended claims are held in a **suspense file** — either a dedicated VSAM file or a DB2 table with a suspend status code — and are released by a scheduled batch job that polls for the clearing condition. Pended claims are routed to an operations work queue managed via CICS transactions.
+
+> ⚠️ VALIDATE: Confirm whether MiCPS uses a VSAM suspense file or a DB2 suspense table, and which batch job performs the suspense release sweep.
+
+### Auto-Adjudication vs. Manual Review
+
+| Category | Auto-Adjudicated | Manual Review |
+|----------|-----------------|--------------|
+| Definition | System resolves claim end-to-end without human intervention | Claim routed to a human reviewer (clinical or non-clinical) |
+| Typical rate | 85–95% of clean claims for mature payers | 5–15% |
+| Triggers for auto | Clean claim, known member, in-network provider, no auth required | Missing auth, clinical complexity, fraud flags, high-dollar threshold |
+| Triggers for manual | Auth absent or mismatched, medical necessity question, coordination of benefits, experimental treatment | |
+
+> ⚠️ VALIDATE: Confirm Mivan's current MiCPS auto-adjudication rate and target rate for the cloud-native platform.
+
+### Medical Necessity Determination
+
+Medical necessity is the clinical standard used to determine whether a service is appropriate and required. Most commercial payers use one of two industry-standard criteria sets:
+
+| Criteria Set | Publisher | Notes |
+|-------------|-----------|-------|
+| InterQual | Change Healthcare (now Optum) | Level of care, acute care, procedures |
+| MCG (Milliman Care Guidelines) | Milliman | Evidence-based; widely used for UM and concurrent review |
+
+Payers may also maintain proprietary clinical coverage policies (CCPs) that supplement or override published criteria for specific services.
+
+> ⚠️ VALIDATE: Confirm which clinical criteria set(s) Mivan uses for commercial medical necessity determinations.
+
+### Common Adjudication Denial Reasons
+
+| CARC Code | Reason |
+|-----------|--------|
+| CO-4 | Procedure code inconsistent with modifier |
+| CO-11 | Diagnosis inconsistent with procedure |
+| CO-15 | Authorization number missing / invalid |
+| CO-29 | Time limit for filing expired |
+| CO-50 | Non-covered service |
+| CO-97 | Payment included in allowance for another service |
+| CO-197 | Prior authorization required |
+| PR-1 | Deductible |
+| PR-2 | Coinsurance |
+| PR-3 | Copay |
+
+CARC = Claim Adjustment Reason Code. Published and maintained by the Washington Publishing Company (WPC). RARC (Remittance Advice Remark Codes) provide supplementary denial detail.
+
+**Sources:** [OSP Labs — Adjudication Software](https://www.osplabs.com/insights/everything-you-should-know-about-healthcare-claims-adjudication-software/) · [Kodjin — Auto Adjudication](https://kodjin.com/blog/auto-adjudication-of-claims-system-case/) · [CareCloud — Adjudication](https://carecloud.com/continuum/what-is-adjudication-in-medical-billing/)
+
+### MiCPS Implementation Notes — Adjudication Engine
+
+> [TO BE POPULATED — MiCPS-specific implementation of this function, including COBOL program names, DB2 tables, VSAM files, batch job names, and known complexity areas]
+
+---
+
+## 5. Pricing & Fee Schedules
+
+### Fee Schedule Types
+
+| Type | Used For | Basis |
+|------|---------|-------|
+| Contracted / negotiated fee schedule | In-network professional claims | Payer-provider contract; typically expressed as % of Medicare or flat rate per CPT |
+| Medicare Physician Fee Schedule (MPFS) | Medicare Advantage; often the baseline for commercial contracts | CMS RVU-based (Work + Practice Expense + Malpractice RVUs × GPCI × Conversion Factor) |
+| DRG-based (IPPS) | Inpatient institutional claims | MS-DRG grouper assigns a DRG; payer pays a fixed rate per DRG |
+| APC-based (OPPS) | Outpatient hospital claims | Ambulatory Payment Classifications; CMS OPPS rates used as reference |
+| Per Diem | Inpatient; common in commercial contracts | Fixed daily rate by level of care (ICU, Med/Surg, etc.) |
+| Case Rate / Global Fee | Maternity, transplant, bundled episodes | Single payment covers all services in an episode |
+| UCR (Usual, Customary, and Reasonable) | Out-of-network professional claims | Benchmarked against what most providers in a geographic area charge for the same service |
+| Capitation | Delegated / risk-bearing providers | Fixed PMPM payment; provider assumes utilization risk |
+
+### Professional Claims Repricing (In-Network)
+
+1. Retrieve provider's contracted fee schedule (indexed by NPI, specialty, or group contract)
+2. Look up allowed amount for the billed CPT / HCPCS code
+3. If no specific contracted rate, apply fallback (e.g., % of Medicare MPFS)
+4. Allowed amount = the lesser of billed charge or contracted rate
+
+### Professional Claims Repricing (Out-of-Network)
+
+For out-of-network professional claims, payers typically use one of:
+
+| Method | Description |
+|--------|-------------|
+| UCR databases | FAIR Health, Optum iCES, or proprietary data; rates set by percentile of billed charges in a geographic area |
+| Medicare multiples | Allowed = X% of Medicare MPFS for the same code and locality |
+| Billed charge percentage | Allowed = X% of provider's billed charge |
+
+> ⚠️ VALIDATE: Confirm Mivan's out-of-network repricing methodology and which UCR database is used (FAIR Health, internal, etc.).
+
+### Institutional Inpatient — DRG Pricing
+
+Inpatient hospital claims are priced using the MS-DRG (Medicare Severity Diagnosis Related Group) system:
+
+```
+Admission
+  → ICD-10 diagnosis codes + procedures assigned by coder
+  → DRG Grouper assigns MS-DRG based on principal diagnosis, CCs/MCCs, procedures, age, discharge status
+  → Payer applies contracted DRG rate (base rate × relative weight)
+  → Outlier payments applied if length of stay exceeds threshold
+```
+
+| Concept | Description |
+|---------|-------------|
+| Base Rate | Negotiated dollar amount per DRG relative weight unit |
+| Relative Weight (RW) | CMS-assigned complexity weight per DRG (higher = more complex = higher payment) |
+| CC / MCC | Complication or Comorbidity / Major CC — presence increases DRG payment |
+| Outlier Payment | Additional payment for cases where cost significantly exceeds the DRG rate |
+| Transfer DRG | Reduced payment when patient transferred before full LOS |
+
+> ⚠️ VALIDATE: Confirm whether Mivan uses MS-DRG, APR-DRG (All Patient Refined), or a mix by product.
+
+### Institutional Outpatient — APC / Revenue Code Pricing
+
+Outpatient facility claims are priced by revenue code and/or HCPCS code. Commercial payers often use APC-equivalent groupings or flat per-procedure rates.
+
+**Sources:** [PMC — Physician Pricing](https://pmc.ncbi.nlm.nih.gov/articles/PMC4191326/) · [FindACode — UCR Fees](https://www.findacode.com/topics/topic/ucr.html) · [MderCRM — Claim Repricing 2026](https://mdercm.com/blog/claim-repricing-healthcare-billing-guide-2026/)
+
+### MiCPS Implementation Notes — Pricing & Fee Schedules
+
+> [TO BE POPULATED — MiCPS-specific implementation of this function, including COBOL program names, DB2 tables, VSAM files, batch job names, and known complexity areas]
+
+---
+
+## 6. Claims Payment
+
+### Payment Methods
+
+| Method | Description | Regulatory Basis |
+|--------|-------------|-----------------|
+| EFT (Electronic Funds Transfer) | ACH deposit to provider's bank account | ACA Operating Rules (CAQH CORE) mandate EFT enrollment option |
+| Paper Check | Physical check mailed to provider | Legacy; declining; still required for providers not enrolled in EFT |
+| Virtual Card Payment (VCP) | Single-use virtual credit card | Convenience method; providers may opt out under ACA rules |
+
+### X12 835 — Electronic Remittance Advice (ERA)
+
+The EDI 835 is the HIPAA-mandated electronic standard for payment remittance. It is sent by the payer to the provider concurrent with or following the EFT payment. Governed by 45 CFR Part 162.
+
+#### 835 Structure
+
+| Segment / Loop | Content |
+|---------------|---------|
+| ISA / GS | Interchange and functional group headers |
+| ST 835 | Transaction set header |
+| BPR | Payment information — amount, payment method, EFT trace number |
+| TRN | Trace number — links ERA to the corresponding EFT deposit |
+| Loop 2000 | Payer / payee identification |
+| Loop 2100 | Claim payment / denial detail — one loop per claim |
+| CLP | Claim-level summary — billed, allowed, paid amounts, patient responsibility, claim status |
+| SVC | Service line detail — procedure code, billed, allowed, paid per line |
+| CAS | Adjustment reasons — CARC codes explaining each adjustment |
+| MOA | Medicare outpatient adjudication (Medicare Advantage specific) |
+| SE | Transaction set trailer |
+
+#### Key 835 Data Points
+
+| Field | Description |
+|-------|-------------|
+| Billed Amount | What the provider charged |
+| Allowed Amount | Contracted or UCR rate |
+| Paid Amount | Amount actually disbursed |
+| Patient Responsibility | Deductible + copay + coinsurance |
+| CARC | Claim Adjustment Reason Code — why payment differs from billed |
+| RARC | Remittance Advice Remark Code — supplementary detail |
+| Check / EFT Number | Payment trace identifier for reconciliation |
+
+### EOB — Explanation of Benefits
+
+The EOB is the member-facing equivalent of the ERA. It is sent to the member by mail or made available electronically on the member portal, and summarizes how the claim was processed and what the member owes.
+
+> ⚠️ VALIDATE: Confirm Mivan's ERA delivery mechanism (clearinghouse, direct to provider, provider portal) and EOB delivery SLA.
+
+**Sources:** [AccountableHQ — 835 Compliance](https://www.accountablehq.com/post/hipaa-and-remittance-advice-compliance-requirements-for-835-eob-transactions) · [SignalEDI — EDI 835](https://signaledi.com/blog/edi-835-remittance) · [Dastify — ERA 835](https://www.dastifysolutions.com/blog/era-835-electronic-remittance-advice-era-edi-835-in-medical-billing/)
+
+---
+
+## 7. Coordination of Benefits (COB)
+
+### Overview
+
+COB is the process payers use to determine the order and amount of payment when a member is covered by more than one health plan. The goal is to prevent total payments from exceeding 100% of actual charges.
+
+Approximately 43 million Americans carry dual health coverage. CO-22 (claim paid by another payer) is consistently among the top denial reasons in commercial claims.
+
+### Primary vs. Secondary Determination
+
+The payer that pays first is **primary**; the payer that pays after the primary is **secondary**. Determination follows these rules in order:
+
+| Rule | Description |
+|------|-------------|
+| 1. Active employment | Plan from current employment is primary over a plan from retirement |
+| 2. Birthday rule | For dependents, parent whose birthday falls earlier in the calendar year is primary |
+| 3. Gender rule | Some older plans use gender (father's plan primary); largely superseded by birthday rule |
+| 4. Custody / court order | For children of divorced parents, court-ordered plan is primary; if no court order, birthday rule applies |
+| 5. Medicare Secondary Payer (MSP) rules | Federal rules govern when Medicare is secondary (e.g., active employee with employer coverage, auto accident, workers comp) |
+| 6. COBRA | Active employee coverage is primary over COBRA coverage |
+
+### COB Payment Methods
+
+#### 1. Standard COB (Traditional)
+The secondary plan pays after the primary. The combined payment from both plans can equal up to 100% of actual charges but not exceed them. The secondary plan pays its normal benefit amount, reduced only to prevent total payment from exceeding 100% of charges.
+
+**Example:**
+- Billed: $1,000
+- Primary pays: $800
+- Secondary normal benefit: $900
+- Secondary actually pays: $200 (to bring total to $1,000, not $1,700)
+
+#### 2. Non-Duplication COB
+The secondary plan compares its allowable amount to what the primary already paid. If the primary paid equal to or more than the secondary's allowable, the secondary pays nothing.
+
+**Example:**
+- Billed: $1,000
+- Secondary allowable: $750
+- Primary paid: $800
+- Secondary pays: $0 (primary already exceeded secondary's allowable)
+
+> ⚠️ VALIDATE: Confirm whether Mivan uses standard or non-duplication COB for commercial products.
+
+#### 3. Maintenance of Benefits (MOB)
+The secondary plan reduces covered charges by the amount the primary plan paid, then applies its own deductible and coinsurance to the remainder.
+
+**Example:**
+- Billed: $1,000 | Primary paid: $700
+- Remaining after primary: $300
+- Secondary applies 20% coinsurance: pays $240
+
+#### 4. Carve-Out COB
+The secondary plan calculates what it would normally pay, then subtracts the primary's payment. Common in self-funded commercial plans.
+
+### COB Data Exchange
+
+Payers exchange COB data via:
+- EDI 837 COB loops (Loop 2330 — Other Subscriber Information)
+- CMS COB contractor (for Medicare as secondary)
+- State COB databases (for Medicaid coordination)
+
+**Sources:** [CMS — Coordination of Benefits](https://www.cms.gov/medicare/coordination-benefits-recovery/overview/coordination-benefits) · [Machinify — What Is COB](https://www.machinify.com/resources/what-is-coordination-of-benefits-cob) · [AMBCI — COB Definitions](https://ambci.org/medical-billing-and-coding-certification-blog/understanding-coordination-of-benefits-cob-clear-definitions) · [MODPractice — Non-Duplication](https://modpractice.com/coordination-of-benefits-non-duplication-plans/)
+
+### MiCPS Implementation Notes — Coordination of Benefits
+
+> [TO BE POPULATED — MiCPS-specific implementation of this function, including COBOL program names, DB2 tables, VSAM files, batch job names, and known complexity areas]
+
+---
+
+## 8. Overpayment & Recovery
+
+### What Is an Overpayment?
+
+An overpayment occurs when a payer disburses more than the correct amount for a claim. Common causes:
+
+| Cause | Description |
+|-------|-------------|
+| COB not applied | Claim paid as primary when secondary; or secondary liability miscalculated |
+| Duplicate payment | Same claim paid twice (e.g., paper and EDI versions both processed) |
+| Eligibility error | Member not active on date of service; claim paid before termination was processed |
+| Pricing error | Wrong fee schedule applied; incorrect DRG grouping |
+| Auth retroactively voided | Prior auth cancelled or never valid; paid claim must be recovered |
+| Fraud / billing error | Upcoding, unbundling, services not rendered |
+| Post-payment audit finding | SIU or clinical audit identifies overpayment after initial payment |
+
+### Overpayment Identification
+
+| Source | Description |
+|--------|-------------|
+| Automated post-payment auditing | Rules engine flags claims that passed adjudication but meet post-pay review criteria |
+| COB reconciliation | Cross-payer COB data reveals duplicate primary/secondary payment |
+| Provider audit | Contractual right-to-audit provisions; medical record review |
+| SIU (Special Investigations Unit) | Fraud, waste, and abuse investigations |
+| Provider self-disclosure | Provider identifies and voluntarily returns overpayment |
+| CMS overpayment reports | For Medicare Advantage, CMS RADV audits can trigger recovery |
+
+### Recovery Process
+
+```
+Overpayment Identified
+        │
+        ▼
+Internal Validation
+  - Confirm overpayment amount and affected claims
+  - Document root cause
+        │
+        ▼
+Demand Letter Issued to Provider
+  - Identifies specific claim(s), dates, and overpaid amount
+  - States recovery method and timeline
+  - Includes appeal / dispute rights
+        │
+        ▼
+Provider Response Window (typically 30–60 days)
+  ├── Provider agrees → voluntary refund check or offset consent
+  ├── Provider disputes → review process; may adjust demand
+  └── No response → payer proceeds to recoupment
+        │
+        ▼
+Recovery Method
+  ├── Offset / Recoupment → deduct from future claim payments
+  ├── Direct refund → provider mails check
+  └── Escalation → collections or legal (rare; large amounts)
+```
+
+### Demand Letter Requirements
+
+Per CMS guidance for Medicare overpayments, demand letters must include:
+- The specific claim(s) and service dates in question
+- The amount of the overpayment
+- The reason for the overpayment determination
+- The timeframe for repayment
+- Appeal and dispute rights and instructions
+
+> ⚠️ VALIDATE: Confirm Mivan's commercial demand letter template and required elements — commercial may differ from Medicare standards.
+
+### Recovery Methods Defined
+
+| Method | Description | Typical Trigger |
+|--------|-------------|----------------|
+| Offset | Future claim payments are reduced until the overpayment is recovered | Provider ongoing billing relationship; most common method |
+| Recoupment | Systematic deduction from remittances; often automated | Standard recovery process; same as offset in most usage |
+| Direct Refund | Provider sends a check or ACH back to the payer | Provider-initiated or agreed-upon for large amounts |
+| Capitation Adjustment | Reduce monthly cap payment for delegated providers | Capitated provider arrangements |
+
+### Timelines and Interest
+
+| Scenario | Timeline | Interest |
+|----------|----------|---------|
+| Commercial (contract-driven) | Per provider contract; typically 30–60 days to respond | Contract-specified; may accrue after response window |
+| Medicare Advantage | CMS requires return within 60 days of identification | Interest may accrue under CMS rules |
+| Provider self-disclosure | 60 days from identification (Medicare rule; commercial varies) | N/A if voluntary and timely |
+
+> ⚠️ VALIDATE: Confirm Mivan's commercial overpayment interest policy and whether it differs by line of business or provider contract tier.
+
+### Appeals and Disputes
+
+Providers have the right to dispute overpayment demands. Commercial payer dispute processes are governed by:
+- Provider contract dispute resolution provisions
+- State prompt pay laws (some include overpayment dispute rights)
+- ERISA for self-funded plans
+
+> ⚠️ VALIDATE: Confirm Mivan's overpayment dispute SLA and escalation path.
+
+**Sources:** [FRG Systems — Overpayment Recovery](https://frgsystems.com/healthcare-finance-news/understanding-overpayment-recovery-process) · [CMS — Medicare Overpayments Fact Sheet](https://www.cms.gov/outreach-and-education/medicare-learning-network-mln/mlnproducts/downloads/overpaymentbrochure508-09.pdf) · [Noridian — Demand Letter Elements](https://med.noridianmedicare.com/web/jadme/claims-appeals/overpayments/elements-of-a-demand-letter) · [MediBillMD — Recoupment](https://medibillmd.com/blog/recoupment-payment/)
+
+### MiCPS Implementation Notes — Overpayment & Recovery
+
+> [TO BE POPULATED — MiCPS-specific implementation of this function, including COBOL program names, DB2 tables, VSAM files, batch job names, and known complexity areas]
+
+---
+
+## Glossary
+
+| Term | Definition |
+|------|-----------|
+| 837P | ANSI X12 EDI transaction for professional claims |
+| 837I | ANSI X12 EDI transaction for institutional claims |
+| 835 | ANSI X12 EDI transaction for payment remittance (ERA) |
+| 270/271 | ANSI X12 EDI transaction for eligibility inquiry / response |
+| CARC | Claim Adjustment Reason Code — explains payment adjustment |
+| RARC | Remittance Advice Remark Code — supplementary detail on ERA |
+| NCCI | National Correct Coding Initiative — CMS procedure code bundling edits |
+| OCE | Outpatient Code Editor — validates outpatient claim codes |
+| DRG | Diagnosis Related Group — inpatient payment classification |
+| MS-DRG | Medicare Severity DRG — CMS's current DRG system |
+| APC | Ambulatory Payment Classification — outpatient facility payment grouping |
+| UCR | Usual, Customary, and Reasonable — out-of-network pricing benchmark |
+| MPFS | Medicare Physician Fee Schedule |
+| RVU | Relative Value Unit — basis for MPFS pricing |
+| COB | Coordination of Benefits |
+| MOB | Maintenance of Benefits — a COB method |
+| EFT | Electronic Funds Transfer — ACH payment to provider |
+| ERA | Electronic Remittance Advice — EDI 835 |
+| EOB | Explanation of Benefits — member-facing payment summary |
+| Recoupment | Recovery of overpayment via deduction from future payments |
+| Offset | Synonym for recoupment in most commercial contexts |
+| SIU | Special Investigations Unit — fraud, waste, and abuse |
+| PMPM | Per Member Per Month — capitation payment unit |
+| TOB | Type of Bill — 3-digit code on 837I identifying facility and claim frequency |
+| POS | Place of Service — 2-digit code on 837P |
+
+</script>
+
+<script type="text/plain" id="md-l3">
+---
+layer: L3
+domain: systems
+source: web-research + manual
+last_synced: 2026-08-06
+---
+
+# Mivan Health Plan — System Landscape
+## Claims and Provider Applications
+
+> **Validation flag legend:**
+> `> ⚠️ VALIDATE:` marks statements requiring confirmation against actual MiCPS architecture, runbooks, or subject matter expert review before treating as authoritative.
+
+---
+
+## 1. MiCPS High-Level Architecture
+
+### Overview
+
+MiCPS (Mivan Claims Processing System) is Mivan's homegrown IBM z/OS mainframe application for commercial medical claims processing. It has been in continuous production for approximately 30 years and has been extended incrementally throughout its lifetime. It processes approximately 4 million commercial claims per day at peak.
+
+MiCPS is composed of two distinct processing modes that operate in concert: **batch processing** (JCL-driven overnight and scheduled jobs) and **online transaction processing** (CICS-driven real-time interactions). Both modes share the same underlying DB2 and VSAM data stores.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                        IBM z/OS Mainframe                            │
+│                                                                      │
+│  ┌─────────────────────────┐   ┌─────────────────────────────────┐  │
+│  │     CICS Region(s)      │   │       JES2 Batch Subsystem       │  │
+│  │  (Online / Real-Time)   │   │     (Scheduled / Overnight)     │  │
+│  │                         │   │                                 │  │
+│  │  COBOL + CICS commands  │   │   COBOL programs invoked by JCL │  │
+│  │  BMS maps (3270 UI)     │   │   Job scheduler (CA7 / TWS)     │  │
+│  │  Multi-region support   │   │   Step-level dependency chains  │  │
+│  └────────────┬────────────┘   └──────────────┬──────────────────┘  │
+│               │                               │                      │
+│               ▼                               ▼                      │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │                    Data Layer                               │    │
+│  │                                                             │    │
+│  │   ┌──────────────────┐    ┌─────────────────────────────┐  │    │
+│  │   │   IBM DB2        │    │         VSAM Datasets        │  │    │
+│  │   │  (Structured     │    │  (Reference data, work files,│  │    │
+│  │   │   claims data)   │    │   intermediate processing)   │  │    │
+│  │   └──────────────────┘    └─────────────────────────────┘  │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 1a. CICS — Online Transaction Processing
+
+CICS (Customer Information Control System) manages real-time, interactive transactions on MiCPS. It functions as a sub-operating system within z/OS, managing its own memory regions, transaction routing, and concurrent user sessions. CICS supports thousands of simultaneous transactions and guarantees ACID properties — a transaction either completes fully or is rolled back.
+
+#### MiCPS CICS Transaction Types
+
+| Transaction | Description | Trigger |
+|-------------|-------------|---------|
+| Claim Inquiry | Real-time claim status lookup by claim ID or member ID | Provider portal or internal operations |
+| Eligibility Check | Real-time member eligibility verification on date of service | Claim intake |
+| Auth Validation | Real-time prior authorization status check | Adjudication engine |
+| Manual Adjudication | Adjudicator workstation for pended/suspended claims | Operations staff |
+| Fee Schedule Lookup | Interactive rate lookup for provider / CPT code combinations | Internal operations |
+| Provider Data Lookup | Real-time provider NPI and network status verification | Claim intake and adjudication |
+| Supervisor Override | Override or force-pay a specific claim | Supervisor role |
+| Claim Adjustment / Void | Manual claim adjustment (frequency code 7 — replacement) or void (frequency code 8) initiated by operations staff; references original claim ICN; triggers downstream recalculation of accumulators and COB | Operations staff or supervisor for manual corrections; escalated provider disputes |
+
+#### CICS Architecture Notes
+
+- MiCPS uses **multiple CICS regions**: typically one or more application-owning regions (AORs) and a terminal-owning region (TOR) for routing
+- BMS (Basic Mapping Support) maps drive the 3270 green-screen terminal interface used by operations staff
+- CICS-DB2 attachment: DB2 commands embedded in CICS COBOL programs go through the DB2 pre-compiler; the load module sequence is: DB2 Pre-compiler → CICS Translator → COBOL Compiler → Link Editor
+- CICS transactions are short-lived by design; long-running operations are handled in batch
+
+> ⚠️ VALIDATE: Confirm number of CICS regions, region names, and whether MiCPS uses CICS Transaction Server (TS) version and any distributed CICS (IPIC) connectivity.
+
+---
+
+### 1b. JCL Batch Processing
+
+The majority of MiCPS's claims volume is processed in batch. Batch jobs run on a scheduled basis — primarily overnight during the daily batch window — and process claims end-to-end: from EDI intake through adjudication, pricing, payment calculation, and outbound feed generation.
+
+#### Batch Processing Characteristics
+
+| Characteristic | Description |
+|---------------|-------------|
+| Execution model | Non-interactive; no user input during execution |
+| Scheduling | Mainframe job scheduler (CA7 or IBM TWS/OPC) manages job streams, dependencies, and execution windows |
+| Volume | Bulk processing of millions of claim records per run |
+| Timing | Primary batch window: overnight (approx. 10 PM – 6 AM); secondary windows for intraday cycles |
+| COBOL programs | Each JCL step invokes a COBOL program; multiple steps form a job; multiple jobs form a job stream |
+| Error handling | JCL condition codes (RC=0 success, RC=4 warning, RC=8+ error); downstream steps conditioned on upstream RC |
+| Restart/recovery | Checkpoint/restart logic embedded in COBOL programs; ABEND handlers manage abnormal termination |
+
+#### MiCPS Batch Job Streams (Primary)
+
+| Job Stream | Processing Scope | Typical Window |
+|-----------|-----------------|---------------|
+| CLAIM-INTAKE | EDI 837 file ingestion, parsing, format validation | Early overnight |
+| CLAIM-EDIT | Front-end edits (NCCI, OCE, business edits) | Post-intake |
+| ELIG-VERIFY | Eligibility and benefits determination | Post-edit |
+| ADJUD-MAIN | Core adjudication — coverage, auth check, pricing | Nightly core window |
+| COB-PROCESS | Coordination of benefits calculation | Post-adjudication |
+| PAYMENT-CALC | Cost-share application, payment amount calculation | Post-COB |
+| OUTPUT-GEN | ERA/835 generation, EOB generation | Pre-morning |
+| FEED-OUTBOUND | Outbound feeds to SQL Server, S3, downstream systems | End of batch window |
+
+> ⚠️ VALIDATE: Confirm actual job stream names, execution sequence, and batch window times with the MiCPS operations team (James Whitfield or equivalent).
+
+#### Intraday Batch Cycles
+
+In addition to the primary overnight window, MiCPS runs **3 intraday batch cycles** each business day. These cycles execute a subset of the full batch stream — edit, eligibility, and adjudication steps only. Payment calculation and all outbound feeds (SQL Server, S3 full extracts, ERA generation) run in the overnight window only.
+
+| Cycle | Time | Scope | Outputs |
+|-------|------|-------|---------|
+| Cycle 1 — Morning | ~6 AM | Processes urgent claims flagged during overnight batch for priority adjudication | Intraday CLAIMS-DELTA feed to S3 (`raw/claims/delta/`) |
+| Cycle 2 — Midday | ~12 PM | Processes claim adjustments and voids submitted by operations since morning; refreshes ACCUM-FILE for high-volume providers | Updated ACCUM-FILE VSAM; no outbound feed |
+| Cycle 3 — Afternoon | ~4 PM | Processes late EDI submissions received from clearinghouse after overnight cutoff | Intraday status updates to SQL Server (MiOps DB — ClaimStatus table) |
+
+**Intraday Cycle Constraints**
+
+- Intraday cycles run on a reduced job stream: CLAIM-EDIT → ELIG-VERIFY → ADJUD-MAIN only
+- PAYMENT-CALC, OUTPUT-GEN, and FEED-OUTBOUND do not run intraday
+- Claims adjudicated in an intraday cycle are held in a "payment pending" status until the overnight PAYMENT-CALC run
+- ACCUM-FILE updates from Cycle 2 are applied in memory and written to VSAM; CICS regions may briefly quiesce during the ACCUM-FILE write step
+
+> ⚠️ VALIDATE: Confirm intraday cycle times, job stream scope, and whether CICS quiesce occurs for Cycle 2 ACCUM-FILE refresh.
+
+---
+
+### 1c. VSAM File Usage
+
+VSAM (Virtual Storage Access Method) is IBM's high-performance file access method on z/OS. MiCPS uses VSAM extensively for reference data, work files, and intermediate processing state that does not require the full relational capabilities of DB2.
+
+#### VSAM Dataset Types Used in MiCPS
+
+| Type | Full Name | Access Pattern | MiCPS Usage |
+|------|-----------|---------------|------------|
+| KSDS | Key Sequenced Data Set | Random by key; sequential in key order | Primary reference files — provider master, member index, fee schedule tables, auth records |
+| ESDS | Entry Sequenced Data Set | Sequential only; records stored in write order | Audit/log files, claim intake staging queues, EDI raw input landing |
+| RRDS | Relative Record Data Set | Direct by relative record number | Fixed-slot lookup tables — DRG rate tables, benefit accumulator arrays |
+
+#### Key MiCPS VSAM Files
+
+| File Name (Logical) | Type | Description | Updated By | Read By |
+|--------------------|------|-------------|-----------|---------|
+| PROV-MSTR | KSDS | Provider master reference — NPI, network status, specialty | MiProvider feed (nightly) | Adjudication, edit programs |
+| MEMBER-IDX | KSDS | Member index — member ID to enrollment record pointer | MiMember feed (nightly) | Eligibility, adjudication |
+| FEE-SCHED | KSDS | Fee schedule — CPT/HCPCS + provider key → allowed amount | Fee schedule batch load (periodic) | Pricing programs |
+| AUTH-FILE | KSDS | Prior authorization records — auth number, status, dates, codes | MiAuth feed + CICS transactions | Adjudication programs |
+| DRG-RATES | RRDS | DRG rate table — MS-DRG code → base rate | Annual rate load job | Institutional pricing programs |
+| ACCUM-FILE | KSDS | Member accumulator file — YTD deductible and OOP max by member | Updated each adjudication cycle | Cost-share calculation |
+| CLAIM-WRK | ESDS | Claim work file — intermediate claim records during adjudication pass | Adjudication programs | Output and payment programs |
+| EDI-STAGE | ESDS | EDI 837 staging — raw inbound claim records pre-parse | EDI intake job | Edit and validation programs |
+| AUDIT-LOG | ESDS | Audit trail — every claim state change with timestamp and program ID | All MiCPS programs | Compliance reporting, post-pay audit |
+
+#### VSAM and Batch Window Coordination
+
+VSAM files used by both CICS (online) and JCL (batch) require careful window management. The standard pattern in MiCPS:
+- Batch window opens: CICS regions quiesce or switch to read-only mode for shared VSAM files
+- Batch updates VSAM files (accumulator updates, reference file refreshes)
+- Batch window closes: CICS regions resume full read/write access
+
+> ⚠️ VALIDATE: Confirm actual VSAM dataset names (DSNs), VSAM cluster definitions, and which files are shared between CICS and batch. Several VSAM files in MiCPS are suspected to have undocumented record layouts — see Section 7 (Technical Debt).
+
+---
+
+### 1d. DB2 — Structured Claims Data
+
+IBM DB2 for z/OS is MiCPS's relational database, used for persistent structured claims data, audit history, and financial records. DB2 is accessed from both CICS (online) and JCL batch programs via embedded SQL pre-compiled into COBOL.
+
+#### Primary DB2 Tables
+
+| Table | Description | Key Columns |
+|-------|-------------|-------------|
+| CLAIM_HEADER | One row per claim — top-level claim record | CLAIM_ID, MEMBER_ID, PROV_NPI, DOS_FROM, DOS_TO, BILL_AMOUNT, STATUS_CD |
+| CLAIM_LINE | One row per service line | CLAIM_ID, LINE_SEQ, CPT_CD, MOD1–4, UNITS, CHARGE_AMT, ALLOWED_AMT, PAID_AMT |
+| CLAIM_DIAG | Diagnosis codes per claim (up to 12 ICD-10) | CLAIM_ID, DIAG_SEQ, DIAG_CD, DIAG_TYPE |
+| CLAIM_ADJUD | Adjudication result per claim/line | CLAIM_ID, LINE_SEQ, ADJUD_DT, PAY_AMT, DENIAL_CD, CARC_CD, RARC_CD |
+| CLAIM_COB | COB calculation detail | CLAIM_ID, PRIMARY_PAYER_ID, PRIMARY_PAID, COB_METHOD, COB_AMT |
+| CLAIM_PAYMENT | Payment record — EFT/check details | CLAIM_ID, PAYMENT_DT, PAYMENT_AMT, EFT_TRACE_NO, CHECK_NO |
+| CLAIM_AUDIT | Full audit trail of all status changes | CLAIM_ID, EVENT_DT, EVENT_TYPE, PREV_STATUS, NEW_STATUS, PROGRAM_ID, USER_ID |
+| OVERPAY | Overpayment records | OVERPAY_ID, CLAIM_ID, OVERPAY_AMT, RECOVERY_METHOD, STATUS, DEMAND_DT |
+| COB_ACCUM | Member COB accumulator — primary payer payments YTD | MEMBER_ID, PLAN_YEAR, PRIMARY_PAYER_ID, YTD_PAID |
+
+#### DB2 Design Notes
+
+- DB2 tablespaces are partitioned by claim receipt date for performance and archival management
+- Static SQL (pre-compiled bind packages) used throughout MiCPS COBOL — dynamic SQL is rare and limited to reporting programs
+- DB2 packages are bound per program; changes to SQL require rebind of affected packages
+- Row-level locking used in CICS programs; page-level locking common in batch for throughput
+
+> ⚠️ VALIDATE: Confirm actual DB2 table names, schema/database names, and partitioning strategy. Pre-compiled bind packages mean SQL changes are non-trivial — confirm bind process and approval requirements.
+
+---
+
+### 1e. MiCPS Functional Modules
+
+| Module | Processing Mode | Primary Technology | Description |
+|--------|----------------|-------------------|-------------|
+| Claims Intake & Editing | Batch | COBOL + JCL + ESDS | EDI 837 ingestion, parsing, front-end edits (NCCI, OCE, business rules) |
+| Eligibility & Benefits | Batch + CICS | COBOL + KSDS (MEMBER-IDX) + DB2 | Member active check, benefit structure retrieval, accumulator lookup |
+| Adjudication Engine | Batch | COBOL + JCL + DB2 + KSDS | Coverage determination, auth check, auto vs. manual routing |
+| Pricing / Fee Schedule | Batch + CICS | COBOL + KSDS (FEE-SCHED) + RRDS (DRG-RATES) | In-network repricing, DRG grouper, UCR application |
+| Claims Payment | Batch | COBOL + JCL + DB2 | Cost-share calculation, payment file generation, ERA/835 creation |
+| COB | Batch | COBOL + JCL + DB2 | Primary/secondary determination, COB calculation, COB accumulator update |
+| Overpayment / Recovery | Batch + CICS | COBOL + DB2 | Post-pay audit flags, demand letter generation, offset / recoupment tracking |
+
+---
+
+## 2. Integration Landscape
+
+```
+                              ┌──────────────┐
+  EDI Clearinghouse ──837P/I──►              │
+  (MiEDI / IBM Sterling)      │              │
+                              │    MiCPS     │──835/ERA──► Provider Portal (MiPortal)
+  MiMember ──member feed──────►   (z/OS)     │──EOB──────► Member Portal / Mail
+  (Oracle on-prem)            │              │
+                              │              │──payment──► MiPay (EFT / ACH)
+  MiProvider ──prov feed──────►              │
+  (SQL Server on-prem)        │              │──claim data──► MiReport (Cognos)
+                              │              │
+  MiAuth ──auth feed──────────►              │──outbound feeds──► SQL Server (downstream apps)
+  (Legacy vendor platform)    │              │──outbound feeds──► AWS S3 (data lake / analytics)
+                              └──────────────┘
+```
+
+### Integration Points
+
+| System | Direction | Data Exchanged | Mechanism | Frequency |
+|--------|-----------|---------------|-----------|-----------|
+| MiEDI (IBM Sterling) | Inbound | X12 837P/I EDI files | SFTP / MQ | Multiple times daily |
+| MiMember (Oracle) | Inbound | Member enrollment and eligibility data | Batch file (fixed-width) via FTP | Nightly |
+| MiProvider (SQL Server) | Inbound | Provider master — NPI, network, contracts | Batch file (fixed-width) via FTP | Nightly |
+| MiAuth (vendor platform) | Inbound | Prior authorization records | Batch file via FTP + MQ (real-time for urgent) | Nightly + intraday |
+| MiPortal (provider portal) | Outbound | X12 835 ERA files, claim status | SFTP to portal landing | Post-batch |
+| MiPay (EFT/ACH) | Outbound | Payment instructions — payee, amount, EFT trace | Fixed-width batch file via SFTP | Nightly |
+| MiReport (Cognos/DB2) | Outbound | Claim and financial data for reporting | Direct DB2 read (same z/OS) | Real-time / batch |
+| SQL Server (downstream) | Outbound | Processed claim data for operational apps | Batch ETL via FTP → SQL bulk load | Nightly |
+| AWS S3 (data lake) | Outbound | Claim records for analytics and modernization | Batch file via SFTP/MFT to S3 | Nightly |
+
+> ⚠️ VALIDATE: Confirm MQ vs. SFTP usage for each integration. Several integrations are believed to use legacy FTP — confirm whether secure FTP (SFTP/FTPS) is in use for PHI transfers.
+
+---
+
+## 3. Batch Feed Architecture
+
+### Overview
+
+At the end of each nightly batch window, MiCPS generates outbound data feeds to downstream systems. These feeds are critical dependencies — downstream applications (operational reporting, analytics, provider portals, modernization workloads) rely on these files being delivered on time and complete.
+
+### 3a. SQL Server Feeds
+
+SQL Server hosts operational data stores consumed by Mivan's non-mainframe applications: provider-facing applications, operational dashboards, and business intelligence tools.
+
+| Feed Name | Data Sent | Target Database / Table(s) | Frequency | Mechanism |
+|-----------|-----------|---------------------------|-----------|-----------|
+| CLAIM-STATUS-FEED | Adjudicated claim status — claim ID, status code, denial reason, paid amount | MiOps DB → ClaimStatus | Nightly | Fixed-width flat file via SFTP → SQL bulk load (BCP or SSIS) |
+| PAYMENT-FEED | Payment records — EFT trace, check number, paid amount per claim | MiOps DB → Payments | Nightly | Fixed-width flat file via SFTP → SSIS |
+| COB-FEED | COB calculation results — primary/secondary paid amounts per claim | MiOps DB → COBResults | Nightly | Fixed-width flat file via SFTP → SSIS |
+| OVERPAY-FEED | Active overpayment records — demand status, recovery amount, recovery method | MiOps DB → Overpayments | Nightly | Fixed-width flat file via SFTP → SSIS |
+| ACCUM-FEED | Member accumulator snapshot — YTD deductible and OOP max | MiOps DB → Accumulators | Nightly | Fixed-width flat file via SFTP → SSIS |
+
+**Consuming Applications (SQL Server)**
+
+| Application | Consumes | Purpose |
+|-------------|---------|---------|
+| MiPortal (provider portal) | CLAIM-STATUS-FEED, PAYMENT-FEED | Provider-facing claim status and remittance lookup |
+| MiReport (Cognos) | All feeds | Operational and regulatory reporting |
+| MiOps Dashboard | CLAIM-STATUS-FEED, OVERPAY-FEED | Operations supervisor dashboards |
+| Finance / GL System | PAYMENT-FEED | General ledger posting |
+
+> ⚠️ VALIDATE: Confirm SQL Server instance names, database names, target table schemas, and whether SSIS or another ETL tool (Informatica, Talend) handles the load step.
+
+---
+
+### 3b. AWS S3 Feeds
+
+AWS S3 is the landing zone for the Mivan data lake and the primary target for the modernization program's analytics and cloud-native workloads.
+
+| Feed Name | Data Sent | S3 Path (Logical) | Format | Frequency | Downstream Consumers |
+|-----------|-----------|------------------|--------|-----------|---------------------|
+| CLAIMS-FULL | Full adjudicated claim records — header, lines, diagnosis, adjudication result | s3://mivan-datalake/raw/claims/daily/ | Fixed-width (mainframe EBCDIC → ASCII converted) | Nightly | Snowflake (analytics), modernization ETL, ML feature pipelines |
+| CLAIMS-DELTA | Incremental — claims adjudicated or status-changed since last run | s3://mivan-datalake/raw/claims/delta/ | Fixed-width / CSV | Nightly + intraday | Real-time analytics, modernization coexistence layer |
+| ERA-FILES | X12 835 ERA files | s3://mivan-datalake/raw/era/ | X12 EDI (835) | Post-batch | ERA processing, provider remittance analytics |
+| PROVIDER-SNAP | Provider master snapshot | s3://mivan-datalake/raw/provider/daily/ | Fixed-width | Nightly | Provider analytics, network adequacy reporting |
+| MEMBER-ACCUM | Member accumulator snapshot | s3://mivan-datalake/raw/accumulators/daily/ | Fixed-width | Nightly | Benefit accumulator service (cloud-native target) |
+| AUDIT-LOG | Claim audit trail export | s3://mivan-datalake/raw/audit/ | Fixed-width | Nightly | Compliance, post-pay audit workloads |
+
+**File Format Notes**
+
+Mainframe-generated files are produced in EBCDIC encoding with fixed-width record layouts. Conversion to ASCII (and optionally to CSV or Parquet) is required before downstream cloud systems can consume them.
+
+| Format Stage | Description |
+|-------------|-------------|
+| Raw (mainframe output) | Fixed-width, EBCDIC, packed decimal fields, binary integers |
+| Converted (S3 raw zone) | ASCII, fixed-width or CSV; EBCDIC-to-ASCII conversion applied |
+| Processed (S3 curated zone) | Parquet or ORC; schema-on-read applied; downstream Snowflake / Glue |
+
+> ⚠️ VALIDATE: Confirm S3 bucket names, path conventions, and whether EBCDIC-to-ASCII conversion happens on-mainframe or via a landing zone Lambda/Glue job.
+
+---
+
+### 3c. Feed Failure Handling
+
+Feed failures are among the highest-impact operational incidents in MiCPS — a missing nightly feed causes downstream applications to operate on stale data, can prevent provider portal updates, and delays financial reconciliation.
+
+#### Error Detection
+
+| Detection Point | Method |
+|----------------|--------|
+| JCL step return code | RC ≥ 8 triggers ABEND or condition-code-based step bypass; job scheduler alerts ops |
+| File size / record count check | Downstream validation job compares record count against expected range; alerts if outside threshold |
+| File arrival monitoring | CA7 / TWS monitors expected file arrivals; pages oncall if file not received by deadline |
+| SQL Server load validation | Post-load row count comparison; SSIS package emails on failure |
+| S3 arrival check | Lambda trigger on S3 PUT event; Step Function validates file; SNS alert on anomaly |
+
+#### Alerting
+
+| Alert Channel | Trigger |
+|--------------|---------|
+| PagerDuty / on-call page | File not arrived by deadline; ABEND on critical batch job |
+| Email to operations team | Non-critical warnings, count variances |
+| Mainframe operator console | WTOR (Write To Operator with Reply) messages for critical batch failures |
+
+> ⚠️ VALIDATE: Confirm alerting toolchain — whether PagerDuty, ServiceNow, or another system is used for mainframe batch alerts.
+
+#### Retry and Recovery
+
+| Scenario | Recovery Pattern |
+|----------|----------------|
+| JCL ABEND — restartable | Checkpoint/restart: re-run job from last checkpoint using RESTART= parameter in JCL |
+| JCL ABEND — non-restartable | Full re-run of job stream from affected step; may require manual data cleanup first |
+| File transfer failure (SFTP) | Scheduled retry job (3 attempts, 15-minute interval); manual retry by ops after third failure |
+| SQL Server load failure | Re-drop and reload target table; SSIS package includes truncate-and-reload logic |
+| S3 write failure | MFT tool retry; if persistent, ops manually copies file from mainframe tape/staging |
+| Downstream SLA breach | Incident opened in ServiceNow; escalation to MiCPS operations manager |
+
+---
+
+### 3d. Feed Dependency Map
+
+The batch feed sequence follows strict ordering — downstream jobs cannot start until upstream jobs complete and output files are validated.
+
+```
+CLAIM-INTAKE (EDI parse)
+      │
+      ▼
+CLAIM-EDIT (front-end edits)
+      │
+      ▼
+ELIG-VERIFY (eligibility check)
+      │
+      ▼
+ADJUD-MAIN (adjudication)
+      │
+      ├──► COB-PROCESS (COB calculation)
+      │         │
+      │         ▼
+      └──► PAYMENT-CALC (payment amount)
+                │
+                ▼
+          OUTPUT-GEN (835/ERA + EOB generation)
+                │
+                ▼
+          FEED-OUTBOUND (all outbound feeds)
+          │
+          ├──► CLAIM-STATUS-FEED ──► SQL Server (MiOps DB)
+          ├──► PAYMENT-FEED ──────► SQL Server (Finance)
+          ├──► COB-FEED ──────────► SQL Server
+          ├──► OVERPAY-FEED ───────► SQL Server
+          ├──► ACCUM-FEED ─────────► SQL Server
+          ├──► CLAIMS-FULL ────────► AWS S3 (raw/claims/daily)
+          ├──► CLAIMS-DELTA ───────► AWS S3 (raw/claims/delta)
+          ├──► ERA-FILES ──────────► AWS S3 + MiPortal SFTP
+          ├──► PROVIDER-SNAP ──────► AWS S3
+          ├──► MEMBER-ACCUM ───────► AWS S3
+          └──► AUDIT-LOG ──────────► AWS S3
+```
+
+**Critical Path:** ADJUD-MAIN is the longest-running job and lies on the critical path for all downstream feeds. Any ABEND or performance degradation in ADJUD-MAIN cascades to all downstream applications.
+
+> ⚠️ VALIDATE: Confirm actual job dependency chain, including any parallel job streams that run concurrently within the batch window.
+
+---
+
+## 4. Data Architecture
+
+### 4a. DB2 — Primary Claims Data Store
+
+See Section 1d for the full DB2 table inventory. Key design characteristics:
+
+- **Schema owner**: MiCPS application schema (single schema; no multi-tenancy)
+- **Partitioning**: Date-partitioned by claim receipt date; rolling 7-year retention on primary tablespaces; archived to tape beyond 7 years (HIPAA retention)
+- **Indexing**: Primary index on CLAIM_ID; secondary indexes on MEMBER_ID, PROV_NPI, DOS_FROM, STATUS_CD
+- **Referential integrity**: Enforced at application level (COBOL), not DB2 FK constraints — a known design limitation
+
+> ⚠️ VALIDATE: Confirm DB2 retention policy and archival mechanism. Confirm whether FK constraints are truly absent or whether some tables have them.
+
+### 4b. VSAM — Reference and Intermediate Data
+
+See Section 1c for the full VSAM file inventory. Key characteristics:
+
+- VSAM files are the primary store for reference data that must be accessed at high speed during batch (fee schedules, member index, provider master)
+- Accumulator files (ACCUM-FILE) are updated transactionally during each adjudication pass — these are the most write-intensive VSAM files
+- Several VSAM files have **undocumented or partially documented record layouts** — see Section 7 (Technical Debt)
+- VSAM CI (Control Interval) and CA (Control Area) sizes are tuned for MiCPS workloads; changes require IDCAMS redefine and data migration
+
+### 4c. SQL Server — Downstream Operational Data Stores
+
+| Database | Purpose | Primary Tables | Consuming Applications |
+|----------|---------|---------------|----------------------|
+| MiOps DB | Operational claim data for non-mainframe apps | ClaimStatus, Payments, COBResults, Overpayments, Accumulators | MiPortal, MiOps Dashboard |
+| MiFinance DB | Financial reconciliation and GL posting | PaymentRegister, GLEntries | Finance / GL System |
+| MiAnalytics DB | Pre-aggregated reporting data | ClaimSummary, DenialTrends, ProviderSummary | MiReport (Cognos), Ad-hoc BI |
+
+SQL Server databases are refreshed nightly from MiCPS feeds. They are **read replicas of mainframe truth** — the mainframe DB2 and VSAM files are the systems of record.
+
+### 4d. AWS S3 — Data Lake Landing Zones
+
+| Zone | S3 Path (Logical) | Contents | Governance |
+|------|------------------|----------|-----------|
+| Raw | s3://mivan-datalake/raw/ | Mainframe output files — unconverted or ASCII-converted fixed-width | Restricted; PHI; no direct analyst access |
+| Curated | s3://mivan-datalake/curated/ | Parquet-format processed data; schema applied; PII masked for non-prod | Controlled; analyst access via IAM roles |
+| Archive | s3://mivan-datalake/archive/ | Files older than 90 days; Glacier-tiered | Compliance hold; 7-year retention |
+
+**Governance:** All S3 buckets containing PHI are encrypted (SSE-KMS), access-logged to CloudTrail, and restricted by VPC endpoint. Direct public access is disabled. Data catalog managed in AWS Glue.
+
+> ⚠️ VALIDATE: Confirm S3 bucket naming convention, encryption key ownership (customer-managed vs. AWS-managed), and whether Glue Data Catalog is in use or a different catalog tool.
+
+---
+
+## 5. Modernization Architecture
+
+### 5a. Target Cloud-Native Architecture
+
+The target state replaces MiCPS function-by-function with a cloud-native microservices architecture on AWS. Each migrated module becomes an independent service; the mainframe equivalent is decommissioned only after the cloud service is validated in production.
+
+**Target Stack**
+
+| Layer | Technology |
+|-------|-----------|
+| Runtime | AWS EKS (Kubernetes) |
+| Languages | Java 21 (Spring Boot), Python (data / ML pipelines) |
+| Databases | Amazon Aurora PostgreSQL (transactional), Amazon DynamoDB (accumulator / reference data at scale) |
+| Messaging | Amazon MSK (Kafka) — event streaming between services |
+| API | REST (OpenAPI 3.x); AWS API Gateway for external-facing |
+| File processing | AWS Lambda + S3 events; AWS Glue for ETL |
+| Secrets | AWS Secrets Manager |
+| Observability | Amazon CloudWatch + Datadog |
+| CI/CD | GitHub Actions + AWS CodePipeline |
+
+### 5b. Migration Sequence (Function-by-Function)
+
+Modules are migrated in order of increasing business complexity. Earlier migrations (lower-risk) build team confidence and establish cloud infrastructure patterns before tackling the adjudication core.
+
+| Wave | Module | Rationale |
+|------|--------|-----------|
+| Wave 1 (In Flight) | Eligibility Validation | Well-defined inputs/outputs; reference data-driven; low denial risk |
+| Wave 1 (In Flight) | Duplicate Claim Detection | Rule-based; self-contained; high ROI (reduces duplicate pay) |
+| Wave 1 (In Flight) | Remittance Generation (835) | Output-only; does not touch adjudication logic |
+| Wave 2 | Member Accumulator Service | High-value; replaces ACCUM-FILE VSAM; enables real-time accumulator queries |
+| Wave 2 | Provider Data Service | Replaces MiProvider SQL Server feed dependency; enables real-time NPI lookup |
+| Wave 3 | Claims Intake & Editing | EDI parsing and NCCI/OCE edits; complex but well-documented via standards |
+| Wave 3 | Pricing / Fee Schedule | Fee schedule service; replaces FEE-SCHED VSAM; enables API-driven repricing |
+| Wave 4 | COB Engine | Complex; requires cross-payer data; phased by COB method |
+| Wave 5 | Adjudication Engine Core | Highest complexity; most tribal knowledge; last to migrate |
+| Wave 5 | Overpayment & Recovery | Dependent on adjudication; migrated as companion to Wave 5 |
+
+### 5c. Coexistence Pattern
+
+During migration, mainframe and cloud services must coexist. The coexistence layer routes traffic to the appropriate system and ensures data consistency between the two platforms.
+
+```
+                    ┌─────────────────────────┐
+                    │   Coexistence Router    │
+                    │  (API Gateway + Lambda) │
+                    └────────┬────────────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+   ┌──────────────────┐         ┌──────────────────────┐
+   │  MiCPS Mainframe │         │  Cloud-Native Service │
+   │  (z/OS)          │         │  (EKS / Spring Boot)  │
+   └──────────────────┘         └──────────────────────┘
+```
+
+**Routing Logic**
+
+| Condition | Route To |
+|-----------|---------|
+| Module not yet migrated | Mainframe (MiCPS) |
+| Module migrated and validated | Cloud-native service |
+| Cloud service unhealthy (circuit breaker open) | Fallback to mainframe |
+| Shadow mode (parallel validation) | Both — mainframe authoritative; cloud result compared |
+
+**Shadow Mode:** Before cutover, newly built cloud services run in shadow mode — processing real claims in parallel with MiCPS. Cloud outputs are compared to mainframe outputs; discrepancies are investigated before the cloud service becomes authoritative.
+
+**Data Synchronization:** During coexistence, the cloud-native services read from the same S3 feeds and SQL Server databases that MiCPS populates. Post-cutover, the cloud service becomes the source of truth and the S3/SQL feeds are generated by the cloud service instead.
+
+### 5d. How Batch Feeds Evolve During Migration
+
+| Migration Phase | SQL Server Feeds | AWS S3 Feeds |
+|----------------|-----------------|--------------|
+| Pre-migration (today) | Generated by MiCPS JCL batch; SFTP → SQL bulk load | Generated by MiCPS JCL batch; fixed-width files landed to S3 raw zone |
+| Wave 1–2 (partial migration) | MiCPS generates most feeds; migrated modules write directly to Aurora/DynamoDB and publish events to Kafka; Kafka consumers update SQL Server | MiCPS generates base files; cloud services publish delta events to S3 |
+| Wave 3–4 (mid-migration) | Hybrid: MiCPS and cloud services both contribute to SQL Server via event-driven Kafka consumers | Cloud services write curated data directly to S3; MiCPS feeds for non-migrated modules only |
+| Wave 5+ (post-adjudication migration) | Cloud-native services are the source of truth; SQL Server updated via Kafka / CDC from Aurora | Cloud services generate all S3 output; MiCPS batch feeds deprecated module by module |
+| Full cutover | SQL Server fed entirely by cloud event streams | S3 data lake fed entirely by cloud services; Glue catalogs structured data |
+
+> ⚠️ VALIDATE: Confirm coexistence router implementation approach — whether API Gateway + Lambda, AWS App Mesh, or a custom Java routing service is planned.
+
+---
+
+## 6. Development & Release Toolchain
+
+### Current State (Mainframe-First)
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| ISPF (Interactive System Productivity Facility) | Primary z/OS IDE — editing, browsing, submitting JCL | 3270 green-screen interface; all current MiCPS developers use ISPF daily |
+| IBM Endevor | Source code management and change management for z/OS | Centralized SCM; controls promotion of code through DEV → TEST → PROD environments; predecessor to Git in maturity model |
+| CA7 / IBM TWS | Job scheduler | Manages batch job streams, dependencies, calendars, and SLA monitoring |
+| SCLM (Software Configuration Library Manager) | Alternative SCM for some MiCPS modules (legacy) | Some older modules not yet migrated to Endevor |
+| File-AID / XPEDITER | Mainframe debugging and file browsing tools | XPEDITER used for interactive COBOL debugging; File-AID for VSAM and sequential file inspection |
+| IBM OMEGAMON | Performance monitoring for CICS, DB2, and batch | Real-time and historical performance metrics for the z/OS environment |
+
+> ⚠️ VALIDATE: Confirm whether Endevor or SCLM is the primary SCM for MiCPS. Confirm CA7 vs. TWS for job scheduling.
+
+### Target State (Hybrid / Cloud-Native)
+
+| Tool | Purpose |
+|------|---------|
+| GitHub (Enterprise) | Source code management for all cloud-native services and COBOL modules (via Endevor-Git bridge) |
+| GitHub Actions | CI/CD pipeline — build, test, security scan, deploy |
+| IBM DBB (Dependency Based Build) | Mainframe-aware build tool; integrates with GitHub Actions for COBOL CI/CD |
+| Endevor ↔ Git Bridge | Synchronizes Endevor inventory with GitHub repositories; enables COBOL code in Git-based workflows |
+| Jira | Work item tracking — epics, stories, bugs, tech debt items |
+| SonarQube | Static analysis — code quality gates for Java; COBOL support via plugins |
+| AWS CodePipeline | Deployment pipeline for cloud-native EKS workloads |
+| Harness | Optional deployment orchestration for canary / blue-green releases |
+
+### Testing Frameworks
+
+| Layer | Tool / Approach | Notes |
+|-------|----------------|-------|
+| COBOL unit testing | IBM Z Unit Testing Framework (ZUnit) | Mainframe-native unit testing; integrates with DBB |
+| COBOL integration testing | Batch regression: compare output files against expected results (golden file testing) | Primary QE method for MiCPS today |
+| Java unit testing | JUnit 5 + Mockito | Standard for cloud-native services |
+| Java integration testing | Spring Boot Test + Testcontainers | Spins up Aurora, Kafka containers for integration tests |
+| End-to-end / regression | Custom QE harness (Digital Brain QE harness) | Claim scenarios driven through full pipeline; compare mainframe vs. cloud outputs during shadow mode |
+| Performance testing | IBM zPCR for mainframe; Gatling / k6 for cloud services | |
+
+### Jira Project Structure
+
+| Project Key | Scope |
+|------------|-------|
+| MICPS | MiCPS mainframe changes — bug fixes, regulatory updates, config changes |
+| MIGRATE | Cloud-native migration work — epics per wave, stories per module |
+| INFRA | AWS infrastructure and platform engineering |
+| DIGITAL-BRAIN | Digital Brain project — connectors, harness, knowledge layer |
+
+---
+
+## 7. Known Technical Debt
+
+This section documents the highest-risk areas of technical debt in MiCPS. These are the primary targets for knowledge extraction by the Digital Brain project.
+
+### 7a. Tribal Knowledge Concentration
+
+| Area | Knowledge Owner(s) | Risk Level | Notes |
+|------|------------------|------------|-------|
+| Adjudication Engine (ADJUD-MAIN) core logic | James Whitfield (28 years) | Critical | Business rules for coverage determination embedded in COBOL logic; no external documentation; James retiring 2027 |
+| DRG Pricing and Grouper logic | James Whitfield + 1 other | Critical | Custom DRG grouper modifications not in standard CMS tables; modification history unknown |
+| COB calculation edge cases | Retiring engineer (name TBD) | High | Non-standard COB scenarios handled by hardcoded COBOL conditions; no specification document |
+| VSAM file record layouts (undocumented) | James Whitfield | Critical | 3–4 key VSAM files have no current COPYBOOK or layout documentation; decipherable only by reading COBOL programs |
+| Batch job dependency chain | Operations team | High | Complete dependency map exists only in CA7 scheduler; no human-readable documentation |
+| Fee schedule override logic | 2 senior engineers | High | Manual fee schedule overrides applied via a separate KSDS file; override logic undocumented |
+
+### 7b. Undocumented VSAM File Structures
+
+| File | Issue | Impact |
+|------|-------|--------|
+| FEE-SCHED | Record layout partially documented; sections added over 15 years without schema update | Fee schedule migration to cloud will require reverse-engineering |
+| AUTH-FILE | Mixed record types within single KSDS — record type discriminator in byte 1, not documented | Auth validation cloud service cannot be built without understanding record format |
+| ACCUM-FILE | Annual reset logic and mid-year enrollment handling are encoded in file structure; no spec | Accumulator service migration is blocked until layout is fully documented |
+| DRG-RATES | RRDS slot layout has been modified for custom DRG extensions; original RRDS definition was for CMS standard DRGs | DRG pricing migration requires full reverse engineering + validation against CMS tables |
+
+### 7c. Hardcoded Parameters and Undocumented Dependencies
+
+| Issue | Location | Risk |
+|-------|---------|------|
+| Hardcoded cutoff dates | Multiple COBOL programs contain hardcoded regulatory dates (e.g., ICD-10 transition date, ACA effective dates) | Regulatory changes may silently fail if hardcoded dates are not updated |
+| Hardcoded payer IDs | COB programs hardcode payer IDs for specific coordination agreements | Adding new COB partners requires code change + release cycle |
+| JCL hardcoded DSNs | Several JCL jobs reference dataset names (DSNs) with hardcoded date suffixes; automated by a preprocessing script that is itself undocumented | DSN generation failure breaks entire batch stream |
+| Implicit job sequencing | Some jobs depend on a previous job's output file being present on DASD (disk); dependency not declared in CA7 — detected only by ABEND when file is missing | Batch stream failures are difficult to diagnose without knowing the implicit dependency |
+| CICS transaction timeouts | CICS transaction timeouts are set per-transaction in the CICS CSD (Control System Definition); not in source code; no documentation | Timeout values may be inappropriate for cloud-integrated transactions |
+
+#### ACCUM-FILE Concurrency Issue
+
+| Attribute | Detail |
+|-----------|--------|
+| Issue | ACCUM-FILE (KSDS) is updated by both CICS online transactions (real-time accumulator queries during eligibility checks) and JCL batch (adjudication cycle accumulator updates), creating z/OS enqueue conflicts |
+| Symptom | During batch window open/close transitions, CICS transactions attempting to read ACCUM-FILE while batch holds an exclusive enqueue cause CICS transaction timeouts and occasional **ABEND X522** (deadlock) |
+| Current mitigation | CICS regions are quiesced for ACCUM-FILE access during peak batch window; real-time accumulator queries during this window return **cached values that may be up to 24 hours stale** |
+| Risk | High — any CICS quiesce failure during batch exposes stale accumulator data to real-time eligibility checks, potentially causing incorrect cost-share calculations for members who have met their deductible or OOP max |
+| Modernization driver | This concurrency issue is a primary driver for the Wave 2 migration of the accumulator function to **Amazon DynamoDB** — DynamoDB eliminates the enqueue conflict by providing a cloud-native accumulator service with real-time read/write without batch window coordination |
+
+### 7d. Highest Complexity Modules (Migration Risk)
+
+| Module | Complexity Driver | Estimated Migration Effort |
+|--------|-----------------|--------------------------|
+| Adjudication Engine | 30 years of accumulated business rules; no specification; highest tribal knowledge | Very High (Wave 5) |
+| COB Engine | Non-standard COB scenarios; hardcoded payer logic; edge cases in COBOL conditions | High (Wave 4) |
+| DRG Pricing / Grouper | Custom grouper extensions; undocumented RRDS layout; annual CMS update dependency | High (Wave 3) |
+| Claims Intake & Editing | NCCI edit tables managed as VSAM — update cycle and override logic undocumented | Medium-High (Wave 3) |
+| Overpayment / Recovery | Recovery offset logic tightly coupled to payment module; shared DB2 tables | Medium (Wave 5) |
+
+---
+
+## Glossary — MiCPS and Mainframe Terms
+
+| Term | Definition |
+|------|-----------|
+| MiCPS | Mivan Claims Processing System — the core mainframe claims adjudication platform |
+| z/OS | IBM's operating system for mainframe (zSeries) hardware |
+| COBOL | Common Business-Oriented Language — primary application language in MiCPS |
+| JCL | Job Control Language — IBM scripting language for submitting and controlling batch jobs on z/OS |
+| CICS | Customer Information Control System — IBM's online transaction processing subsystem |
+| VSAM | Virtual Storage Access Method — IBM's high-performance file access method on z/OS |
+| KSDS | Key Sequenced Data Set — VSAM type for keyed random and sequential access |
+| ESDS | Entry Sequenced Data Set — VSAM type for sequential/append-only access (logs, queues) |
+| RRDS | Relative Record Data Set — VSAM type for direct access by slot number (lookup tables) |
+| DB2 | IBM's relational database for z/OS — MiCPS's primary structured data store |
+| ISPF | Interactive System Productivity Facility — primary z/OS developer interface (3270 green screen) |
+| Endevor | Broadcom's mainframe SCM and change management product |
+| CA7 / TWS | Job scheduling tools for z/OS batch — manage job streams, dependencies, SLAs |
+| BMS | Basic Mapping Support — CICS facility for defining 3270 terminal screen maps |
+| JES2 | Job Entry Subsystem 2 — z/OS component that manages batch job queuing and output |
+| IDCAMS | IBM utility program for defining, managing, and maintaining VSAM datasets |
+| ABEND | Abnormal End — mainframe term for a program crash / abnormal termination |
+| DSN | Data Set Name — the identifier for a file on z/OS DASD (disk) storage |
+| DASD | Direct Access Storage Device — mainframe disk storage |
+| EBCDIC | Extended Binary Coded Decimal Interchange Code — IBM's character encoding (vs. ASCII) |
+| DBB | IBM Dependency Based Build — modern build tool for COBOL that integrates with Git/GitHub |
+| ZUnit | IBM's unit testing framework for COBOL on z/OS |
+| Strangler Fig | Migration pattern: incrementally replace legacy functions with cloud-native equivalents |
+| Shadow Mode | Running cloud-native service in parallel with mainframe to validate outputs before cutover |
+| Coexistence Router | API gateway / routing layer that directs traffic to mainframe or cloud service during migration |
+
+</script>
+
+<script type="text/plain" id="md-l4">
+---
+layer: L4
+domain: application
+source: manual
+last_synced: 2026-08-06
+status: TEMPLATE — all sections require Mivan domain expertise input
+---
+
+# MiCPS Application Knowledge
+## Mivan Claims Processing System — Module-Level Reference
+
+> **Status:** This document is a structured template. All sections marked
+> `[TO BE POPULATED WITH MIVAN DOMAIN EXPERTISE]` require input from
+> Mivan subject matter experts — primarily James Whitfield and the
+> MiCPS operations and QE teams.
+>
+> **Priority:** Sections marked `⚠️ HIGH PRIORITY` contain the highest
+> concentration of tribal knowledge and represent the greatest attrition
+> risk. These should be populated first.
+
+---
+
+## Table of Contents
+
+1. [Claims Intake & Editing](#module-1-claims-intake--editing)
+2. [Eligibility & Benefits](#module-2-eligibility--benefits)
+3. [Adjudication Engine](#module-3-adjudication-engine)
+4. [Pricing / Fee Schedule](#module-4-pricing--fee-schedule)
+5. [Claims Payment](#module-5-claims-payment)
+6. [Coordination of Benefits (COB)](#module-6-coordination-of-benefits-cob)
+7. [Overpayment & Recovery](#module-7-overpayment--recovery)
+
+---
+
+## Module 1: Claims Intake & Editing
+
+### 1.1 Module Overview
+
+**Purpose:** Receives inbound X12 837P and 837I EDI files from the MiEDI clearinghouse gateway, parses and validates claim records, applies front-end editing rules, and routes clean claims into the adjudication queue.
+
+**Scope:**
+- EDI 837P (professional) and 837I (institutional) ingestion
+- Syntax and HIPAA compliance validation
+- NCCI PTP and MUE edits
+- Clinical code-pair edits (sex, age, diagnosis-procedure conflicts)
+- Payer-specific business edits
+- Claim routing to adjudication or rejection back to provider
+
+**Processing Mode:** Batch (JCL-driven overnight)
+
+**Position in Pipeline:** First module — no upstream MiCPS dependency. Downstream: Eligibility & Benefits.
+
+---
+
+### 1.2 Key COBOL Programs
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MEDIPRS0` | EDI 837 parser — reads EDI-STAGE ESDS, extracts loop/segment data, writes parsed claim records to CLAIM-WRK ESDS | First program in CLAIM-INTAKE job stream | Handles both 837P and 837I; record type determined by CLM05 bill type [VALIDATE WITH SME] |
+| `MFMTVAL0` | Format validation — HIPAA syntax checks, required field presence, NPI format validation | Called after MEDIPRS0 | Rejects written to REJECT-FILE ESDS with TA1/999 reason codes [VALIDATE WITH SME] |
+| `MNCCIED0` | NCCI edit engine — applies PTP and MUE edits against NCCI-TABLE KSDS | Called after MFMTVAL0 | NCCI table loaded quarterly from CMS update; override logic via NCCI-OVRD KSDS [VALIDATE WITH SME] |
+| `MCLINDT0` | Clinical edit engine — sex/age/diagnosis-procedure conflict edits | Called after MNCCIED0 | Edit rules in DB2 CLINICAL_EDIT table; updated with each ICD-10/CPT annual release [VALIDATE WITH SME] |
+| `MBUSNED0` | Business edit engine — payer-specific edits, auth required flags, frequency limits | Called after MCLINDT0 | Mix of DB2 table-driven and hardcoded COBOL logic for legacy plan codes [VALIDATE WITH SME] |
+| `MRJCTWR0` | Rejection writer — generates 999 rejection response and writes to provider rejection queue | Called for any claim failing edits | Rejection reason codes mapped to X12 999 error codes [VALIDATE WITH SME] |
+
+---
+
+### 1.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `EDI_RECEIPT` | Claim receipt log — every 837 received with timestamp | CLAIM_ID, RECEIPT_DT, TRADING_PARTNER_ID, FILE_ID | Used for timely filing determination; CLAIM_ID joins to CLAIM_HEADER |
+| `CLINICAL_EDIT` | Clinical edit rules — sex/age/procedure conflict definitions | EDIT_CD, PROC_CD, DIAG_CD, SEX_CD, AGE_MIN, AGE_MAX | Read by MCLINDT0; updated annually at ICD-10/CPT release |
+| `NCCI_OVERRIDE` | Approved NCCI edit overrides by plan or provider | NPI, PROC_CD_1, PROC_CD_2, OVERRIDE_REASON, EFFECTIVE_DT | Read by MNCCIED0 after standard NCCI check; no expiry enforcement — see Known Complexity |
+| `REJECT_LOG` | All rejected claims with reason codes | CLAIM_ID, REJECT_DT, EDIT_TYPE, REJECT_REASON_CD | Written by MRJCTWR0; feeds provider portal rejection display via MiPortal batch extract |
+
+---
+
+### 1.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MINTAKE0` | EDI file intake and parsing — invokes MEDIPRS0 and MFMTVAL0 | Nightly — first job in batch stream | EDI file arrival from MiEDI (CA7 file trigger) | `MEDITV00` (edit validation) |
+| `MEDITV00` | Edit validation — NCCI, clinical, and business edits (MNCCIED0, MCLINDT0, MBUSNED0) | Nightly — after MINTAKE0 | `MINTAKE0` completion | `MELIGV00` (eligibility verification) |
+| `MNCCILD0` | NCCI table load — loads quarterly CMS NCCI update into NCCI-TABLE KSDS | Quarterly — manual trigger by edit analyst | Approved CMS NCCI file delivered to staging | None — reference data update only |
+
+---
+
+### 1.5 Known Complexity Areas
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| NCCI override management | NCCI-OVRD KSDS contains plan- and provider-specific overrides accumulated over 15+ years; no expiry date enforcement; some overrides may no longer be valid but remain active [VALIDATE WITH SME] | Senior edit analyst | High |
+| MBUSNED0 legacy plan logic | Several legacy commercial plan codes have hardcoded business edit bypasses in MBUSNED0 — these plans predate the DB2 edit table and were never migrated to table-driven rules [VALIDATE WITH SME] | James Whitfield | High |
+| Split claim trigger logic | Claims that span two benefit years are split by MFMTVAL0 using hardcoded calendar year logic — leap year handling has a known defect that surfaces every 4 years [VALIDATE WITH SME] | QE team | Medium |
+
+---
+
+### 1.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 3 (planned) |
+| Current Status | Pending |
+| Cloud Target | Java 21 / Spring Boot — Claims Intake Service on EKS |
+| Key Dependency | NCCI/MUE table management strategy must be defined before migration |
+| Blocker | MBUSNED0 hardcoded legacy plan edit bypasses must be fully documented and converted to DB2 CLINICAL_EDIT/business rules before the cloud intake service can be designed; NCCI-OVRD KSDS override inventory requires audit and expiry date backfill [VALIDATE WITH SME] |
+
+---
+
+---
+
+## Module 2: Eligibility & Benefits
+
+### 2.1 Module Overview
+
+**Purpose:** Verifies that the member was actively covered on the date of service, retrieves the member's benefit structure (deductible, copay, coinsurance, OOP max, plan exclusions), and updates accumulator state for use in cost-share calculation.
+
+**Scope:**
+- Member active status check against enrollment effective and termination dates
+- Plan and product identification (HMO, PPO, HDHP)
+- Benefit structure retrieval (coverage tiers, cost-share parameters)
+- Year-to-date accumulator lookup (deductible met, OOP max reached)
+- COB indicator check — flag claims with other coverage for COB module
+- Routing of ineligible claims to denial
+
+**Processing Mode:** Batch (JCL) + CICS (real-time eligibility query from provider portal)
+
+**Position in Pipeline:** Upstream: Claims Intake & Editing. Downstream: Adjudication Engine.
+
+---
+
+### 2.2 Key COBOL Programs
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MELIGDR0` | Eligibility driver — reads CLAIM-WRK ESDS, calls member lookup and benefit retrieval subprograms | Called by `MELIGV00` JCL job | Passes eligibility result and benefit parameters back to CLAIM-WRK for downstream modules [VALIDATE WITH SME] |
+| `MMEMBLK0` | Member lookup — reads MEMBER-IDX KSDS by member ID; returns enrollment record pointer | Called by MELIGDR0 | Member not found → routes to DENY with CO-31; found → retrieves effective/termination dates [VALIDATE WITH SME] |
+| `MBENFET0` | Benefit retrieval — reads DB2 BENEFIT_PARAMS table by plan code and product; returns cost-share parameters | Called by MELIGDR0 after MMEMBLK0 | Deductible, OOP max, copay by service type, in/out of network tiers [VALIDATE WITH SME] |
+| `MACCUML0` | Accumulator lookup — reads ACCUM-FILE KSDS; returns YTD deductible-met and OOP-max-reached flags | Called by MELIGDR0 after MBENFET0 | Most write-intensive read in eligibility pass; ACCUM-FILE concurrency issue documented in L3 [VALIDATE WITH SME] |
+| `MRETROE0` | Retroactive termination handler — checks for retroactive membership terminations posted since last batch; flags affected claims for reprocess | Called by MELIGDR0 when termination date < DOS | Retroactive lookback window is hardcoded at 90 days — claims beyond 90 days are not reprocessed automatically [VALIDATE WITH SME] |
+| `MCOBFLG0` | COB flag check — reads MEMBER-IDX COB indicator; flags claim for COB module if other coverage exists | Called by MELIGDR0 | COB indicator set by MiMember nightly feed; real-time COB updates not supported [VALIDATE WITH SME] |
+
+---
+
+### 2.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `BENEFIT_PARAMS` | Plan and product benefit structure — cost-share parameters by service type | PLAN_CD, PRODUCT_CD, SERVICE_TYPE_CD, DEDUCTIBLE_AMT, OOP_MAX_AMT, COPAY_AMT, COINS_PCT, IN_NETWORK_IND | Primary input to MBENFET0; joins to CLAIM_HEADER via PLAN_CD |
+| `PLAN_YEAR` | Plan year effective dates by plan code | PLAN_CD, PLAN_YEAR_START_DT, PLAN_YEAR_END_DT | Used for accumulator reset logic and benefit year determination; referenced by MACCURS0 |
+| `RETRO_TERM_LOG` | Retroactive termination events posted by MiMember feed | MEMBER_ID, TERM_DT, POSTED_DT, REPROCESS_STATUS | Written by MMEMLD00 from MiMember SFTP feed; read by MRETROE0 during eligibility pass |
+
+---
+
+### 2.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MMEMLD00` | MiMember enrollment file load — refreshes MEMBER-IDX KSDS from nightly MiMember SFTP feed | Nightly — start of batch window | MiMember SFTP file arrival | `MELIGV00` |
+| `MELIGV00` | Eligibility and benefits verification — invokes MELIGDR0 and all subprograms | Nightly — after MEDITV00 | `MEDITV00` completion + `MMEMLD00` completion (MEMBER-IDX refreshed) | `MADJMN00` (adjudication) |
+| `MACCURS0` | Annual accumulator reset — zeros YTD accumulators in ACCUM-FILE at plan year start per PLAN_YEAR table | Annual — plan year start date; manual trigger by operations with DBA approval | DBA approval + CICS quiesce (requires exclusive VSAM access) | All downstream modules — highest-impact job in MiCPS batch calendar |
+
+---
+
+### 2.5 Known Complexity Areas
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| MACCURS0 annual reset | Plan year reset updates every record in ACCUM-FILE — longest-running single job in MiCPS; requires exclusive VSAM access; CICS must be fully quiesced; any abend during reset leaves accumulators in partially zeroed state requiring manual DBA recovery [VALIDATE WITH SME] | DBA + operations | Critical |
+| Family accumulator logic | Family deductible and OOP max tracking embedded in ACCUM-FILE record structure alongside individual accumulators; layout partially undocumented; family vs. individual threshold logic lives in MACCUML0 and is not in any design document [VALIDATE WITH SME] | James Whitfield | Critical |
+| Newborn auto-coverage | 30-day newborn auto-coverage implemented as hardcoded date logic in MMEMBLK0 — if member age < 31 days and no enrollment record found, auto-coverage flag is set; edge cases around premature birth dates are unhandled [VALIDATE WITH SME] | Senior eligibility SME | High |
+| Retroactive termination window | MRETROE0 lookback window is hardcoded at 90 days — claims older than 90 days affected by a retroactive termination are not automatically reprocessed and require manual intervention; no alerting when claims fall outside window [VALIDATE WITH SME] | Operations team | High |
+
+---
+
+### 2.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 1 (in flight) |
+| Current Status | In flight — Eligibility Validation service being built |
+| Cloud Target | Java 21 / Spring Boot — Eligibility Service on EKS; DynamoDB for accumulator state |
+| Key Dependency | ACCUM-FILE VSAM layout must be fully documented before cloud accumulator service can be built |
+| Blocker | ACCUM-FILE VSAM layout (including family accumulator record structure) must be fully documented before the cloud DynamoDB accumulator service can be designed; MACCUML0 family threshold logic requires paired reverse-engineering sessions with James Whitfield [VALIDATE WITH SME] |
+
+---
+
+---
+
+## Module 3: Adjudication Engine
+
+### 3.1 Module Overview
+
+**Purpose:** The core decision engine of MiCPS. Determines whether each claim is covered, checks prior authorization status, applies medical necessity screening, routes claims to auto-adjudication or manual review queues, and produces an adjudication decision (pay, deny, pend, suspend) for each claim and service line.
+
+**Scope:**
+- Coverage determination (plan exclusions, benefit limitations)
+- Prior authorization validation
+- Medical necessity screening
+- Auto-adjudication vs. manual review routing
+- Denial code assignment (CARC / RARC)
+- Pend and suspend queue management
+- Manual adjudicator workstation (CICS)
+
+**Processing Mode:** Batch (JCL) — primary volume. CICS — manual adjudicator interface.
+
+**Position in Pipeline:** Upstream: Eligibility & Benefits. Downstream: Pricing / Fee Schedule (for approved claims), COB.
+
+> ⚠️ HIGH PRIORITY — This is the highest-complexity module in MiCPS. The majority of tribal knowledge risk is concentrated here.
+
+---
+
+### 3.2 Key COBOL Programs
+
+> ⚠️ [VALIDATE WITH JAMES WHITFIELD] — Program names, call chains, and behavioral notes below are based on typical IBM z/OS mainframe adjudication patterns and must be validated against actual MiCPS source code.
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| MADJDRV0 | Main adjudication driver — reads CLAIM-WRK ESDS sequentially, determines processing path per claim, calls subprograms | Called by JCL ADJUD-MAIN step 1; calls MCOVDET0, MAUTHCK0, MROUTNG0 | Single driver pattern; controls overall adjudication loop |
+| MCOVDET0 | Coverage determination — evaluates plan exclusions, benefit limitations, service type coverage | Called by MADJDRV0 | Table-driven via DB2 COVERAGE_POLICY table + inline COBOL EVALUATE for edge cases |
+| MAUTHCK0 | Prior authorization validation — reads AUTH-FILE KSDS by auth number; validates procedure, provider, date range match | Called by MADJDRV0 | AUTH-FILE key structure: NPI + AUTH-NUMBER + DOS; mismatches written to DENY work file |
+| MROUTNG0 | Auto-adjudication routing — evaluates 12 routing conditions; routes to auto-pay, manual pend, or suspend | Called by MADJDRV0 after MCOVDET0 and MAUTHCK0 | Routing conditions are hardcoded COBOL IF logic — primary tribal knowledge risk |
+| MDENCD00 | Denial code assignment — maps denial reason to CARC/RARC code pair | Called by MADJDRV0 for denied claims | CARC/RARC lookup table in DB2 DENIAL_CODE_MAP; some legacy denials use hardcoded CARC |
+| MPENDMG0 | Pend queue management — writes pended claims to PEND_QUEUE DB2 table with reason code and SLA date | Called by MROUTNG0 for pend-routed claims | SLA date calculated as receipt date + 30 days; no escalation logic currently — manual supervisor follow-up |
+| MSUSPMG0 | Suspend queue management — writes suspended claims to SUSPENSE DB2 table; sets release condition code | Called by MROUTNG0 for suspend-routed claims | Release conditions: COB-PENDING, AUTH-PENDING, ELIG-PENDING; released by nightly MSUSPRL0 when condition clears |
+| MSUSPRL0 | Suspend release — evaluates suspended claims nightly; releases to adjudication when condition is met | Called by JCL ADJUD-SUSP step | Runs after ACCUM-FILE refresh and AUTH-FILE refresh; high failure risk if upstream refresh jobs are late |
+| MADJAUD0 | Adjudication audit writer — writes every claim state change to CLAIM_AUDIT DB2 table | Called by MADJDRV0 at each state transition | Critical for compliance; every CARC assignment, routing decision, and override is logged |
+
+---
+
+### 3.3 Key DB2 Tables
+
+> ⚠️ [VALIDATE WITH JAMES WHITFIELD] — Table names, key fields, and relationships below are based on typical mainframe claims adjudication patterns and must be validated against actual MiCPS DB2 schema.
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| COVERAGE_POLICY | Plan-level coverage rules — covered services, exclusions, benefit limitations by plan code | PLAN_CD, SERVICE_TYPE_CD, COVERAGE_IND, LIMIT_UNITS, LIMIT_PERIOD | Joined to CLAIM_HEADER by PLAN_CD; primary input to MCOVDET0 |
+| DENIAL_CODE_MAP | CARC/RARC lookup — maps internal denial reason code to external CARC/RARC pair | DENIAL_REASON_CD, CARC_CD, RARC_CD, EFFECTIVE_DT | Read by MDENCD00; updated when new CARC/RARC codes published by WPC |
+| PEND_QUEUE | Active pended claims awaiting manual review | CLAIM_ID, PEND_REASON_CD, PEND_DT, SLA_DT, ADJUDICATOR_ID, STATUS_CD | Child of CLAIM_HEADER; updated by MPENDMG0 and manual adjudicator CICS transaction |
+| SUSPENSE | Active suspended claims awaiting automated condition clearance | CLAIM_ID, SUSPEND_REASON_CD, SUSPEND_DT, RELEASE_CONDITION_CD, RELEASE_DT | Child of CLAIM_HEADER; updated by MSUSPMG0 and released by MSUSPRL0 |
+| CLAIM_ADJUD | Final adjudication result per claim and service line | CLAIM_ID, LINE_SEQ, ADJUD_DT, ADJUD_RESULT_CD, PAY_AMT, DENIAL_CD, CARC_CD, RARC_CD, PROGRAM_ID | Parent: CLAIM_HEADER; Child: CLAIM_LINE; written by MADJDRV0 at adjudication completion |
+| CLAIM_AUDIT | Full audit trail — every state change, routing decision, and override | CLAIM_ID, EVENT_DT, EVENT_TYPE_CD, PREV_STATUS_CD, NEW_STATUS_CD, PROGRAM_ID, USER_ID, TERMINAL_ID | Append-only; written by MADJAUD0; never updated — insert only |
+
+---
+
+### 3.4 Batch Jobs
+
+> ⚠️ [VALIDATE WITH JAMES WHITFIELD] — JCL job names, schedules, and dependencies below are based on typical mainframe batch patterns and must be validated against actual CA7/TWS schedule definitions.
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| MADJMN00 | Main adjudication run — processes all clean claims from CLAIM-WRK; calls MADJDRV0 | Nightly — starts after MELIGV00 completes | MELIGV00 (eligibility verify) completion + ACCUM-FILE refresh + AUTH-FILE refresh | MPRICNG0 (pricing), MCOBPRC0 (COB) |
+| MADJSUSP | Suspend release job — evaluates and releases suspended claims back to adjudication queue | Nightly — runs before MADJMN00 | AUTH-FILE nightly refresh, MEMBER-IDX refresh | MADJMN00 |
+| MADJPND0 | Pend report and SLA monitoring — generates daily pend queue report; flags claims past SLA date | Nightly — post MADJMN00 | MADJMN00 completion | Operations team email distribution |
+| MADJREG0 | Adjudication regulatory update job — loads updated COVERAGE_POLICY and DENIAL_CODE_MAP from change-controlled input files | On-demand (regulatory change events) + annual (CMS update cycle) | Approved change file in DASD staging area | None — reference table update only |
+
+---
+
+### 3.5 Known Complexity Areas
+
+> ⚠️ [VALIDATE WITH JAMES WHITFIELD] — Complexity descriptions below are based on code analysis patterns and SME interviews. All entries require confirmation against actual MiCPS source.
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| MROUTNG0 routing conditions | 12 hardcoded IF conditions determine auto-pay vs. pend vs. suspend routing; no external specification; logic has been modified incrementally over 20+ years without documentation | James Whitfield | Critical |
+| COVERAGE_POLICY table gaps | Some legacy plan codes have no COVERAGE_POLICY rows — MCOVDET0 falls through to hardcoded COBOL EVALUATE logic for these plans; the list of affected plan codes is undocumented | James Whitfield | Critical |
+| MAUTHCK0 auth matching tolerance | Auth validation has undocumented date tolerance logic — claims within N days of auth expiry are auto-approved rather than denied; N is hardcoded in MAUTHCK0 and its value is unknown | James Whitfield | Critical |
+| MSUSPRL0 release condition race condition | If AUTH-FILE or MEMBER-IDX refresh jobs run late, MSUSPRL0 evaluates against stale data and may incorrectly release or hold suspended claims; no compensating control exists | Operations team | High |
+| Manual adjudicator CICS override | CICS transaction MADJ allows a supervisor to force-pay or force-deny any claim bypassing all edit and adjudication logic; override audit trail exists in CLAIM_AUDIT but override reason is free-text and unstructured | Operations supervisors | High |
+| CLAIM_AUDIT volume | CLAIM_AUDIT is append-only and has never been purged; estimated 8–10 billion rows; table scans are prohibited; all access must be via CLAIM_ID index; reporting against CLAIM_AUDIT requires offline extract | DBA team | Medium |
+
+---
+
+### 3.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 5 (planned — last to migrate) |
+| Current Status | Pending |
+| Cloud Target | Java 21 / Spring Boot — Adjudication Engine Service on EKS; Aurora PostgreSQL |
+| Key Dependency | All upstream modules (Waves 1–4) must be stable in production before adjudication migration begins |
+| Blocker | Primary blocker: MROUTNG0 routing logic must be fully reverse-engineered and converted to a documented business rule specification before the cloud adjudication engine can be designed. Estimated effort: 6–8 weeks of paired sessions between James Whitfield and a senior Java architect. This work must begin in 2026 before James's retirement in 2027. |
+
+---
+
+---
+
+## Module 4: Pricing / Fee Schedule
+
+### 4.1 Module Overview
+
+**Purpose:** Applies the correct contracted rate or UCR pricing to adjudicated claims, executes DRG grouper logic for institutional inpatient claims, calculates outlier payments, and applies any carve-out pricing for high-cost items.
+
+**Scope:**
+- In-network professional repricing (contracted CPT/HCPCS rates from FEE-SCHED VSAM)
+- DRG assignment and institutional inpatient pricing (DRG-RATES VSAM + custom grouper logic)
+- Out-of-network UCR pricing
+- Multiple procedure reduction
+- Outlier payment calculation for institutional claims
+- Carve-out item pricing (high-cost implants, drugs)
+
+**Processing Mode:** Batch (JCL). CICS for interactive fee schedule lookup.
+
+**Position in Pipeline:** Upstream: Adjudication Engine (approved claims only). Downstream: Claims Payment.
+
+---
+
+### 4.2 Key COBOL Programs
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MPRICDR0` | Pricing driver — determines pricing path per claim type (professional/institutional, in/out of network) | Called by JCL `MPRICNG0`; calls MFEELKP0, MDRGGRP0, MUCRPRC0, MMPRDC0 as appropriate | Routes to correct pricer subprogram based on claim type and network status [VALIDATE WITH SME] |
+| `MFEELKP0` | Fee schedule lookup — reads FEE-SCHED KSDS by NPI + CPT/HCPCS composite key; returns contracted allowed amount | Called by MPRICDR0 for professional in-network claims | No contracted rate found → falls through to MPFS percentage logic; fallback percentage is hardcoded [VALIDATE WITH SME] |
+| `MDRGGRP0` | DRG grouper — assigns MS-DRG based on principal diagnosis, procedures, CCs/MCCs, age, and discharge status | Called by MPRICDR0 for institutional inpatient claims | Custom COBOL grouper — not a vendor product; contains Mivan-specific DRG modifications layered on CMS base grouper; annual CMS update requires manual code change [VALIDATE WITH SME] |
+| `MDRGPRC0` | DRG pricer — reads DRG-RATES RRDS by DRG slot; applies base rate × relative weight; calculates outlier | Called by MPRICDR0 after MDRGGRP0 | Outlier threshold is per-hospital in DB2 HOSPITAL_PARAMS; default threshold hardcoded for hospitals without a specific record [VALIDATE WITH SME] |
+| `MUCRPRC0` | UCR pricer — applies out-of-network UCR pricing using percentile lookup from DB2 UCR_TABLE | Called by MPRICDR0 for out-of-network professional claims | UCR table loaded from FAIR Health data annually; geographic area mapping is a known complexity area [VALIDATE WITH SME] |
+| `MMPRDC0` | Multiple procedure reduction — applies percentage reduction to secondary procedures per CMS MPPR rules | Called by MPRICDR0 after MFEELKP0 for multi-procedure professional claims | Reduction percentages hardcoded per procedure category [VALIDATE WITH SME] |
+
+---
+
+### 4.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `HOSPITAL_PARAMS` | Hospital-specific parameters — outlier threshold, base rate modifier, per diem rates | HOSP_NPI, DRG_OUTLIER_THRESHOLD, BASE_RATE_MODIFIER, PER_DIEM_ICU, PER_DIEM_MEDSURG | Read by MDRGPRC0; hospitals without a record fall through to hardcoded defaults |
+| `UCR_TABLE` | UCR allowed amounts by CPT, geographic area, and percentile | CPT_CD, GEO_AREA_CD, PERCENTILE, UCR_ALLOWED_AMT, EFFECTIVE_DT | Read by MUCRPRC0; loaded annually from FAIR Health; geographic area mapping gap documented in Known Complexity |
+| `FEE_SCHED_AUDIT` | Audit log of fee schedule lookups — supports disputed claim repricing and contract validation | CLAIM_ID, CPT_CD, NPI, SCHED_USED, ALLOWED_AMT, LOOKUP_DT | Written by MFEELKP0; used by provider contract dispute resolution workflow |
+
+---
+
+### 4.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MPRICNG0` | Pricing run — applies fee schedule and DRG pricing to all approved claims | Nightly — after MADJMN00 | `MADJMN00` completion | `MCOBPRC0` (COB processing), `MPYMTCL0` (payment calculation) |
+| `MFEELDS0` | Fee schedule load — loads updated contracted rates into FEE-SCHED KSDS from approved contract files | On-demand — contract change events; requires DBA and operations sign-off | Approved contract rate file delivered to DASD staging | None — reference data update only |
+| `MDRGLDS0` | DRG rate load — loads annual CMS DRG relative weights and Mivan base rates into DRG-RATES RRDS | Annual — October (aligned to CMS IPPS update cycle); manual trigger | Approved DRG rate file; manual trigger by operations | None — reference data update only |
+
+---
+
+### 4.5 Known Complexity Areas
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| MDRGGRP0 custom grouper | Custom COBOL DRG grouper contains Mivan-specific modifications to CMS base grouper accumulated over 15 years; annual CMS IPPS update requires manual code diff and selective merge; no automated regression suite; high risk of silent mis-grouping after each update [VALIDATE WITH SME] | James Whitfield | Critical |
+| FEE-SCHED KSDS key structure | Fee schedule VSAM key is a composite of NPI prefix + specialty code + CPT code + effective date; key structure has been extended twice and is partially undocumented; incorrect key construction causes silent fallthrough to default MPFS percentage pricing with no error logged [VALIDATE WITH SME] | James Whitfield | Critical |
+| UCR geographic area mapping | CPT billing ZIP-to-GEO_AREA_CD mapping table in DB2 has not been updated since 2019; rural ZIP codes added since 2019 fall through to a default geographic area that may not be contractually appropriate [VALIDATE WITH SME] | Senior pricing analyst | High |
+| MMPRDC0 hardcoded reduction pcts | Multiple procedure reduction percentages are hardcoded by procedure category in MMPRDC0 rather than table-driven; CMS MPPR policy changes require a code change rather than a table update [VALIDATE WITH SME] | James Whitfield | High |
+
+---
+
+### 4.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 3 (planned) |
+| Current Status | Pending |
+| Cloud Target | Java 21 / Spring Boot — Fee Schedule Service on EKS; Aurora PostgreSQL for contracted rates |
+| Key Dependency | FEE-SCHED VSAM and DRG-RATES RRDS layouts must be fully reverse-engineered before migration |
+| Blocker | MDRGGRP0 custom DRG grouper extensions must be fully reverse-engineered and documented before the cloud pricing service can be designed; FEE-SCHED KSDS composite key structure requires complete layout documentation; both require paired sessions with James Whitfield [VALIDATE WITH SME] |
+
+---
+
+---
+
+## Module 5: Claims Payment
+
+### 5.1 Module Overview
+
+**Purpose:** Calculates the final member cost-share (deductible, copay, coinsurance, OOP max) for each adjudicated claim, determines the net payer payment amount, generates the X12 835 ERA (Electronic Remittance Advice), triggers the EFT payment instruction file, and generates the member EOB.
+
+**Scope:**
+- Cost-share calculation (deductible, copay, coinsurance, OOP max application)
+- Accumulator update (write back to ACCUM-FILE after cost-share applied)
+- Net payer payment amount calculation
+- X12 835 ERA file generation
+- EFT/ACH payment instruction file generation (to MiPay)
+- Member EOB generation
+- Payment register update (DB2)
+
+**Processing Mode:** Batch (JCL).
+
+**Position in Pipeline:** Upstream: Pricing / Fee Schedule + COB (if applicable). Downstream: Output feeds (SQL Server, S3, MiPortal, MiPay).
+
+---
+
+### 5.2 Key COBOL Programs
+
+> All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MPYMTDR0` | Payment driver — reads priced claims from CLAIM-WRK; orchestrates cost-share calculation and payment record creation | Called by JCL `MPYMTCL0`; calls MCOSTSH0, MACCUPD0, MPYMREC0 in sequence | Single driver pattern; controls payment loop [VALIDATE WITH SME] |
+| `MCOSTSH0` | Cost-share calculator — applies deductible, copay, coinsurance, and OOP max to calculate member responsibility and net payer payment amount | Called by MPYMTDR0 | Reads ACCUM-FILE for current YTD accumulator state; complex logic for in/out-of-network cost-share tiers [VALIDATE WITH SME] |
+| `MACCUPD0` | Accumulator updater — writes updated YTD deductible and OOP max back to ACCUM-FILE after cost-share applied | Called by MPYMTDR0 after MCOSTSH0 | Most critical write operation in MiCPS — ACCUM-FILE integrity depends on this completing without ABEND; checkpoint every 10,000 records [VALIDATE WITH SME] |
+| `MPYMREC0` | Payment record writer — writes final payment record to CLAIM_PAYMENT DB2 table and payment register | Called by MPYMTDR0 after MACCUPD0 | Generates internal payment sequence number used as EFT trace base [VALIDATE WITH SME] |
+| `M835GEN0` | 835 ERA generator — reads CLAIM_PAYMENT and CLAIM_ADJUD; generates X12 835 ERA file per trading partner | Called by JCL `MOUGEN00` after MPYMTCL0 | Generates one 835 file per provider NPI per payment cycle; 835 version 005010X221A1; custom format variations for select large provider groups — see Known Complexity [VALIDATE WITH SME] |
+| `MEFTGEN0` | EFT instruction file generator — creates fixed-width ACH payment instruction file for MiPay | Called by JCL `MOUGEN00` after M835GEN0 | EFT trace number = payment date (YYMMDD) + sequential counter; counter resets daily [VALIDATE WITH SME] |
+
+---
+
+### 5.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `CLAIM_PAYMENT` | Final payment record per claim — authoritative payer payment amount | CLAIM_ID, PAYMENT_DT, PAYMENT_AMT, MEMBER_RESP_AMT, EFT_TRACE_NO, CHECK_NO, PAYMENT_STATUS_CD | Written by MPYMREC0; read by M835GEN0 and MEFTGEN0; joins to CLAIM_HEADER via CLAIM_ID |
+| `PAYMENT_REGISTER` | Daily payment register — aggregate totals by provider for finance reconciliation | PAYMENT_DT, PROV_NPI, TOTAL_PAID_AMT, CLAIM_COUNT, EFT_BATCH_NO | Written by MPYMREC0; feeds finance GL system via nightly extract |
+| `ERA_CONTROL` | 835 ERA file control record — tracks ERA generation per provider per payment cycle | ERA_FILE_ID, PROV_NPI, GENERATION_DT, CLAIM_COUNT, TOTAL_AMT, FILE_STATUS | Written by M835GEN0; used for ERA reconciliation and reissue workflow |
+
+---
+
+### 5.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MPYMTCL0` | Payment calculation — cost-share, accumulator update, and payment record creation | Nightly — after MCOBPRC0 | `MCOBPRC0` completion | `MOUGEN00` (output generation) |
+| `MOUGEN00` | Output generation — 835 ERA file and EFT ACH instruction file creation | Nightly — after MPYMTCL0 | `MPYMTCL0` completion | `MFEEDOB0` (outbound feeds to MiDataSQL and MiDataLake) |
+| `MEFTTRN0` | EFT transmission — transmits ACH file to MiPay via SFTP | Nightly — after MOUGEN00; EFT file validation step must pass | `MOUGEN00` completion + EFT file checksum validation | MiPay ACH processing |
+
+---
+
+### 5.5 Known Complexity Areas
+
+> All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| OOP max cross-tier tracking | OOP max accumulator tracks in-network and out-of-network spending separately; ACA requires combined OOP max for embedded plans; MCOSTSH0 has separate logic paths for pre-ACA and post-ACA plan codes — pre-ACA plans still active for grandfathered groups [VALIDATE WITH SME] | Senior payment SME | High |
+| Family OOP max embedded logic | Family OOP max reached flag in ACCUM-FILE triggers a plan-pays-100% condition in MCOSTSH0; edge case when individual OOP max is reached but family is not uses a different calculation path that is only partially documented [VALIDATE WITH SME] | James Whitfield | High |
+| M835GEN0 trading partner variations | Several large provider groups have custom 835 format requirements negotiated into their contracts (loop ordering variations, custom REF segments); implemented as hardcoded provider NPI checks in M835GEN0 — not in any configuration table [VALIDATE WITH SME] | EDI operations team | Medium |
+| MACCUPD0 checkpoint/restart | ACCUM-FILE write checkpoints every 10,000 records; if ABEND occurs mid-run, restart logic re-reads from last checkpoint but duplicate-write protection relies on a flag byte in ACCUM-FILE record that must be manually reset after abend recovery [VALIDATE WITH SME] | James Whitfield | High |
+
+---
+
+### 5.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 1 (in flight — partial) |
+| Current Status | In flight — Remittance Generation (835) being extracted as a standalone cloud service |
+| Cloud Target | Java 21 — ERA Generation Service; S3 output; downstream EFT via AWS payment integration |
+| Key Dependency | Accumulator service (Wave 2) must be live before full payment module migration |
+| Blocker | 835 ERA generation approach must be decided — rebuild in Java (full control, Wave 1 target) vs. retain M835GEN0 with a cloud wrapper (lower risk, defers complexity); trading partner custom format variations in M835GEN0 must be fully inventoried before either path is viable; MACCUPD0 checkpoint/restart logic must be replicated or superseded by the Wave 2 DynamoDB accumulator service [VALIDATE WITH SME] |
+
+---
+
+---
+
+## Module 6: Coordination of Benefits (COB)
+
+### 6.1 Module Overview
+
+**Purpose:** Determines the correct order of payment when a member has coverage under more than one health plan, calculates the secondary payer's liability, and adjusts the MiCPS payment accordingly. Applies NAIC COB rules and Mivan-specific COB agreements.
+
+**Scope:**
+- COB order determination (birthday rule, active/inactive, subscriber/dependent)
+- Primary vs. secondary payment calculation
+- COB method application (Standard, Non-Duplication, MOB, or Carve-Out)
+- COB accumulator update
+- Handling of Medicare Secondary Payer (MSP) scenarios
+- Hardcoded payer-specific COB agreements
+
+**Processing Mode:** Batch (JCL).
+
+**Position in Pipeline:** Upstream: Adjudication Engine. Downstream: Claims Payment.
+
+> ⚠️ HIGH PRIORITY — COB edge cases and payer-specific COB agreements are a concentration of tribal knowledge.
+
+---
+
+### 6.2 Key COBOL Programs
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MCOBDR00` | COB driver — processes all COB-flagged claims; determines COB order and routes to appropriate calculation method | Called by JCL `MCOBPRC0`; calls MCOBORD0, MCOBPYR0, then MCOBSTD0/MCOBNOD0/MCOBMOB0 | Reads COB flag set by MCOBFLG0 in eligibility pass [VALIDATE WITH SME] |
+| `MCOBORD0` | COB order determination — applies birthday rule, active employment rule, and custody rule | Called by MCOBDR00 | Birthday rule implemented as date comparison; gender rule logic still present in code but bypassed by a condition flag — not yet removed [VALIDATE WITH SME] |
+| `MCOBSTD0` | Standard COB calculator — calculates secondary liability under standard COB method | Called by MCOBDR00 based on payer agreement lookup | Most common COB method for Mivan commercial plans [VALIDATE WITH SME] |
+| `MCOBNOD0` | Non-duplication COB calculator — compares primary paid to secondary allowable; pays zero if primary paid ≥ secondary allowable | Called by MCOBDR00 for non-duplication payer agreements | [VALIDATE WITH SME] |
+| `MCOBMOB0` | MOB (Maintenance of Benefits) calculator | Called by MCOBDR00 for MOB payer agreements | Least common method; used for specific self-funded employer groups [VALIDATE WITH SME] |
+| `MCOBPYR0` | Payer agreement lookup — determines which COB method applies for a given primary payer | Called by MCOBDR00 before calculation subprogram | Reads PAYER_COB_AGREE DB2 table first; falls through to hardcoded COBOL EVALUATE for payers not in table — primary tribal knowledge risk [VALIDATE WITH SME] |
+| `MCOBAUD0` | COB audit writer — writes full COB calculation detail to CLAIM_COB DB2 table | Called by MCOBDR00 after calculation | Full calculation detail preserved for provider dispute resolution [VALIDATE WITH SME] |
+
+---
+
+### 6.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `PAYER_COB_AGREE` | COB method by primary payer — for payers with formal coordination agreements | PRIMARY_PAYER_ID, COB_METHOD_CD, EFFECTIVE_DT, NOTES | Read by MCOBPYR0; incomplete — many payers handled by hardcoded COBOL fallthrough; see Known Complexity |
+| `CLAIM_COB` | COB calculation results per claim — full detail for dispute resolution | CLAIM_ID, PRIMARY_PAYER_ID, PRIMARY_PAID_AMT, COB_METHOD_CD, COB_AMT, SECONDARY_LIABILITY_AMT | Written by MCOBAUD0; joins to CLAIM_HEADER via CLAIM_ID |
+| `COB_ACCUM` | Member YTD COB accumulator — tracks primary payer payments for MOB method calculations | MEMBER_ID, PLAN_YEAR, PRIMARY_PAYER_ID, YTD_PAID_AMT | Updated by MCOBDR00 after each COB calculation |
+
+---
+
+### 6.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MCOBPRC0` | COB processing run — applies COB order determination and calculates secondary liability for all COB-flagged claims | Nightly — after MADJMN00 | `MADJMN00` completion | `MPYMTCL0` (payment calculation) |
+| `MCOBPYR0` | Payer agreement table refresh — loads updated COB method agreements from contracts team into PAYER_COB_AGREE | On-demand — when new payer agreements are executed | Approved payer agreement file from contracts team | None — reference data update only |
+
+---
+
+### 6.5 Known Complexity Areas
+
+> ⚠️ HIGH PRIORITY — All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| Hardcoded payer fallthrough | MCOBPYR0 falls through to hardcoded COBOL EVALUATE for ~40 payers not in PAYER_COB_AGREE; these include some of the highest-volume COB payers; the hardcoded logic predates the DB2 table and was never migrated [VALIDATE WITH SME] | James Whitfield | Critical |
+| Gender rule legacy code | MCOBORD0 contains gender rule logic gated by a GENDER-RULE-ACTIVE flag in PAYER_COB_AGREE; flag is Y for 3 legacy self-funded plans that have never been updated; legal confirmation of retirement pending [VALIDATE WITH SME] | Compliance + James Whitfield | High |
+| MSP determination | MSP scenarios handled by a separate condition in MCOBDR00 that checks a hardcoded list of Medicare payer IDs; list has not been updated since 2021; new Medicare Advantage plan IDs may not be recognized, causing MSP claims to process under standard COB incorrectly [VALIDATE WITH SME] | Senior COB analyst | High |
+| MOB accumulator accuracy | COB_ACCUM YTD data depends on primary payer EOB data being received and loaded correctly; if the primary payer's 835 is not available, MCOBMOB0 calculates based on member-reported amounts which are unvalidated [VALIDATE WITH SME] | Senior COB analyst | Medium |
+
+---
+
+### 6.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 4 (planned) |
+| Current Status | Pending |
+| Cloud Target | Java 21 / Spring Boot — COB Engine Service on EKS; Aurora PostgreSQL |
+| Key Dependency | Hardcoded payer COB agreements must be extracted and externalized to configuration before migration |
+| Blocker | ~40 hardcoded payer COB agreements in MCOBPYR0 EVALUATE block must be fully extracted and migrated to PAYER_COB_AGREE configuration before the cloud COB engine can be designed; gender rule retirement must be legally confirmed and the MCOBORD0 code path formally decommissioned; MSP payer ID list must be refreshed against current CMS Medicare Advantage plan registry [VALIDATE WITH SME] |
+
+---
+
+---
+
+## Module 7: Overpayment & Recovery
+
+### 7.1 Module Overview
+
+**Purpose:** Identifies claims that were paid in error or at an incorrect amount, generates demand notifications to providers, tracks recovery status, and applies offset logic to reduce future remittances until the overpayment is recovered.
+
+**Scope:**
+- Post-payment audit rules (duplicate detection, retroactive eligibility, COB mismatch, pricing error)
+- Overpayment record creation and tracking
+- Demand letter generation
+- Offset / recoupment calculation and application to future remittances
+- Recovery status tracking
+- Reporting for compliance and finance
+
+**Processing Mode:** Batch (JCL) + CICS (supervisor review and override interface).
+
+**Position in Pipeline:** Post-payment module. Runs after Claims Payment. Can trigger adjustments to future payment calculations.
+
+---
+
+### 7.2 Key COBOL Programs
+
+> All entries [VALIDATE WITH SME]
+
+| Program Name | Function | Calls / Called By | Notes |
+|-------------|----------|------------------|-------|
+| `MOVPDR00` | Overpayment audit driver — post-payment rules engine; evaluates 8 overpayment detection rules and identifies claims meeting overpayment criteria | Called by JCL `MOVPAUD0`; calls MOVPDUP0, MOVPCOB0, MOVPDEM0 | Runs after MPYMTCL0; writes confirmed overpayments to OVERPAY and OVERPAY_AUDIT [VALIDATE WITH SME] |
+| `MOVPDUP0` | Duplicate payment detector — identifies claims paid more than once | Called by MOVPDR00 | Compares CLAIM_PAYMENT records on member ID + provider NPI + DOS + CPT + amount; exact match only — near-duplicate logic not implemented [VALIDATE WITH SME] |
+| `MOVPCOB0` | COB overpayment detector — identifies claims where COB was not applied or applied incorrectly | Called by MOVPDR00 | Cross-references CLAIM_COB against updated COB data; retroactive COB data receipt triggers reanalysis [VALIDATE WITH SME] |
+| `MOVPDEM0` | Demand letter generator — creates demand letter trigger record in DB2 and notifies MiDocs for document generation | Called by MOVPDR00 for confirmed overpayments | Document generation handled by MiDocs (downstream system); MOVPDEM0 writes trigger record only — does not generate the letter [VALIDATE WITH SME] |
+| `MOVPOFS0` | Offset calculator — reduces future remittances by overpayment recovery amount | Called by MPYMTDR0 during payment calculation when an active overpayment offset exists | Tightly coupled to MPYMTDR0 — reads OVERPAY table and reduces CLAIM_PAYMENT amount before writing; any ABEND corrupts the payment run [VALIDATE WITH SME] |
+| `MOVPSTS0` | Recovery status updater — tracks partial recovery across multiple remittance cycles | Called by MOVPOFS0 after each offset application | Updates OVERPAY_RECOVERY ledger; closes overpayment record when fully recovered [VALIDATE WITH SME] |
+
+---
+
+### 7.3 Key DB2 Tables
+
+> All entries [VALIDATE WITH SME]
+
+| Table Name | Purpose | Key Fields | Relationships |
+|-----------|---------|-----------|--------------|
+| `OVERPAY` | Overpayment master record — one row per identified overpayment | OVERPAY_ID, CLAIM_ID, OVERPAY_AMT, RECOVERY_METHOD_CD, STATUS_CD, DEMAND_DT, RECOVERY_START_DT | Written by MOVPDR00; read by MOVPOFS0 during payment calculation; joins to CLAIM_HEADER via CLAIM_ID |
+| `OVERPAY_RECOVERY` | Partial recovery ledger — one row per remittance offset applied | OVERPAY_ID, RECOVERY_DT, RECOVERY_AMT, REMAINING_AMT, ERA_FILE_ID | Written by MOVPSTS0; used for recovery reconciliation and finance reporting |
+| `OVERPAY_AUDIT` | Full audit log of all overpayment status changes | OVERPAY_ID, EVENT_DT, EVENT_TYPE_CD, USER_ID, NOTES | Append-only; written by MOVPDR00 and CICS supervisor override transaction |
+
+---
+
+### 7.4 Batch Jobs
+
+> All entries [VALIDATE WITH SME]
+
+| JCL Job Name | Function | Schedule | Upstream Dependency | Downstream Dependency |
+|-------------|---------|---------|--------------------|--------------------|
+| `MOVPAUD0` | Post-payment overpayment audit — runs MOVPDR00 rules engine against all newly paid claims | Nightly — after MPYMTCL0 | `MPYMTCL0` completion | MOVPDEM0 trigger records written to MiDocs queue for demand letter generation |
+| `MOVPRPT0` | Overpayment recovery report — daily and monthly recovery status summary for finance and compliance | Nightly | `MOVPAUD0` completion | Finance and compliance distribution (MiReport extract) |
+
+---
+
+### 7.5 Known Complexity Areas
+
+> All entries [VALIDATE WITH SME]
+
+| Area | Description | Knowledge Owner | Risk |
+|------|-------------|----------------|------|
+| MOVPOFS0 coupling to payment | Offset logic reads OVERPAY table inside the MPYMTDR0 payment loop — any ABEND in MOVPOFS0 can corrupt the payment run for all claims in the current batch; no isolation between offset logic and clean payment processing [VALIDATE WITH SME] | James Whitfield | Critical |
+| Near-duplicate detection gap | MOVPDUP0 detects exact duplicates only; near-duplicates (same claim, slightly different charge amount or date) are not caught; estimated $2–4M annual leakage based on post-payment audit findings [VALIDATE WITH SME] | Senior overpayment analyst | High |
+| State recoupment look-back limits | Commercial recoupment look-back periods vary by state (12–36 months); limits are hardcoded per state code in MOVPOFS0; last updated 2020; several states have updated their laws since, creating compliance exposure [VALIDATE WITH SME] | Compliance team | High |
+| CICS supervisor override | CICS supervisor override transaction writes directly to OVERPAY_AUDIT and can change overpayment STATUS_CD to WAIVED without a corresponding financial adjustment to CLAIM_PAYMENT — reconciliation gap between audit and payment tables [VALIDATE WITH SME] | Operations + James Whitfield | Medium |
+
+---
+
+### 7.6 Modernization Status
+
+| Attribute | Detail |
+|-----------|--------|
+| Migration Wave | Wave 5 (planned — companion to Adjudication Engine) |
+| Current Status | Pending |
+| Cloud Target | Java 21 / Spring Boot — Overpayment & Recovery Service on EKS; Aurora PostgreSQL |
+| Key Dependency | Adjudication Engine must migrate first (shared DB2 tables); offset logic must be decoupled from payment module before migration |
+| Blocker | MOVPOFS0 must be decoupled from the MPYMTDR0 payment loop before migration — offset logic running inside the payment batch is not viable in a cloud microservices architecture; state-specific recoupment look-back rules must be refreshed against current state law before being externalized to configuration; near-duplicate detection requires a net-new rule specification [VALIDATE WITH SME] |
+
+---
+
+## Document Metadata
+
+| Field | Value |
+|-------|-------|
+| Template created | 2026-08-06 |
+| Primary SME target | James Whitfield — Principal Engineer, MiCPS |
+| Secondary SME targets | MiCPS operations team, QE team (Anita Rosen) |
+| Estimated population effort | 3–5 working sessions per module; 7 modules |
+| Priority order | Module 3 (Adjudication) → Module 4 (Pricing) → Module 6 (COB) → Module 2 (Eligibility) → Module 1 (Intake) → Module 5 (Payment) → Module 7 (Overpayment) |
+| Format for population | Replace `[TO BE POPULATED WITH MIVAN DOMAIN EXPERTISE]` and placeholder rows in tables with actual values; remove question blocks once answered |
+| Related documents | L3: `mivan-system-landscape.md` · L5: `claims-business-rules.md` · L1: `mivan-enterprise-context.md` |
+
+</script>
+
+<script type="text/plain" id="md-l5">
+---
+layer: L5
+domain: claims-business-rules
+source: web-research (CMS, NAIC, HIPAA) + manual
+last_synced: 2026-08-06
+---
+
+# Claims Business Rules
+## Commercial Health Insurance — Industry Standard Rules
+
+> **Flag legend used in this document:**
+>
+> `> ⚠️ MIVAN-SPECIFIC:` Rule or parameter that must be filled in based on Mivan/MiCPS domain expertise — not determinable from public sources alone.
+>
+> `> 📌 REGULATORY SOURCE:` Citable public standard (CMS, NAIC, HIPAA, state law).
+>
+> `> ⚠️ VALIDATE:` Statement derived from industry norms that should be confirmed against Mivan's actual implementation before treating as authoritative.
+
+---
+
+## 1. Claims Editing Rules
+
+Claims editing is the process of validating a submitted claim for correct coding, clinical consistency, and payer-specific policy before adjudication begins. Editing occurs in two scopes: **claim-level** (the entire claim is evaluated as a unit) and **line-level** (each service line is evaluated independently).
+
+### 1a. Claim-Level vs. Line-Level Edits
+
+| Edit Scope | Description | Outcome |
+|------------|-------------|---------|
+| Claim-level edit | Evaluates the entire claim — header fields, total charges, required provider and member data | If triggered, the entire claim is rejected or denied |
+| Line-level edit | Evaluates individual service lines — procedure code, units, modifiers against clinical rules | If triggered, the affected line(s) are denied; other lines may still pay |
+
+**When claim-level rejection applies:** Format errors, missing member ID, invalid provider NPI, missing required claim header fields. The claim does not enter adjudication.
+
+**When line-level denial applies:** NCCI bundling edits, MUE unit violations, sex/age/procedure conflicts, prior auth absent on a specific procedure. The claim enters adjudication; specific lines are denied.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm how MiCPS routes claim-level vs. line-level failures — whether a claim with one failing line is adjudicated with remaining lines or held entirely.
+
+---
+
+### 1b. NCCI — National Correct Coding Initiative
+
+The NCCI was created by CMS to promote correct coding and prevent improper payments. Originally a Medicare standard, NCCI edit logic has been broadly adopted by commercial payers including Mivan.
+
+> 📌 REGULATORY SOURCE: CMS NCCI — [cms.gov/medicare/coding-billing/national-correct-coding-initiative-ncci-edits](https://www.cms.gov/medicare/coding-billing/national-correct-coding-initiative-ncci-edits)
+
+#### NCCI PTP Edits (Procedure-to-Procedure)
+
+NCCI PTP edits define pairs of HCPCS/CPT codes that should not be billed together because one procedure is considered a component of the other, or because the two procedures are mutually exclusive.
+
+Each PTP edit pair has two columns:
+
+| Column | Role | Payment |
+|--------|------|---------|
+| Column 1 | Comprehensive or primary code | Eligible for payment |
+| Column 2 | Component or mutually exclusive code | Denied unless a valid NCCI-associated modifier is appended |
+
+**Modifier Indicators**
+
+| Indicator | Meaning |
+|-----------|---------|
+| 0 | Modifier not allowed — Column 2 code is never separately payable when billed with Column 1 on the same date of service |
+| 1 | Modifier allowed — Column 2 may be separately payable if a clinically appropriate NCCI-associated modifier (e.g., -59, -XU, -XS, -XE, -XP) is appended and documented |
+| 9 | Edit deleted — no longer applicable |
+
+**NCCI-Associated Modifiers**
+
+| Modifier | Meaning |
+|----------|---------|
+| -59 | Distinct procedural service — different session, site, lesion, or organ system |
+| -XE | Separate encounter |
+| -XS | Separate structure |
+| -XP | Separate practitioner |
+| -XU | Unusual non-overlapping service |
+
+**Rule:** A modifier override is only valid when there is a clinically distinct, separately documented service. Using modifier -59 / -X{EPSU} without documentation to bypass NCCI is a compliance violation and grounds for overpayment recovery.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which NCCI table version Mivan loads into MiCPS (CMS publishes quarterly — Q1/Q2/Q3/Q4), and whether commercial-specific NCCI overrides are maintained separately from the CMS table.
+
+#### NCCI PTP — Claim-Level vs. Line-Level Application
+
+PTP edits are applied at the **claim line level**: the edit checks whether two specific codes appear on the same claim for the same beneficiary on the same date of service. If the edit triggers and no valid modifier is present, the Column 2 line is denied.
+
+---
+
+### 1c. MUE — Medically Unlikely Edits
+
+MUEs define the maximum units of service (UOS) that can be reported for a given CPT/HCPCS code on a single date of service. They prevent billing errors where abnormally high unit counts are submitted.
+
+> 📌 REGULATORY SOURCE: CMS MUE — [cms.gov/medicare/coding-billing/national-correct-coding-initiative-ncci-edits/medicare-ncci-medically-unlikely-edits-mues](https://www.cms.gov/medicare/coding-billing/national-correct-coding-initiative-ncci-edits/medicare-ncci-medically-unlikely-edits-mues)
+
+#### MUE Adjudication Indicator (MAI)
+
+Each MUE has an associated MAI that determines how it is applied:
+
+| MAI | Type | Application Rule |
+|-----|------|-----------------|
+| 1 | Date of Service (DOS) edit | All units across all claim lines for that code on that DOS are summed; if total exceeds MUE, entire amount is denied |
+| 2 | Claim line edit | Each individual claim line is checked independently against the MUE value; lines exceeding the MUE are denied; other lines for the same code are unaffected |
+| 3 | Claim line edit (absolute) | Same as MAI 2 but represents an absolute physiologic limit — modifier override is not allowed |
+
+**MAI 1 (Date of Service) — Example:**
+- CPT 99213 has MUE = 1 (MAI 1)
+- Provider bills three lines of 99213 for the same member on the same DOS
+- All three units are denied — combined total of 3 exceeds MUE of 1
+
+**MAI 2 (Claim Line) — Example:**
+- CPT 11042 (debridement) has MUE = 3 (MAI 2) per claim line
+- Line 1: 3 units → passes (≤ 3)
+- Line 2: 4 units → that line is denied (exceeds 3)
+
+> 📌 Update frequency: CMS publishes MUE table updates quarterly. Tables cover Practitioner Services, Outpatient Hospital Services, and DME Supplier Services.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm whether Mivan adopts CMS MUE tables verbatim or maintains custom MUE overrides for commercial lines of business. Confirm MUE table load cadence in MiCPS (quarterly CMS release → how many days to load into production?).
+
+---
+
+### 1d. Clinical / Code-Pair Edits
+
+In addition to NCCI, MiCPS applies a set of clinical editing rules to catch coding errors that indicate clinical impossibility or improbability.
+
+| Edit Type | Rule | Example |
+|-----------|------|---------|
+| Sex conflict | Procedure is anatomically impossible for the member's sex | Orchiectomy billed for female member |
+| Age conflict | Procedure is age-inappropriate | Neonatal code billed for 45-year-old member |
+| Diagnosis-procedure mismatch | Procedure code is inconsistent with the reported diagnosis | Cardiac catheterization with a sprained ankle as the only diagnosis |
+| Manifestation sequencing | A manifestation code (ICD-10 "M" convention) is used as the principal diagnosis | E11.65 (Type 2 DM with hyperglycemia, manifestation) billed as principal without underlying condition |
+| Invalid code | CPT or ICD-10 code does not exist in the current active code set | Expired or not-yet-effective code |
+| Bilateral conflict | Both unilateral and bilateral code billed for the same body part | CPT 27447 (total knee, bilateral) billed alongside CPT 27447-RT |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which clinical editing engine is used (e.g., Optum ClaimLogic, Change Healthcare ClaimsXten, or custom MiCPS COBOL rules). Confirm whether commercial clinical edits are applied at line level or claim level.
+
+---
+
+### 1e. Timely Filing Rules
+
+Every payer enforces a filing deadline — the maximum period after the date of service within which a claim must be submitted to be eligible for payment.
+
+> 📌 REGULATORY SOURCE: Filing deadlines are contractual and/or state-mandated; no single federal standard governs commercial timely filing limits.
+
+| Payer Category | Typical Filing Limit | Source |
+|----------------|---------------------|--------|
+| Commercial (major carriers) | 90–180 days from DOS | Provider contract |
+| Medicare (Part A/B) | 12 months from DOS | 42 CFR 424.44 |
+| Medicaid | Varies by state; commonly 90–365 days | State Medicaid regulations |
+| Coordination of Benefits (secondary) | Usually 90 days from primary EOB date | Provider contract |
+
+**Rule:** A claim received after the timely filing limit is denied with CARC CO-29 ("The time limit for filing has expired"). This denial is generally not clinically overridable but may be appealed with proof of timely submission (e.g., clearinghouse acceptance acknowledgement).
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's commercial timely filing limit (likely 90 or 180 days) and any exceptions for COB secondary claims, corrected claims, or late-reported eligibility.
+
+---
+
+## 2. Eligibility Rules
+
+Eligibility rules govern whether a member was covered on the date of service, what benefit plan applies, and how to handle edge cases such as retroactive terminations.
+
+### 2a. Core Eligibility Verification Logic
+
+The eligibility check runs at claim intake and resolves the following questions in order:
+
+| Check | Rule | Denial if Failed |
+|-------|------|-----------------|
+| 1. Member exists | Member ID on the claim must match an enrolled member record | CO-4 or CO-16 (claim lacks information) |
+| 2. Active on DOS | Member's enrollment effective date ≤ date of service ≤ termination date (or open-ended) | CO-97 or CO-27 (expenses incurred after coverage terminated) |
+| 3. Correct plan | Claim is routed to the correct product (HMO, PPO, HDHP) based on member's enrolled plan | Internal routing error; reroute or deny |
+| 4. Line of business | Commercial, Medicare Advantage, or Medicaid — each adjudicated by different rules | Internal routing |
+| 5. Provider network | Rendering provider's network participation on DOS — in-network vs. out-of-network | Affects cost-share tier; OON claims may require separate benefit structure |
+| 6. COB indicator | Is there other coverage? If yes, establish COB order before proceeding | COB logic invoked (see Section 5) |
+
+> 📌 REGULATORY SOURCE: HIPAA 270/271 — Electronic Eligibility Inquiry and Response standard. [accountablehq.com — HIPAA 270/271 Compliance](https://www.accountablehq.com/post/hipaa-compliance-for-electronic-eligibility-verification-270-271-requirements-and-best-practices)
+
+### 2b. Effective Date Rules
+
+| Scenario | Rule |
+|----------|------|
+| New enrollment (employer group) | Coverage effective date set by group contract; typically first of the month following enrollment event or first of the month of hire |
+| Special enrollment (HIPAA) | Qualifying life event triggers 30-day enrollment window; coverage effective no later than first day of the month following receipt of enrollment request |
+| Open enrollment | Coverage effective date per plan year start (typically January 1 for calendar year plans) |
+| Newborn | Many states require automatic 30-day coverage from birth under the subscriber's plan; after 30 days, formal enrollment is required |
+| Late enrollment | May be subject to a waiting period; claims during waiting period denied |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's newborn auto-coverage rule by state and whether MiCPS enforces waiting periods at claim time or at enrollment.
+
+### 2c. Termination Handling
+
+| Scenario | Rule |
+|----------|------|
+| Standard termination | Member coverage ends on the termination date; claims with DOS after termination are denied |
+| Retroactive termination | Employer reports termination after claims have already been processed; creates overpayment recovery obligation — paid claims must be reviewed and potentially recouped |
+| Grace period (ACA individual plans) | ACA-compliant individual plans must provide a 3-month grace period for premium non-payment; payer can pend but not deny claims during grace period months 2–3 |
+| COBRA continuation | Member may elect COBRA within 60 days of qualifying event; if elected, coverage is retroactive to the date of the qualifying event |
+| Retroactive enrollment | Member retroactively enrolled after claims already denied for no-coverage; denied claims must be reopened and adjudicated |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm how MiCPS handles retroactive terminations — specifically, the look-back period for recoupment review and the process for reopening denied claims after retroactive enrollment.
+
+### 2d. Eligibility Data Sources and Hierarchy
+
+| Source | Description | Precedence |
+|--------|-------------|-----------|
+| Employer group enrollment file (834) | Primary source of enrollment for commercial group members | Highest |
+| Real-time eligibility query (270/271) | Point-in-time check; reflects latest enrollment data | High |
+| Member self-reported | Member provides coverage details; requires verification | Low without verification |
+| CAQH / third-party eligibility hub | Aggregated eligibility data; useful for COB secondary detection | Supplemental |
+
+---
+
+## 3. Adjudication Rules
+
+### 3a. Coverage Determination Hierarchy
+
+Before pricing or cost-share is applied, the adjudicator must determine whether the service is covered. Determination follows a defined hierarchy:
+
+```
+1. Plan Exclusions (absolute — no override)
+      │ If the service is explicitly excluded → deny CO-50
+      ▼
+2. Benefit Design Limitations
+      │ Frequency limits, visit caps, age limits
+      │ If exceeded → deny with appropriate CARC
+      ▼
+3. Prior Authorization Requirement
+      │ Is auth required for this procedure code?
+      │ Is a valid auth on file (matching member, procedure, dates, provider)?
+      │ If required and absent → deny CO-197
+      ▼
+4. Medical Necessity Determination
+      │ Does clinical evidence support the service for the reported diagnosis?
+      │ Apply clinical criteria (see 3b)
+      │ If not met → deny CO-50 or CO-11
+      ▼
+5. Network / Provider Eligibility
+      │ Is the rendering provider credentialed and in the correct network?
+      │ Apply correct cost-share tier
+      ▼
+6. Coverage Confirmed → Proceed to Pricing
+```
+
+**Plan Exclusion Examples (Standard Commercial)**
+
+| Exclusion Category | Examples |
+|-------------------|---------|
+| Cosmetic services | Rhinoplasty, blepharoplasty for cosmetic purposes |
+| Experimental / investigational | Services not approved by a recognized clinical body |
+| Non-covered procedures | Infertility treatment (plan-specific), weight loss surgery (plan-specific) |
+| Dental / vision (unless separately purchased) | Routine dental, eye exams, eyeglasses |
+| Self-inflicted injury | Injuries resulting from self-harm (plan-specific) |
+| Workers' compensation | Services covered by WC must be submitted to WC, not group health |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's standard commercial exclusion list and any plan-specific exclusion riders.
+
+---
+
+### 3b. Medical Necessity Criteria
+
+Medical necessity is the clinical standard that determines whether a service is appropriate and required for the member's condition. Commercial payers use a combination of industry-standard criteria sets and proprietary clinical coverage policies (CCPs).
+
+> 📌 REGULATORY SOURCE: CMS defines medical necessity as services "reasonable and necessary for the diagnosis or treatment of illness or injury." Commercial payers adopt similar language but are not bound by CMS definitions. [aapc.com — Medical Necessity](https://www.aapc.com/blog/77660-medical-necessity-is-it-really-necessary/)
+
+#### Industry-Standard Criteria Sets
+
+| Criteria Set | Publisher | Common Use |
+|-------------|-----------|-----------|
+| InterQual | Change Healthcare (Optum) | Acute inpatient level-of-care criteria, surgical procedures, post-acute care |
+| MCG (Milliman Care Guidelines) | Milliman | Evidence-based criteria for medical/surgical procedures, behavioral health, home health |
+| Hayes Medical Technology Directory | Hayes Management Consulting | Emerging technology and medical device coverage determinations |
+
+#### Coverage Determination Logic
+
+```
+Is there a National Coverage Determination (NCD) equivalent 
+or payer policy for this service?
+      │
+      Yes → Apply payer clinical coverage policy
+      │
+      No → Apply InterQual / MCG criteria set
+            │
+            Criteria met → Medically necessary → Approve
+            │
+            Criteria not met → Clinical reviewer route
+                  │
+                  Peer-to-peer available → Provider can request
+                  │
+                  Upheld denial → CO-50 with clinical denial rationale
+```
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which clinical criteria set(s) Mivan uses (InterQual, MCG, or both — often by service type). Confirm whether clinical denial rationale letters are generated automatically by MiCPS or manually by a clinical team.
+
+---
+
+### 3c. Clinical Editing vs. Medical Necessity Review
+
+These are distinct processes that are frequently confused:
+
+| Concept | Clinical Editing | Medical Necessity Review |
+|---------|----------------|------------------------|
+| What it checks | Code-level accuracy — are the codes correct and consistent? | Clinical appropriateness — is the service appropriate for the condition? |
+| Who performs it | Automated rules engine (MiCPS COBOL / edit software) | Automated criteria engine or human clinical reviewer |
+| Happens when | Pre-adjudication edit phase | During adjudication |
+| Appeal path | Corrected claim submission | Peer-to-peer review; then standard appeals process |
+| Examples | Diagnosis doesn't support procedure; unbundled codes | Inpatient stay not meeting acute level-of-care criteria |
+
+---
+
+### 3d. Timely Adjudication Rules
+
+> 📌 REGULATORY SOURCE: State prompt pay laws govern most commercial payers. All states except South Carolina have prompt pay requirements. [namas.co — Prompt Pay](https://namas.co/timely-claims-payment-prompt-pay/)
+
+| Claim Type | Standard Deadline | Penalty for Non-Compliance |
+|------------|------------------|--------------------------|
+| Clean electronic claim | 30 days (many states) | Interest (commonly 10–18% APR); state-specific |
+| Clean paper claim | 45 days (many states) | Interest; state-specific |
+| Unclean claim | 30–45 days to request additional information; clock restarts upon receipt of requested information | State-specific |
+| ERISA self-funded plans | No federal prompt pay mandate; governed by plan document and DOL regulations | No interest penalty; ERISA preempts state prompt pay laws |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which states Mivan has fully-insured commercial business in, and document the specific prompt pay deadlines and interest rates for each. ERISA self-funded plans are exempt from state prompt pay — confirm how MiCPS distinguishes fully-insured from self-funded at adjudication time.
+
+---
+
+## 4. Pricing Rules
+
+### 4a. Fee Schedule Hierarchy
+
+When pricing a claim, the adjudication engine must determine which fee schedule to apply. Hierarchy is evaluated in order — the first applicable rule wins.
+
+```
+1. Does a specific bilateral provider-group contract exist?
+      └── Yes → Apply group contract fee schedule
+      └── No  ↓
+2. Does an individual provider contract exist?
+      └── Yes → Apply individual contract fee schedule
+      └── No  ↓
+3. Is the provider in a leased network (rented network arrangement)?
+      └── Yes → Apply leased network fee schedule
+      └── No  ↓
+4. Is the provider out-of-network?
+      └── Professional → Apply UCR (see 4c)
+      └── Institutional → Apply institutional OON rate (see 4d)
+```
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's contracted rate hierarchy and whether leased/rented network arrangements (e.g., MultiPlan, PHCS) are in use.
+
+---
+
+### 4b. Contracted Rate Application — Professional Claims
+
+**In-Network Professional (CPT/HCPCS-based)**
+
+1. Look up the provider's contract by NPI (or group/TIN)
+2. Retrieve the allowed amount for the billed CPT/HCPCS code (+ place of service, if applicable)
+3. If the specific code is not listed in the contract, apply the contract's fallback rate (commonly a percentage of Medicare MPFS)
+4. **Lesser of rule:** The allowed amount is the lesser of the billed charge or the contracted rate
+5. Apply modifiers that affect reimbursement (e.g., -26 professional component, -TC technical component, -51 multiple procedures)
+
+**Multiple Procedure Reduction Rule**
+
+When two or more surgical procedures are performed on the same day, the second and subsequent procedures are typically reimbursed at a reduced rate (commonly 50% of the allowed amount for the secondary procedure).
+
+| Procedure | Reimbursement |
+|-----------|--------------|
+| Primary (highest RVU) | 100% of allowed amount |
+| Secondary | 50% of allowed amount (industry standard) |
+| Tertiary and beyond | 25–50% of allowed amount (plan-specific) |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's multiple procedure reduction percentages and whether the reduction applies to the allowed amount or the billed charge.
+
+---
+
+### 4c. UCR Pricing — Out-of-Network Professional Claims
+
+UCR (Usual, Customary, and Reasonable) is the benchmark for out-of-network professional claims. The allowed amount is determined by the prevailing rate for the same service in the same geographic area.
+
+| UCR Benchmark Source | Description |
+|--------------------|-------------|
+| FAIR Health | Independent non-profit; widely used; rates published at percentile of billed charges by ZIP code and procedure code |
+| Optum iCES (formerly Ingenix) | Commercial database; payer-licensable |
+| Medicare MPFS percentage | OON allowed = X% of Medicare Physician Fee Schedule; common in self-funded plans |
+| Proprietary payer database | Payer's own UCR database based on historical billed charges |
+
+> 📌 REGULATORY SOURCE: Several states mandate specific UCR methodologies or require disclosure of the UCR methodology used. No single federal standard governs commercial OON UCR for non-MA plans.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which UCR database Mivan uses for commercial OON professional claims, and what percentile is applied (e.g., 80th percentile of billed charges). Document any state-specific OON rules (e.g., New York's Independent Dispute Resolution process under the NY IDR law; federal No Surprises Act application).
+
+---
+
+### 4d. DRG-Based Pricing — Institutional Inpatient Claims
+
+Inpatient facility claims are priced using Diagnosis Related Groups (DRGs). The DRG groups similar clinical episodes into a single payment category.
+
+> 📌 REGULATORY SOURCE: CMS publishes MS-DRG definitions and relative weights annually. Commercial payers typically adopt MS-DRG as the base system, with contractual modifications.
+
+**DRG Pricing Formula**
+
+```
+Allowed Amount = DRG Base Rate × DRG Relative Weight
+                 + Outlier Payment (if applicable)
+                 + Carve-Outs (if applicable)
+```
+
+| Component | Description |
+|-----------|-------------|
+| DRG Base Rate | Hospital-specific or regional negotiated dollar amount per relative weight unit |
+| DRG Relative Weight | CMS-assigned complexity weight for the DRG; published annually; higher RW = higher payment |
+| DRG Grouper | Software that assigns the MS-DRG based on principal diagnosis, secondary diagnoses (CCs/MCCs), procedures, age, sex, and discharge status |
+
+**CC / MCC Impact**
+
+| Classification | Effect on DRG |
+|---------------|--------------|
+| No CC or MCC | Base DRG (lowest tier) |
+| CC (Complication or Comorbidity) | Mid-tier DRG; moderate payment increase |
+| MCC (Major Complication or Comorbidity) | High-tier DRG; significant payment increase |
+
+---
+
+### 4e. High-Cost Outlier Rules — Institutional Inpatient
+
+Outlier payments compensate hospitals for cases where actual treatment costs significantly exceed the DRG payment. Outlier logic prevents the DRG payment system from penalizing hospitals for legitimately complex, high-cost cases.
+
+> 📌 REGULATORY SOURCE: CMS Outlier Payments — [cms.gov/medicare/payment/prospective-payment-systems/acute-inpatient-pps/outlier-payments](https://www.cms.gov/medicare/payment/prospective-payment-systems/acute-inpatient-pps/outlier-payments)
+
+**Outlier Qualification Rule**
+
+```
+Estimated Case Cost > Fixed Loss Outlier Threshold
+
+Where:
+  Estimated Case Cost = Total Covered Charges × Hospital Cost-to-Charge Ratio (CCR)
+  Fixed Loss Outlier Threshold = DRG Payment + Operating Outlier Threshold Amount
+```
+
+If estimated cost exceeds the fixed loss threshold, the payer pays an additional outlier amount:
+
+```
+Outlier Payment = (Estimated Case Cost − Outlier Threshold) × Marginal Cost Factor
+```
+
+The marginal cost factor is typically 80% under Medicare rules; commercial contracts specify their own marginal cost factor.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm whether Mivan uses a fixed loss threshold approach (CMS-style), a statistical outlier threshold (e.g., cost > 1.96 standard deviations above DRG mean), or a contractual per diem carve-over-threshold approach. Confirm CCR source — whether hospital-specific (from cost reports) or statewide default.
+
+**Carve-Out Items**
+
+Certain high-cost items are priced separately outside the DRG and do not count toward the outlier threshold:
+
+| Carve-Out Type | Revenue Code Examples | Common Examples |
+|---------------|----------------------|----------------|
+| High-cost implants | RC 278 | Joint prostheses, cardiac devices |
+| High-cost drugs | RC 636 | Chemotherapy, biologics |
+| Blood products | RC 038X | Factor concentrates |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which revenue codes are carved out in Mivan's hospital contracts and the pricing method for each carve-out (invoice cost, invoice cost + markup, or fixed rate).
+
+---
+
+### 4f. Per Diem and Case Rate Pricing
+
+Some hospital contracts use alternative pricing methods:
+
+| Method | Description | Common Use |
+|--------|-------------|-----------|
+| Per diem | Fixed daily rate by level of care (ICU, Step-Down, Med/Surg, Psych, Rehab) | Behavioral health inpatient; some commercial hospital contracts |
+| Case rate / Global fee | Single all-inclusive payment per episode | Maternity (global OB), transplant, bariatric surgery |
+| Percent of charges (POC) | Allowed = Billed Charges × Contract Percentage | Small or non-contracted hospitals; out-of-network fallback |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which hospital pricing methods are in use in Mivan's network and how MiCPS determines which pricing method to apply for a given claim.
+
+---
+
+## 5. COB Rules
+
+### 5a. Overview
+
+COB rules determine payment order when a member has coverage under more than one health plan. Rules are based on the NAIC Coordination of Benefits Model Regulation, which most states have adopted as the basis for their commercial COB regulations.
+
+> 📌 REGULATORY SOURCE: NAIC COB Model Regulation #120 — [content.naic.org/sites/default/files/model-law-120.pdf](https://content.naic.org/sites/default/files/model-law-120.pdf)
+
+---
+
+### 5b. Order of Benefits Determination — Full Rule Hierarchy
+
+Rules are applied in sequence. The first applicable rule determines primary/secondary. If a rule produces a tie, move to the next rule.
+
+**Rule 1 — Subscriber vs. Dependent**
+
+The plan that covers a person as a subscriber (primary enrolled member) is primary over the plan that covers that person as a dependent.
+
+*Example: Member is enrolled in their own employer plan AND covered as a dependent on their spouse's plan → own employer plan is primary.*
+
+---
+
+**Rule 2 — Active vs. Inactive Coverage**
+
+The plan covering an individual as an active employee (or dependent of an active employee) is primary over a plan covering that individual as a retired employee (or dependent of a retiree).
+
+> 📌 REGULATORY SOURCE: NAIC COB Model Regulation §7(B)(2) — Active/Inactive Rule.
+
+*Example: Member covered by current employer plan and also by a retiree plan from a former employer → current employer plan is primary.*
+
+---
+
+**Rule 3 — COBRA vs. Active Coverage**
+
+An active employee plan is primary over a COBRA continuation plan.
+
+---
+
+**Rule 4 — Dependent Children — Birthday Rule**
+
+When a dependent child is covered under both parents' plans and both parents are living together (not divorced/separated), the plan of the parent whose birthday falls **earlier in the calendar year** is primary. Year of birth is irrelevant — only month and day matter.
+
+> 📌 REGULATORY SOURCE: NAIC COB Model Regulation §7(B)(4) — Birthday Rule.
+
+| Parent A Birthday | Parent B Birthday | Primary Plan |
+|------------------|------------------|-------------|
+| March 15 | September 22 | Parent A |
+| July 4 | February 28 | Parent B |
+| June 1 | June 1 (same day) | Plan in effect longer is primary |
+
+---
+
+**Rule 5 — Dependent Children — Divorced/Separated Parents**
+
+When parents are divorced, separated, or not living together, a different rule hierarchy applies:
+
+| Condition | Primary Plan |
+|-----------|-------------|
+| Court decree assigns health care coverage responsibility to one parent | Plan of the parent assigned responsibility by court order is primary |
+| Court decree assigns joint custody without specifying coverage responsibility | Birthday Rule applies |
+| No court decree — custodial parent | Plan of the custodial parent is primary |
+| No court decree — custodial parent has remarried | Plan of custodial parent > Plan of custodial parent's new spouse > Plan of non-custodial parent |
+
+> 📌 REGULATORY SOURCE: NAIC COB Model Regulation §7(B)(5) — Divorced/Separated Parents.
+
+---
+
+**Rule 6 — Gender Rule (Largely Superseded)**
+
+Older COB provisions used the "gender rule" — the father's plan was primary for a dependent child. This rule has been superseded in the NAIC Model Regulation and most state laws by the Birthday Rule. However:
+
+> ⚠️ VALIDATE: Some legacy contracts and older self-funded plan documents may still reference the gender rule. Confirm whether MiCPS has fully retired gender rule logic or whether it remains in specific contract configurations.
+
+---
+
+**Rule 7 — Medicare Secondary Payer (MSP) Rules**
+
+Federal law governs when Medicare is secondary to commercial insurance. These rules override all NAIC COB rules for Medicare-enrolled members.
+
+| Situation | Medicare Status |
+|-----------|----------------|
+| Active employee (employer with 20+ employees) | Medicare is Secondary |
+| Working spouse covered as dependent (employer with 20+ employees) | Medicare is Secondary |
+| End-Stage Renal Disease (ESRD) — first 30 months | Medicare is Secondary to employer plan |
+| End-Stage Renal Disease (ESRD) — after 30 months | Medicare is Primary |
+| Disability (employer with 100+ employees) | Medicare is Secondary |
+| No-fault auto or workers' compensation | Medicare is Secondary |
+| Retired employee | Medicare is Primary |
+| COBRA | Medicare is Primary over COBRA |
+
+> 📌 REGULATORY SOURCE: 42 U.S.C. §1395y(b) — Medicare Secondary Payer statute; CMS MSP Manual.
+
+> ⚠️ MIVAN-SPECIFIC: Confirm how MiCPS handles MSP determination for commercial members who also have Medicare. Confirm whether MSP data is obtained from CMS BCRC (Beneficiary Coordination & Recovery Center) data exchange.
+
+---
+
+### 5c. COB Payment Methods
+
+See L2 Domain Knowledge for full COB calculation details. Summary of methods:
+
+| Method | How Secondary Pays | Typical Use |
+|--------|-------------------|------------|
+| Standard COB | Pays up to its normal benefit; total of both plans ≤ 100% of charges | Most commercial group plans |
+| Non-Duplication | Pays nothing if primary payment ≥ secondary's allowable | Many self-funded commercial plans |
+| Maintenance of Benefits (MOB) | Applies its own deductible and coinsurance to the remainder after primary payment | Some commercial; common in dental |
+| Carve-Out | Secondary pays normal benefit minus primary's payment | Some commercial plans |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which COB payment method applies to Mivan's commercial products and whether different methods apply to HMO vs. PPO vs. HDHP products.
+
+---
+
+### 5d. COB Data Sources and Verification
+
+| Source | Purpose |
+|--------|---------|
+| Member eligibility file (834 inbound) | Employer-reported COB data at enrollment |
+| Real-time 271 response | COB indicator — "other coverage exists" flag |
+| CAQH / clearinghouse COB databases | Cross-payer COB data aggregators |
+| CMS BCRC data exchange | Medicare COB data for MSP determination |
+| Member self-reported (COB questionnaire) | Periodic outreach to members for COB updates; required by many state laws |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm whether Mivan participates in a commercial COB data exchange or relies solely on member-reported and employer-reported COB data.
+
+---
+
+## 6. Overpayment Rules
+
+### 6a. CMS 60-Day Rule (Medicare and Medicaid Applicable; Commercial Reference)
+
+> 📌 REGULATORY SOURCE: 42 U.S.C. §1320a-7k(d); 42 CFR Parts 401, 405, 422, 423, 447, 495; CMS Final Rule published February 2025.
+
+The CMS 60-day rule requires providers and Medicare Advantage organizations to report and return identified overpayments within 60 days of identification.
+
+**2024–2025 Regulatory Updates**
+
+CMS issued a final rule in early 2025 revising the 60-day rule in two key ways:
+
+| Change | Old Rule | New Rule (2025) |
+|--------|---------|----------------|
+| Definition of "identified" | "Reasonable diligence" standard | False Claims Act "knowingly" standard — actual knowledge, deliberate ignorance, or reckless disregard |
+| Investigation grace period | None explicitly | New 180-day suspension of the 60-day clock during a timely, good-faith investigation of related overpayments |
+
+> 📌 Source: [bassberry.com — CMS Revises 60-Day Rule](https://www.bassberry.com/news/a-new-year-a-new-overpayment-rule-cms-revises-the-60-day-rule/) · [morganlewis.com — Tick-Tock 60-Day Rule](https://www.morganlewis.com/pubs/2024/12/tick-tock-cms-overpayment-refund-final-rule-and-practical-implications)
+
+**Penalties for Non-Compliance**
+
+Failure to return an identified overpayment within 60 days (or 60 days after the end of the 180-day investigation period) triggers liability under the **False Claims Act** — potential treble damages plus per-claim penalties.
+
+> ⚠️ VALIDATE: The 60-day rule applies directly to Medicare Advantage and Medicaid managed care. For Mivan's commercial lines of business, there is no equivalent federal rule — confirm whether Mivan has adopted the 60-day rule as a voluntary standard for commercial overpayment management.
+
+---
+
+### 6b. Commercial Overpayment Rules
+
+Commercial overpayment rules are governed by:
+1. **Provider contract** — contractual right to recoup, timelines, interest provisions
+2. **State insurance law** — some states impose recoupment limits or require specific processes
+3. **ERISA** — for self-funded plans; no state recoupment law applies
+
+#### Commercial Recoupment Timeline Rules
+
+| Jurisdiction | Rule |
+|-------------|------|
+| No state law restriction | Provider contract governs; payer may recoup with notice per contract terms |
+| States with recoupment limits (example: CA, TX, NY, FL) | Many states impose a look-back period (commonly 12–36 months) beyond which recoupment is prohibited |
+| ERISA self-funded plans | Preempted from state recoupment limits; contract governs |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm the states where Mivan has fully-insured commercial business subject to state recoupment laws. Document the applicable recoupment look-back period per state. Confirm whether Mivan's provider contracts include a recoupment limitation provision.
+
+---
+
+### 6c. Overpayment Identification Rules
+
+The following rules trigger overpayment identification in MiCPS or downstream post-pay audit:
+
+| Trigger | Rule | Responsible System |
+|---------|------|-------------------|
+| Retroactive eligibility termination | Member was not covered on DOS; claim was paid | MiCPS / MiMember retroactive file |
+| Duplicate payment | Same claim paid twice (paper + EDI; or duplicate submission) | MiCPS duplicate detection / post-pay audit |
+| COB not applied | Claim paid primary when COB data shows another payer is primary | COB reconciliation job |
+| Wrong fee schedule | Incorrect contracted rate applied (e.g., wrong contract tier, wrong plan year rate) | Post-pay audit / pricing validation |
+| Retroactive prior auth void | Auth was cancelled or never valid; paid claim must be reviewed | MiAuth retroactive update feed |
+| Incorrect DRG assignment | DRG grouper error; post-discharge DRG validation identifies incorrect assignment | DRG validation / post-pay clinical audit |
+| Upcoding / billing error (post-audit) | Clinical audit identifies that billed code does not match documented service | SIU / clinical audit program |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm which post-pay audit processes are automated in MiCPS vs. manual. Confirm whether Mivan has a dedicated SIU (Special Investigations Unit) and what triggers SIU referral.
+
+---
+
+### 6d. Overpayment Recovery Process Rules
+
+```
+Overpayment Identified and Validated
+        │
+        ▼
+Internal Review
+  - Confirm amount, claim(s), root cause
+  - Classify: systematic (affects many claims) vs. isolated
+        │
+        ▼
+Provider Notification — Demand Letter
+  Required elements:
+  - Specific claim ID(s) and date(s) of service
+  - Overpayment amount (total and per claim)
+  - Reason for overpayment determination
+  - Recovery method (offset or direct refund)
+  - Response timeline (per contract)
+  - Appeal and dispute rights
+        │
+        ▼
+Response Window (typically 30–60 days per contract)
+  ├── Provider agrees → offset consent or refund check
+  ├── Provider disputes → suspend recoupment; initiate review
+  └── No response → proceed per contract terms
+        │
+        ▼
+Recovery Method Applied
+  ├── Offset → automatic deduction from future remittances
+  ├── Direct refund → provider check or ACH
+  └── Escalation → collections / legal (large amounts, non-responding provider)
+```
+
+> 📌 REGULATORY SOURCE: CMS Managed Care Overpayment Recoveries Toolkit — [cms.gov/files/document/managed-care-overpayment-recoveries.pdf](https://www.cms.gov/files/document/managed-care-overpayment-recoveries.pdf)
+
+---
+
+### 6e. Offset / Recoupment Rules
+
+| Rule | Description |
+|------|-------------|
+| Offset amount per remittance | Provider contract specifies maximum offset amount per ERA (e.g., no more than 25% of any single remittance) to prevent financial hardship |
+| Interest on overpayment | Some contracts specify interest accrues on uncollected overpayments after the response window; rate is contract-specific |
+| Refund vs. offset preference | Payer may offer provider the choice of refund check or offset; offset is more common for ongoing billing relationships |
+| Partial offset | If the overpayment amount exceeds a single remittance, offset continues across successive remittances until recovered in full |
+| Recoupment suspension during dispute | While an overpayment is under appeal or dispute, recoupment should be suspended per many state laws and CMS MA guidance |
+
+> ⚠️ MIVAN-SPECIFIC: Confirm Mivan's maximum offset-per-remittance cap (if any), interest rate on delinquent overpayments, and whether recoupment is suspended automatically when a dispute is filed.
+
+---
+
+### 6f. State-Specific Recoupment Laws (Key Examples)
+
+> ⚠️ VALIDATE: The following examples are representative; Mivan must confirm applicability based on its specific state footprint and whether each state's law applies to fully-insured commercial, Medicaid managed care, or both.
+
+| State | Key Provisions |
+|-------|---------------|
+| California | 365-day recoupment look-back for most commercial plans; longer for fraud |
+| New York | Recoupment limited to claims within 24 months of original payment date for non-fraud |
+| Texas | State law limits retroactive claim adjustments to 12 months from original payment |
+| Florida | Prompt pay laws include overpayment dispute rights; recoupment cannot begin until dispute is resolved |
+| Illinois | Provider must be given 30 days written notice before offset begins |
+| New Jersey | Prohibits recoupment beyond 18 months from date of original payment for non-fraud cases |
+
+> 📌 Sources: State insurance department regulations; individual state prompt pay statutes.
+
+> ⚠️ MIVAN-SPECIFIC: Document the complete list of states where Mivan has fully-insured commercial risk and the applicable recoupment window for each. This is a critical compliance input for the MiCPS OVERPAY module and its cloud-native successor.
+
+---
+
+## Glossary — Business Rules Terms
+
+| Term | Definition |
+|------|-----------|
+| NCCI | National Correct Coding Initiative — CMS-originated code bundling and edit standard |
+| PTP Edit | Procedure-to-Procedure edit — defines code pairs that cannot be billed together |
+| MUE | Medically Unlikely Edit — maximum units of service per code per date of service |
+| MAI | MUE Adjudication Indicator — determines whether MUE is applied at claim or line level |
+| Column 1 / Column 2 | NCCI PTP code pair positions; Column 1 is payable, Column 2 is denied |
+| Modifier -59 / -X{EPSU} | NCCI-associated modifiers used to indicate a distinct, separately documented service |
+| CARC | Claim Adjustment Reason Code — standard reason code for payment adjustments |
+| CO-29 | CARC: Timely filing limit exceeded |
+| CO-50 | CARC: Non-covered service |
+| CO-197 | CARC: Prior authorization required and absent |
+| PR-1/2/3 | CARC: Patient responsibility — deductible / coinsurance / copay |
+| UCR | Usual, Customary, and Reasonable — OON pricing benchmark |
+| DRG | Diagnosis Related Group — inpatient payment classification unit |
+| MS-DRG | Medicare Severity DRG — current CMS inpatient DRG system |
+| CC / MCC | Complication or Comorbidity / Major Complication or Comorbidity — DRG severity modifiers |
+| Fixed Loss Threshold | Dollar threshold above which outlier payment is triggered for inpatient claims |
+| CCR | Cost-to-Charge Ratio — used to estimate actual hospital cost from billed charges |
+| NAIC | National Association of Insurance Commissioners — publishes model insurance regulations |
+| Birthday Rule | NAIC COB rule: parent with earlier birthday in calendar year is primary for dependent child |
+| MSP | Medicare Secondary Payer — federal rule governing when Medicare pays secondary to commercial |
+| 60-Day Rule | CMS rule requiring return of identified Medicare/Medicaid overpayments within 60 days |
+| False Claims Act | Federal statute imposing treble damages for knowingly retaining government overpayments |
+| Recoupment | Recovery of overpayment via deduction from future claim payments |
+| Offset | Synonym for recoupment in most commercial contexts |
+| Look-Back Period | Maximum period into the past that a payer may recoup; governed by state law or contract |
+| SIU | Special Investigations Unit — handles fraud, waste, and abuse investigations |
+
+</script>
+
 <script>
-const RAW = 'https://raw.githubusercontent.com/milanchander/mivan-digital-brain/main/';
 const SYSTEM = `You are the Mivan Digital Brain — an AI-native knowledge layer built for the Mivan Health Plan MiCPS claims processing system. You have deep expertise in MiCPS architecture, IBM z/OS mainframe COBOL, JCL, CICS, VSAM, DB2 patterns, commercial claims processing lifecycle, and Mivan's cloud-native modernization program using Java 21, Spring Boot, AWS EKS, Aurora PostgreSQL, DynamoDB, and Kafka. Answer questions as an expert who knows MiCPS inside out. Be specific, technical, and reference MiCPS program names (MADJDRV0, MCOVDET0, MROUTNG0 etc), DB2 table names, VSAM file names, and JCL job names where relevant. When discussing the modernization program reference the correct migration waves. Keep answers concise but complete. If asked who you are, say you are the Mivan Digital Brain.`;
 
-let cache = {};
+const KNOWLEDGE_BASE = {
+  l1: document.getElementById('md-l1').textContent,
+  l2: document.getElementById('md-l2').textContent,
+  l3: document.getElementById('md-l3').textContent,
+  l4: document.getElementById('md-l4').textContent,
+  l5: document.getElementById('md-l5').textContent
+};
+
+function pageKey(page) {
+  if (page.startsWith('l1')) return 'l1';
+  if (page.startsWith('l2')) return 'l2';
+  if (page.startsWith('l3')) return 'l3';
+  if (page.startsWith('l4')) return 'l4';
+  if (page.startsWith('l5')) return 'l5';
+  return null;
+}
+
 let history = [];
 
 // ── MARKED CONFIG ──
@@ -767,31 +3770,23 @@ document.querySelectorAll('.ncl[data-page]').forEach(el => {
 document.getElementById('nav-ask').addEventListener('click', openChat);
 
 // ── PAGE LOAD ──
-async function loadPage(page, relUrl, sec, label) {
+function loadPage(page, relUrl, sec, label) {
   setActive(page);
   setBc(label);
   const wrap = document.getElementById('cwrap');
   const content = document.getElementById('content');
-  content.innerHTML = `<div class="loading"><div class="spinner"></div>Loading…</div>`;
-
-  const url = RAW + relUrl;
-  try {
-    if (!cache[url]) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      cache[url] = await r.text();
-    }
-    const md = cache[url].replace(/^---[\s\S]*?---\n/, '');
-    content.innerHTML = `<div class="md">${marked.parse(md)}</div>`;
-    content.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
-
-    if (sec) {
-      setTimeout(() => scrollTo(sec), 80);
-    } else {
-      wrap.scrollTop = 0;
-    }
-  } catch(e) {
-    content.innerHTML = `<div class="loading" style="color:#f85149">Failed to load: ${e.message}</div>`;
+  const key = pageKey(page);
+  if (!key || !KNOWLEDGE_BASE[key]) {
+    content.innerHTML = '<div class="loading" style="color:#f85149">Content not found.</div>';
+    return;
+  }
+  const md = KNOWLEDGE_BASE[key].replace(/^---[\s\S]*?---\n/, '');
+  content.innerHTML = '<div class="md">' + marked.parse(md) + '</div>';
+  content.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+  if (sec) {
+    setTimeout(() => scrollTo(sec), 80);
+  } else {
+    wrap.scrollTop = 0;
   }
 }
 
