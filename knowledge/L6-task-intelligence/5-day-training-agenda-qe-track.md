@@ -1,8 +1,26 @@
 ---
 layer: L6
+node_type: reference
 domain: claims
-source: internal
-last_synced: 2026-08-07
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: COMPLETE
+source_count_declared: 4
+source_count_captured: 4
+owns:
+  - QE engineer 5-day onboarding curriculum
+implements: []
+links_back:
+  - L2-domain/health-payer-domain.md
+  - L3-systems/mivan-system-landscape.md
+  - L4-application/micps-application-knowledge.md
+  - L5-business-rules/claims-business-rules.md
+links_forward: []
+ghost_nodes:
+  - ZUnit regression test library for trainees
+  - End-to-end test data generation guide
+  - Performance test scenario library
 ---
 
 # Mivan Digital Brain — 5-Day Training Agenda (QE Track)

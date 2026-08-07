@@ -1,9 +1,43 @@
 ---
 layer: L4
-domain: application
-source: manual
-last_synced: 2026-08-06
-status: TEMPLATE — all sections require Mivan domain expertise input
+node_type: application
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "James Whitfield — pending review"
+fidelity: DRAFT
+source_count_declared: 8
+source_count_captured: 2
+owns:
+  - ADJUD-MAIN
+  - MADJDRV0
+  - MELIGDR0
+  - MCLMPR0
+  - MOVPDUP1
+  - MOVPDUP0
+  - CLAIM_PAYMENT table
+  - NEAR_DUP_QUEUE table
+  - ADJUD-WRK VSAM file
+  - ACCUM-FILE VSAM file
+  - CLMPAYRC.cpy copybook
+  - NDUPQREC.cpy copybook
+implements:
+  - L5-business-rules/claims-business-rules.md
+links_back:
+  - L3-systems/mivan-system-landscape.md
+links_forward:
+  - L5-business-rules/claims-business-rules.md
+  - L6-task-intelligence/5-day-training-agenda.md
+  - L6-task-intelligence/5-day-training-agenda-java-track.md
+  - L6-task-intelligence/5-day-training-agenda-qe-track.md
+ghost_nodes:
+  - Module 7 COB program detail and rule table
+  - Module 8 Provider Maintenance program inventory
+  - Complete DB2 table catalog with column definitions
+  - Complete VSAM file inventory with IDCAMS output
+  - JCL job dependency chain and scheduler configuration
+  - Hardcoded parameter audit and externalisation plan
+  - Performance tuning parameters and capacity baselines
 ---
 
 # MiCPS Application Knowledge

@@ -1,8 +1,32 @@
 ---
 layer: L5
-domain: claims-business-rules
-source: web-research (CMS, NAIC, HIPAA) + manual
-last_synced: 2026-08-06
+node_type: process
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 10
+source_count_captured: 10
+owns:
+  - Claims editing rules (claim-level and line-level)
+  - NCCI edit logic
+  - Adjudication decision rules
+  - Coordination of Benefits priority rules
+  - Overpayment detection rules
+  - Pricing and fee schedule business rules
+  - Near-duplicate detection rules
+implements: []
+links_back:
+  - L2-domain/health-payer-domain.md
+  - L4-application/micps-application-knowledge.md
+links_forward: []
+ghost_nodes:
+  - Mivan-specific COB priority rules by line of business
+  - State-specific mandate variations for all 50 states
+  - Complete adjudication rule priority order and conflict resolution
+  - Internal fee schedule update cadence and override authority
+  - NCCI edit version in production and update schedule
 ---
 
 # Claims Business Rules

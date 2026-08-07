@@ -1,8 +1,13 @@
 ---
 layer: L1
-domain: enterprise
-source: manual
-last_synced: 2026-08-06
+node_type: enterprise
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 5
+source_count_captured: 5
 ---
 
 # Mivan Health Plan — Enterprise Context

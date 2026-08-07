@@ -1,8 +1,13 @@
 ---
 layer: L2
-domain: health-payer
-source: web-research + manual
-last_synced: 2026-08-06
+node_type: domain
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 12
+source_count_captured: 10
 ---
 
 # Health Payer Domain Knowledge — Commercial Claims Processing

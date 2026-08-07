@@ -1,8 +1,26 @@
 ---
 layer: L6
+node_type: reference
 domain: claims
-source: internal
-last_synced: 2026-08-07
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: COMPLETE
+source_count_declared: 4
+source_count_captured: 4
+owns:
+  - Java developer 5-day onboarding curriculum
+implements: []
+links_back:
+  - L2-domain/health-payer-domain.md
+  - L3-systems/mivan-system-landscape.md
+  - L4-application/micps-application-knowledge.md
+  - L5-business-rules/claims-business-rules.md
+links_forward: []
+ghost_nodes:
+  - Spring Boot service deployment lab exercises
+  - Shadow mode validation walkthrough exercises
+  - Wave 1 cutover simulation exercises
 ---
 
 # Mivan Digital Brain — 5-Day Training Agenda (Java Modernization Track)

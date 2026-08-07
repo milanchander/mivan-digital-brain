@@ -1,8 +1,31 @@
 ---
 layer: L3
-domain: systems
-source: web-research + manual
-last_synced: 2026-08-06
+node_type: application
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 8
+source_count_captured: 6
+owns:
+  - MiCPS high-level architecture
+  - Batch feed architecture
+  - Modernization architecture
+  - Coexistence pattern
+  - Wave 1-5 migration sequence
+implements: []
+links_back:
+  - L1-enterprise/mivan-enterprise-context.md
+  - L2-domain/health-payer-domain.md
+links_forward:
+  - L4-application/micps-application-knowledge.md
+ghost_nodes:
+  - Complete VSAM file inventory with record layouts
+  - Production JCL job schedule and dependency chain
+  - CICS transaction catalog with program mappings
+  - Network topology and mainframe connectivity diagrams
+  - DR/failover configuration and RTO/RPO targets
 ---
 
 # Mivan Health Plan — System Landscape
