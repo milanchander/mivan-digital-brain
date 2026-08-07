@@ -729,7 +729,67 @@
     .lc-stat-box{text-align:center;padding:10px 8px;background:var(--panel-bg);border-radius:8px;border:1px solid var(--border)}
     .lc-stat-val{font-size:20px;font-weight:700;color:var(--accent)}
     .lc-stat-lbl{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}
-  </style>
+  
+    /* -- ONBOARDING -- */
+    .ob-page { padding: 32px 40px; max-width: 1000px; }
+    .ob-page-hdr { margin-bottom: 32px; }
+    .ob-page-hdr h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .ob-page-hdr p  { font-size: 13px; color: var(--muted); }
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .role-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 24px 20px; cursor: pointer; transition: border-color .2s, background .2s, transform .15s; display: flex; flex-direction: column; gap: 10px; }
+    .role-card:hover { border-color: var(--accent); background: var(--card-hover); transform: translateY(-2px); }
+    .role-card-icon { font-size: 32px; line-height: 1; }
+    .role-card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .role-card-tagline { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .role-card-learn { font-size: 12px; color: var(--accent); line-height: 1.4; margin-top: 4px; flex: 1; }
+    .role-start-btn { margin-top: 8px; background: var(--accent); color: #0d1117; border: none; padding: 7px 0; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: background .15s; }
+    .role-start-btn:hover { background: var(--accent-dark); }
+    .ob-track-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .ob-back-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: color .15s, border-color .15s; }
+    .ob-back-btn:hover { color: var(--text); border-color: var(--text); }
+    .ob-track-title { font-size: 18px; font-weight: 700; color: var(--text); flex: 1; }
+    .ob-track-icon  { font-size: 22px; }
+    .ob-progress-wrap { margin-bottom: 28px; }
+    .ob-progress-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .ob-progress-track { display: flex; gap: 6px; }
+    .ob-prog-seg { flex: 1; height: 6px; border-radius: 3px; background: var(--border); transition: background .3s; }
+    .ob-prog-seg.done { background: #2ea043; }
+    .ob-prog-seg.current { background: var(--accent); }
+    .ob-days { display: flex; flex-direction: column; gap: 10px; }
+    .ob-day-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .2s; }
+    .ob-day-card.current  { border-color: var(--accent); }
+    .ob-day-card.complete { border-color: #2ea043; }
+    .ob-day-hdr { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; user-select: none; transition: background .15s; }
+    .ob-day-hdr:hover { background: rgba(255,255,255,.03); }
+    .ob-day-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .ob-day-card.current  .ob-day-num { background: var(--accent); color: #0d1117; }
+    .ob-day-card.complete .ob-day-num { background: #2ea043; color: #fff; }
+    .ob-day-title-wrap { flex: 1; }
+    .ob-day-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .ob-day-obj   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ob-day-chev  { font-size: 10px; color: var(--muted); transition: transform .2s; }
+    .ob-day-card.expanded .ob-day-chev { transform: rotate(90deg); }
+    .ob-complete-badge { font-size: 11px; color: #2ea043; background: rgba(46,160,67,.12); padding: 3px 8px; border-radius: 4px; }
+    .ob-current-badge  { font-size: 11px; color: var(--accent); background: var(--active-bg); padding: 3px 8px; border-radius: 4px; }
+    .ob-day-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border); }
+    .ob-day-card.expanded .ob-day-body { display: block; }
+    .ob-section-hdr { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; }
+    .ob-item-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+    .ob-item { font-size: 13px; color: var(--text); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .ob-q-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+    .ob-q-item { font-size: 13px; color: var(--accent); background: var(--active-bg); border: 1px solid rgba(45,212,191,.2); border-radius: 6px; padding: 8px 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; transition: background .15s, border-color .15s; }
+    .ob-q-item:hover { background: rgba(45,212,191,.18); border-color: var(--accent); }
+    .ob-q-icon { flex-shrink: 0; font-size: 13px; }
+    .ob-complete-when { margin-top: 16px; background: rgba(45,212,191,.07); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--muted); }
+    .ob-complete-when strong { color: var(--text); }
+    .ob-mark-btn { margin-top: 16px; background: #2ea043; color: #fff; border: none; padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; width: 100%; }
+    .ob-mark-btn:hover { background: #238636; }
+    .ob-mark-btn:disabled { background: var(--border); color: var(--muted); cursor: default; }
+    .ob-graduation { margin-top: 24px; background: linear-gradient(135deg,rgba(45,212,191,.12),rgba(46,160,67,.1)); border: 1px solid var(--accent); border-radius: 10px; padding: 20px 24px; text-align: center; }
+    .ob-grad-icon { font-size: 32px; margin-bottom: 10px; }
+    .ob-grad-msg  { font-size: 14px; font-weight: 600; color: var(--accent); }
+
+</style>
 </head>
 <body>
 
@@ -839,7 +899,12 @@
     <div class="nl" data-page="training_qe">
       <span class="ico">🧪</span>
       <span class="lbl">QE Track Agenda</span>
-    </div>    <div class="nl nl-ask" id="nav-ask">
+    </div>
+    <div class="nl" data-page="onboarding">
+      <span class="ico">🎓</span>
+      <span class="lbl">Onboarding</span>
+    </div>
+    <div class="nl nl-ask" id="nav-ask">
       <span class="ico">💬</span>
       <span class="lbl">Ask the Digital Brain</span>
     </div>
@@ -5727,6 +5792,7 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
     if (page === 'lifecycle') { showLifecycle(); return; }
+    if (page === 'onboarding') { showOnboardingHub(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -6117,7 +6183,483 @@ const LC_STAGES = [
    artFn:"loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md','','L3 \u2014 System Landscape');"}
 ];
 
-function showLifecycle() {
+
+    // ─── ONBOARDING ───────────────────────────────────────────────────────────────
+    const ONBOARDING_TRACKS = {
+      cobol: {
+        icon: '🖥️', title: 'COBOL Developer',
+        tagline: 'Mainframe / IBM COBOL background assumed',
+        learn: 'Navigate MiCPS COBOL code, apply AI-native SDLC skills, implement and review stories end-to-end',
+        days: [
+          { title: 'Claims Domain Foundations',
+            objective: 'Understand what MiCPS processes and why it exists',
+            sections: ['L2: Claims Lifecycle','L2: Claims Intake & Editing','L2: Adjudication Engine'],
+            questions: [
+              'Walk me through how a commercial claim flows through MiCPS end to end',
+              'What is the difference between a pended and suspended claim in MiCPS?',
+              'What are NCCI edits and why do they matter?'
+            ],
+            completeWhen: 'Developer can answer what happens to a claim between intake and adjudication decision'
+          },
+          { title: 'MiCPS System Architecture',
+            objective: 'Understand the technical landscape you are working in',
+            sections: ['L3: MiCPS Architecture','L3: CICS and Batch Processing','L3: VSAM File Usage','L3: DB2 Data Architecture'],
+            questions: [
+              'Explain the difference between CICS and batch processing in MiCPS',
+              'What VSAM files are most critical in MiCPS and why?',
+              'What happens if ADJUD-MAIN ABENDs at 2am?'
+            ],
+            completeWhen: 'Developer understands the difference between online and batch processing in MiCPS'
+          },
+          { title: 'Application Deep Dive',
+            objective: 'Know the modules you will work in',
+            sections: ['L4: Module 3 — Adjudication Engine','L4: Module 1 — Claims Intake','L4: Technical Debt section'],
+            questions: [
+              'What does MADJDRV0 do and what programs does it call?',
+              'What are the highest tribal knowledge risks in MiCPS and who owns them?',
+              'Explain the ACCUM-FILE concurrency issue and why it matters'
+            ],
+            completeWhen: 'Developer can name the top 3 complexity areas in MiCPS and their risk'
+          },
+          { title: 'Skills Activation',
+            objective: 'Learn to use the AI-native SDLC tools',
+            sections: [
+              'Open Claude Code in the mivan-digital-brain project',
+              'Type: show me the skills in this project',
+              'Read skills/cobol-feature-builder.md',
+              'Read skills/cobol-test-generator.md',
+              'Read skills/cobol-code-reviewer.md'
+            ],
+            questions: [
+              'What is the COBOL Feature Builder skill and when should I use it?',
+              'How do I structure a Jira story so the COBOL Feature Builder can implement it?',
+              'What does the COBOL Code Reviewer check for in a MiCPS program?'
+            ],
+            completeWhen: 'Developer has read all 3 COBOL skills and understands when to use each'
+          },
+          { title: 'Live Code Immersion',
+            objective: 'Work with real MiCPS code AI-natively',
+            sections: ['Open src/cobol/MOVPDUP1.cbl in VS Code','Open Claude Code alongside it'],
+            questions: [
+              'Explain paragraph 3100-EVALUATE-MATCH in MOVPDUP1 line by line',
+              'Review MOVPDUP1 against the MICPS-4471 acceptance criteria',
+              'What ZUnit tests exist for MOVPDUP1 and what scenarios do they cover?',
+              'If I needed to add a fourth match type to MOVPDUP1 what paragraphs would I change?'
+            ],
+            completeWhen: 'Developer has asked all 4 questions and can explain what MOVPDUP1 does',
+            graduation: 'You are ready to pick up your first COBOL story in MiCPS'
+          }
+        ]
+      },
+      java: {
+        icon: '☕', title: 'Java Developer',
+        tagline: 'Spring Boot / Java 21 background assumed',
+        learn: 'Understand the modernization architecture, apply Java SDLC skills, contribute to the migration program',
+        days: [
+          { title: 'Claims Domain Foundations',
+            objective: 'Understand the business you are building software for',
+            sections: ['L2: Claims Lifecycle','L2: Adjudication Engine','L2: Pricing & Fee Schedules'],
+            questions: [
+              'Explain the claims adjudication lifecycle to someone who has never worked in healthcare',
+              'What is a CARC code and why does it matter to a Java developer?',
+              'What is the difference between professional and institutional claims?'
+            ],
+            completeWhen: 'Developer can explain what adjudication means in plain English'
+          },
+          { title: 'Modernization Architecture',
+            objective: 'Understand what you are building and where it fits',
+            sections: ['L1: Strategic Priorities','L3: Modernization Architecture','L3: Wave 1-5 Migration Sequence','L3: Coexistence Pattern'],
+            questions: [
+              'What is the strangler fig pattern and how does Mivan use it?',
+              'What is shadow mode and why does it matter before cutover?',
+              'What is being built in Wave 1 and why was it chosen first?'
+            ],
+            completeWhen: 'Developer understands the coexistence pattern and shadow mode concept'
+          },
+          { title: 'Application Context',
+            objective: 'Know the system you are replacing',
+            sections: ['L3: MiCPS Architecture overview','L4: Module 2 — Eligibility (Wave 1)','L4: Module 5 — Claims Payment (Wave 1)','L4: Technical Debt section'],
+            questions: [
+              'What does ACCUM-FILE do in MiCPS and why is it being replaced with DynamoDB?',
+              'What is the coexistence router and how does it decide whether to call MiCPS or the cloud service?',
+              'What are the Wave 1 modules and what is the cutover gate condition for each?'
+            ],
+            completeWhen: 'Developer understands what the Java service is replacing and why'
+          },
+          { title: 'Skills Activation',
+            objective: 'Learn to use the AI-native SDLC tools',
+            sections: [
+              'Open Claude Code in the mivan-digital-brain project',
+              'Read skills/java-feature-builder.md',
+              'Read skills/java-test-generator.md',
+              'Read skills/java-code-reviewer.md',
+              'Read skills/cobol-to-java-migrator.md'
+            ],
+            questions: [
+              'What is the Java Feature Builder skill and what does it need as input?',
+              'What is the COBOL to Java Migrator skill and what does it produce?',
+              'How does the Java Code Reviewer check for migration traceability?'
+            ],
+            completeWhen: 'Developer has read all 4 Java skills and understands the input contract for each'
+          },
+          { title: 'Live Code Immersion',
+            objective: 'Work with the running Java service',
+            sections: [
+              'Run: cd src/java/duplicate-detection && mvn spring-boot:run',
+              'Open: http://localhost:8080/swagger-ui.html',
+              'Run: mvn test — confirm 13 tests passing'
+            ],
+            questions: [
+              'Walk me through DuplicateClaimDetectionService method by method',
+              'How does the Java service implement the same logic as MOVPDUP1 paragraph 3100-EVALUATE-MATCH?',
+              'What would I need to change to add a fourth match type to the Java service?',
+              'Run the COBOL to Java Migrator skill on MOVPDUP1 and show me what it produces'
+            ],
+            completeWhen: 'Developer has run the service, executed all 13 tests, and can explain the parallel build approach',
+            graduation: 'You are ready to pick up your first Java story in the modernization program'
+          }
+        ]
+      },
+      qe: {
+        icon: '🧪', title: 'QE Engineer',
+        tagline: 'Testing / QA background assumed',
+        learn: 'Understand system risk landscape, use AI-native test generator skills, own QE for MiCPS stories',
+        days: [
+          { title: 'Claims Domain for Testers',
+            objective: 'Understand what you are testing and why it matters',
+            sections: ['L2: Full Claims Lifecycle','L2: Adjudication Engine — denial codes','L2: Overpayment & Recovery'],
+            questions: [
+              'What are the most common denial reason codes in commercial claims processing?',
+              'What is the difference between a pend and a suspend in MiCPS?',
+              'What is an overpayment and how does MiCPS detect one?'
+            ],
+            completeWhen: 'QE can explain what a clean claim is and what makes a claim fail'
+          },
+          { title: 'System Risk Landscape',
+            objective: 'Know where the highest test risk is concentrated',
+            sections: ['L3: Batch Feed Architecture','L3: Feed Failure Handling','L4: Technical Debt section','L4: Known Complexity Areas per module'],
+            questions: [
+              'What are the highest complexity modules in MiCPS from a testing perspective?',
+              'What happens downstream if ADJUD-MAIN produces incorrect output?',
+              'What is the ACCUM-FILE and why is it the most critical write operation in MiCPS?'
+            ],
+            completeWhen: 'QE can identify the top 5 risk areas that need the most test coverage'
+          },
+          { title: 'Test Landscape',
+            objective: 'Understand existing test coverage and gaps',
+            sections: [
+              'L4: Module 3 Adjudication — complexity areas',
+              'Live Development: MICPS-4471 Story',
+              'Live Development: COBOL MOVPDUP1',
+              'Review MOVPDUP1T.cbl ZUnit test structure',
+              'Review DuplicateClaimDetectionServiceTest.java'
+            ],
+            questions: [
+              'What are the 6 test scenarios in DuplicateClaimDetectionServiceTest and what does each validate?',
+              'What acceptance criteria in MICPS-4471 are covered by the ZUnit tests?',
+              'What edge cases are NOT covered by the current MOVPDUP1 tests?'
+            ],
+            completeWhen: 'QE understands the current test coverage for MICPS-4471 and can identify gaps'
+          },
+          { title: 'Skills Activation',
+            objective: 'Learn to use AI-native test tools',
+            sections: [
+              'Open Claude Code in the mivan-digital-brain project',
+              'Read skills/java-test-generator.md',
+              'Read skills/cobol-test-generator.md'
+            ],
+            questions: [
+              'How do I use the Java Test Generator skill to improve coverage on an existing service?',
+              'How do I use the COBOL Test Generator to add boundary value tests to MOVPDUP1?',
+              'Generate additional edge case tests for DuplicateClaimDetectionService that are not currently covered'
+            ],
+            completeWhen: 'QE has read both test generator skills and asked the Digital Brain to generate at least one new test scenario'
+          },
+          { title: 'Live Test Execution',
+            objective: 'Run and extend the test suite',
+            sections: [
+              'Run: mvn test in duplicate-detection project',
+              'Confirm 13 tests passing',
+              'Ask Digital Brain to generate 3 new edge case test scenarios',
+              'Add them to the test suite',
+              'Run mvn test again — confirm still passing'
+            ],
+            questions: [
+              'Generate 3 additional JUnit test scenarios for DuplicateClaimDetectionService that test edge cases not currently covered',
+              'What would a complete regression test suite for the full MiCPS adjudication engine need to cover?'
+            ],
+            completeWhen: 'QE has added new tests and confirmed they pass',
+            graduation: 'You are ready to own QE for MiCPS stories and migration validation'
+          }
+        ]
+      },
+      techlead: {
+        icon: '🏗️', title: 'Tech Lead / Architect',
+        tagline: 'Senior engineering / architecture background assumed',
+        learn: 'Assess migration risk, run code quality reviews, lead the team using the full AI-native SDLC',
+        days: [
+          { title: 'Full Architecture Picture',
+            objective: 'Understand the complete system landscape and transformation mandate',
+            sections: ['L1: Full enterprise context','L3: Full system landscape','L3: Modernization architecture'],
+            questions: [
+              "What is Mivan's transformation mandate and what is driving it?",
+              'Walk me through the full MiCPS architecture from EDI intake to outbound feeds',
+              "What is the strangler fig pattern and what are the risks in Mivan's approach?"
+            ],
+            completeWhen: 'Tech Lead can describe the end-to-end system and the modernization approach in 5 minutes'
+          },
+          { title: 'Risk and Debt Assessment',
+            objective: 'Know the highest risk areas before making architecture decisions',
+            sections: ['L4: Technical Debt — all sections','L4: Tribal Knowledge Concentration table','L4: Hardcoded Parameters section','L4: Migration Risk by module'],
+            questions: [
+              'Rank the MiCPS modules by migration risk and explain the top 3',
+              'What is the James Whitfield retirement risk and what is the mitigation strategy?',
+              'What are the undocumented VSAM files and why do they block specific migrations?'
+            ],
+            completeWhen: 'Tech Lead can articulate the top 5 technical risks and their mitigations'
+          },
+          { title: 'Code Quality Assessment',
+            objective: 'Establish code quality baseline using AI-native review skills',
+            sections: [
+              'Use Skill 7: COBOL Code Reviewer on MOVPDUP1',
+              'Use Skill 4: Java Code Reviewer on DuplicateClaimDetectionService'
+            ],
+            questions: [
+              'Review MOVPDUP1 against MiCPS coding standards and give me a structured report',
+              'Review DuplicateClaimDetectionService against the MICPS-4471 acceptance criteria',
+              'Compare the quality and maintainability of the COBOL and Java implementations of the same business logic'
+            ],
+            completeWhen: 'Tech Lead has reviewed both implementations and identified any issues to address'
+          },
+          { title: 'Skills and Process Overview',
+            objective: 'Understand the AI-native SDLC tools the team will use',
+            sections: [
+              'Read all 7 skills in the skills/ folder',
+              'Review the Feature Lifecycle section in the portal',
+              'Run the Feature Lifecycle auto-demo'
+            ],
+            questions: [
+              'Walk me through the full AI-native SDLC for MICPS-4471 from story to deployment',
+              'What is the role of the Digital Brain in the code review process?',
+              'How does shadow mode validation work for the COBOL to Java migration?'
+            ],
+            completeWhen: 'Tech Lead understands how each skill fits into the SDLC and can explain it to the team'
+          },
+          { title: 'Architecture Decision Making',
+            objective: 'Use the Digital Brain for real architecture decisions',
+            sections: [],
+            questions: [
+              'Should the COB engine be migrated in Wave 4 before or after the pricing module? Walk me through the dependencies',
+              'What is the cutover gate condition for the adjudication engine in Wave 5?',
+              'Design a shadow mode validation approach for MOVPDUP1 and its Java equivalent',
+              'What would a complete technical risk register for the Wave 1 migration look like?'
+            ],
+            completeWhen: 'Tech Lead has used the Digital Brain to make or validate at least one architecture decision',
+            graduation: 'You are ready to lead the team and make architecture decisions with Digital Brain support'
+          }
+        ]
+      },
+      ba: {
+        icon: '📋', title: 'Business Analyst',
+        tagline: 'Healthcare payer / claims BA background assumed',
+        learn: 'Deepen claims domain knowledge, write AI-native stories, use the Digital Brain as a BA productivity tool',
+        days: [
+          { title: 'Claims Domain Deep Dive',
+            objective: 'Build or refresh claims processing knowledge in the Mivan context',
+            sections: ['L2: Full health payer domain','L1: Mivan organization overview'],
+            questions: [
+              'What lines of business does MiCPS process and what are excluded?',
+              'Walk me through the full claims adjudication lifecycle in plain English',
+              'What is COB and why is it complex?'
+            ],
+            completeWhen: 'BA can explain the claims lifecycle to a non-claims person'
+          },
+          { title: 'System Context for BAs',
+            objective: 'Understand the system well enough to write good stories',
+            sections: ['L1: Transformation mandate','L3: MiCPS functional modules overview','L3: Integration landscape'],
+            questions: [
+              'What functional modules does MiCPS have and what does each one do?',
+              'What upstream systems feed MiCPS and what data do they provide?',
+              'What is the modernization program and how does it affect new feature requests?'
+            ],
+            completeWhen: 'BA understands which MiCPS module handles each claims function'
+          },
+          { title: 'Story Writing for AI-Native Development',
+            objective: 'Learn to write stories that the Digital Brain skills can implement',
+            sections: [
+              'Live Development: MICPS-4471 Story',
+              'Review the story structure carefully'
+            ],
+            questions: [
+              'What makes MICPS-4471 a well-structured story for AI-native development?',
+              'What are the required sections of a MiCPS Jira story for the COBOL Feature Builder skill to work correctly?',
+              'Review this draft story and tell me what is missing: [paste your draft story here]'
+            ],
+            completeWhen: 'BA can write a story that passes the COBOL Feature Builder validation check'
+          },
+          { title: 'Digital Brain as a BA Tool',
+            objective: 'Use the Digital Brain to enhance BA productivity',
+            sections: [],
+            questions: [
+              'I need to write a story for adding frequency limit checking to duplicate detection — help me identify the business rules I need to document',
+              'What DB2 tables and VSAM files would a new claims editing rule need to access?',
+              'What are the acceptance criteria I should include for a story that modifies the adjudication denial code assignment?'
+            ],
+            completeWhen: 'BA has used the Digital Brain to research and structure at least one new story requirement'
+          },
+          { title: 'End to End Story Lifecycle',
+            objective: 'See how a BA story becomes working code through AI-native SDLC',
+            sections: [
+              'Feature Lifecycle — all 8 stages',
+              'Run the auto-demo from the Feature Lifecycle page'
+            ],
+            questions: [
+              'Walk me through how MICPS-4471 went from a business request to working code in both COBOL and Java',
+              "What is the BA's role in the AI-native SDLC and how is it different from traditional development?",
+              'What information does a BA need to provide for shadow mode validation to be successful?'
+            ],
+            completeWhen: 'BA has watched the Feature Lifecycle auto-demo and can explain the AI-native SDLC to a stakeholder',
+            graduation: 'You are ready to write stories that the team can implement AI-natively from Day 1'
+          }
+        ]
+      }
+    };
+
+    var _obRole = null;
+    var _obExpandedDay = -1;
+
+    function showOnboardingHub() {
+      setActive('onboarding');
+      setBc('Onboarding');
+      document.getElementById('cwrap').scrollTop = 0;
+      if (_obRole) { renderObTrack(_obRole); } else { renderObRoleSelector(); }
+    }
+
+    function renderObRoleSelector() {
+      var content = document.getElementById('content');
+      var roles = Object.keys(ONBOARDING_TRACKS);
+      var cards = roles.map(function(rk) {
+        var t = ONBOARDING_TRACKS[rk];
+        var prog = getObProgress(rk);
+        var progLine = prog.length > 0
+          ? '<div style="font-size:11px;color:#2ea043;margin-top:4px;">&#10003; ' + prog.length + ' of 5 days complete</div>'
+          : '';
+        return '<div class="role-card" onclick="selectObRole(\'' + rk + '\')">'
+          + '<div class="role-card-icon">' + t.icon + '</div>'
+          + '<div class="role-card-title">' + t.title + '</div>'
+          + '<div class="role-card-tagline">' + t.tagline + '</div>'
+          + '<div class="role-card-learn">' + t.learn + '</div>'
+          + progLine
+          + '<button class="role-start-btn" onclick="event.stopPropagation();selectObRole(\'' + rk + '\')">Start Track &#8594;</button>'
+          + '</div>';
+      }).join('');
+      content.innerHTML = '<div class="ob-page">'
+        + '<div class="ob-page-hdr"><h2>&#127891; Team Onboarding</h2>'
+        + '<p>Choose your role to get a structured 5-day onboarding track tailored to your background and responsibilities.</p></div>'
+        + '<div class="role-grid">' + cards + '</div>'
+        + '</div>';
+    }
+
+    function selectObRole(role) {
+      _obRole = role;
+      var prog = getObProgress(role);
+      _obExpandedDay = prog.length < 5 ? prog.length : 4;
+      renderObTrack(role);
+    }
+
+    function renderObTrack(role) {
+      var t = ONBOARDING_TRACKS[role];
+      var prog = getObProgress(role);
+      var content = document.getElementById('content');
+      var completedCount = prog.length;
+      var segs = t.days.map(function(_, i) {
+        var cls = prog.includes(i) ? 'done' : (i === completedCount ? 'current' : '');
+        return '<div class="ob-prog-seg ' + cls + '"></div>';
+      }).join('');
+      var progressHtml = '<div class="ob-progress-wrap">'
+        + '<div class="ob-progress-label">' + completedCount + ' of 5 days complete</div>'
+        + '<div class="ob-progress-track">' + segs + '</div></div>';
+      var dayCards = t.days.map(function(day, i) {
+        var isDone    = prog.includes(i);
+        var isCurrent = !isDone && i === completedCount;
+        var isExpanded = i === _obExpandedDay;
+        var cardCls = 'ob-day-card' + (isDone?' complete':'') + (isCurrent?' current':'') + (isExpanded?' expanded':'');
+        var badge = isDone
+          ? '<span class="ob-complete-badge">&#10003; Complete</span>'
+          : (isCurrent ? '<span class="ob-current-badge">Today</span>' : '');
+        var numDisplay = isDone ? '&#10003;' : (i + 1);
+        var sectionsHtml = '';
+        if (day.sections && day.sections.length > 0) {
+          var items = day.sections.map(function(s) { return '<li class="ob-item">' + escH(s) + '</li>'; }).join('');
+          sectionsHtml = '<div class="ob-section-hdr">Sections to Read / Actions</div><ul class="ob-item-list">' + items + '</ul>';
+        }
+        var questionsHtml = '';
+        if (day.questions && day.questions.length > 0) {
+          var qs = day.questions.map(function(q) {
+            return '<li class="ob-q-item" onclick="openChatWithQ(\'' + q.replace(/'/g,"&#39;") + '\')">'
+              + '<span class="ob-q-icon">&#128172;</span><span>' + escH(q) + '</span></li>';
+          }).join('');
+          questionsHtml = '<div class="ob-section-hdr">Digital Brain Questions</div><ul class="ob-q-list">' + qs + '</ul>';
+        }
+        var markBtn = isDone
+          ? '<button class="ob-mark-btn" disabled>&#10003; Day Complete</button>'
+          : '<button class="ob-mark-btn" onclick="markObDayComplete(\'' + role + '\',' + i + ')">Mark Day ' + (i+1) + ' Complete &#10003;</button>';
+        var graduationHtml = '';
+        if (day.graduation && isDone) {
+          graduationHtml = '<div class="ob-graduation"><div class="ob-grad-icon">&#127891;</div>'
+            + '<div class="ob-grad-msg">' + escH(day.graduation) + '</div></div>';
+        }
+        return '<div id="ob-day-' + i + '" class="' + cardCls + '">'
+          + '<div class="ob-day-hdr" onclick="toggleObDay(' + i + ')">'
+          + '<div class="ob-day-num">' + numDisplay + '</div>'
+          + '<div class="ob-day-title-wrap">'
+          + '<div class="ob-day-title">Day ' + (i+1) + ' &mdash; ' + escH(day.title) + '</div>'
+          + '<div class="ob-day-obj">' + escH(day.objective) + '</div>'
+          + '</div>' + badge
+          + '<span class="ob-day-chev">&#9654;</span></div>'
+          + '<div class="ob-day-body">' + sectionsHtml + questionsHtml
+          + '<div class="ob-complete-when"><strong>Day complete when:</strong> ' + escH(day.completeWhen) + '</div>'
+          + markBtn + graduationHtml + '</div></div>';
+      }).join('');
+      content.innerHTML = '<div class="ob-page">'
+        + '<div class="ob-track-hdr">'
+        + '<button class="ob-back-btn" onclick="obGoBack()">&#8592; All Roles</button>'
+        + '<span class="ob-track-icon">' + t.icon + '</span>'
+        + '<span class="ob-track-title">' + t.title + ' &mdash; 5-Day Onboarding</span>'
+        + '</div>' + progressHtml
+        + '<div class="ob-days">' + dayCards + '</div></div>';
+    }
+
+    function toggleObDay(idx) {
+      _obExpandedDay = (_obExpandedDay === idx) ? -1 : idx;
+      if (_obRole) renderObTrack(_obRole);
+    }
+
+    function markObDayComplete(role, dayIdx) {
+      var prog = getObProgress(role);
+      if (!prog.includes(dayIdx)) { prog.push(dayIdx); prog.sort(function(a,b){return a-b;}); }
+      sessionStorage.setItem('onboarding_' + role + '_progress', JSON.stringify(prog));
+      _obExpandedDay = prog.length < 5 ? prog.length : 4;
+      renderObTrack(role);
+    }
+
+    function getObProgress(role) {
+      try { return JSON.parse(sessionStorage.getItem('onboarding_' + role + '_progress') || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function obGoBack() {
+      _obRole = null;
+      _obExpandedDay = -1;
+      renderObRoleSelector();
+    }
+
+    function escH(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+
+    function showLifecycle() {
   setActive('lifecycle');
   setBc('Feature Lifecycle');
   document.getElementById('cwrap').scrollTop = 0;
