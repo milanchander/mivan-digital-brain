@@ -56,7 +56,7 @@ fidelity: PARTIAL
 |---|---|---|---|---|---|
 | STATE-SPECIFIC-CLAIM-RULES | L5 | State-level claim rules — prompt pay laws, timely filing by state, recoupment look-back periods | Compliance team | Medium | GHOST |
 | PROVIDER-SANCTIONS | L2 | OIG and SAM exclusion checking in claims — how MiCPS handles sanctioned providers | TBD | Medium | GHOST |
-| HEALTH-PRIMER | L2 | Plain English healthcare primer for non-health resources — complete beginner entry point | Digital Brain team | Medium | IN-FLIGHT |
+| HEALTH-PRIMER | L2 | Plain English healthcare primer for non-health resources — complete beginner entry point | Digital Brain team | Medium | COMPLETE |
 | REGULATORY-LANDSCAPE | L2 | HIPAA transaction standards, ACA requirements, CMS regulations affecting commercial claims | TBD | Medium | GHOST |
 | INTRADAY-BATCH-DETAIL | L3 | Full intraday batch cycle documentation — morning, midday, afternoon cycles | Operations team | Medium | GHOST |
 | CLAIM-ADJUSTMENT-WORKFLOW | L4 | Full claim adjustment and void workflow — frequency code 7/8 processing, ICN matching, cascade impacts | TBD | Medium | GHOST |
