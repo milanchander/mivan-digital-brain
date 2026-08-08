@@ -814,6 +814,12 @@
     @keyframes kg-ghost-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
     .kg-ghost-circle { animation: kg-ghost-pulse 2s ease-in-out infinite; }
 
+    /* Blast Radius animations */
+    @keyframes br-flow { to { stroke-dashoffset: -24; } }
+    .br-flow-line { animation: br-flow 0.9s linear infinite; }
+    @keyframes br-ghost-pulse { 0%,100%{opacity:.35} 50%{opacity:.9} }
+    .br-ghost-circle { animation: br-ghost-pulse 2s ease-in-out infinite; }
+
 </style>
 </head>
 <body>
@@ -7161,6 +7167,7 @@ var VIZ_META = {
 
 function showVisualization(pg) {
   if (pg === 'viz_knowledge_graph') { showKnowledgeGraph(); return; }
+  if (pg === 'viz_blast_radius')    { showBlastRadius();   return; }
   var v = VIZ_META[pg];
   if (!v) return;
   if (_kgSim) { _kgSim.stop(); _kgSim = null; }
@@ -7420,6 +7427,231 @@ function kgShowTooltip(d) {
     '</div>' +
     '<p style="color:var(--muted);font-size:13px;line-height:1.5;margin:0;">'+d.desc+'</p>' +
     btn;
+}
+
+// ── BLAST RADIUS ──
+var blastData = {
+  'MADJDRV0': {
+    wave: 'Wave 5',
+    direct:   ['MCOVDET0','MAUTHCK0','MROUTNG0','MDENCD00','MPENDMG0','MSUSPMG0','CLAIM_ADJUD','CLAIM_AUDIT'],
+    indirect: ['MPRICNG0','MCOBPRC0','MPYMTCL0','MOUGEN00','SQL Server MiOps','AWS S3 CLAIMS-FULL','All ERA files','MiPay EFT'],
+    ghost:    ['ADJUD-BUSINESS-RULES-SPEC — undocumented rules may be affected']
+  },
+  'ACCUM-FILE': {
+    wave: 'Wave 2',
+    direct:   ['MACCUML0','MACCUPD0','MACCURS0 reset job','CICS eligibility'],
+    indirect: ['All cost-share calcs','PAYMENT-CALC job','OOP max tracking','ACCUM-FEED SQL Server'],
+    ghost:    ['ACCUM-FILE-LAYOUT — record layout partially undocumented']
+  },
+  'CLAIM_PAYMENT': {
+    wave: 'Wave 1 partial',
+    direct:   ['MPYMTDR0','MPYMREC0','M835GEN0','MEFTGEN0','MOVPDR00'],
+    indirect: ['835 ERA to providers','EFT to MiPay','PAYMENT-FEED SQL Server','CLAIMS-FULL S3','Finance GL'],
+    ghost:    []
+  },
+  'PROV-MSTR': {
+    wave: 'Wave 2',
+    direct:   ['All edit programs','MADJDRV0 NPI lookup','MFEELKP0 fee lookup','CICS prov lookup'],
+    indirect: ['All adjudication','All pricing','Provider portal','MiProvider feed dependency'],
+    ghost:    ['PROV-MSTR key structure — composite key partially undocumented']
+  },
+  'FEE-SCHED': {
+    wave: 'Wave 3',
+    direct:   ['MFEELKP0','MPRICDR0','CICS fee lookup'],
+    indirect: ['All in-network payments','Provider dispute resolution','FEE_SCHED_AUDIT table'],
+    ghost:    ['FEE-SCHED-LAYOUT — key structure extended twice undocumented']
+  },
+  'ADJUD-MAIN': {
+    wave: 'Wave 5 — critical path',
+    direct:   ['All L4 programs in sequence','CLAIM_ADJUD writes','PEND_QUEUE writes','SUSPENSE writes'],
+    indirect: ['All downstream batch jobs','All outbound feeds','SQL Server refresh','S3 landing zone'],
+    ghost:    ['ADJUD-BUSINESS-RULES-SPEC']
+  },
+  'DRG-RATES': {
+    wave: 'Wave 3',
+    direct:   ['MDRGPRC0','MDRGGRP0','Institutional pricing'],
+    indirect: ['All institutional payments','Annual CMS update cycle','DRG outlier calcs'],
+    ghost:    ['DRG-GROUPER-EXTENSIONS — custom modifications undocumented']
+  },
+  'AUTH-FILE': {
+    wave: 'Wave 2',
+    direct:   ['MAUTHCK0','CICS auth validation','Real-time auth lookup'],
+    indirect: ['All prior auth decisions','Auth-related denials','MiAuth nightly feed'],
+    ghost:    ['AUTH-FILE-LAYOUT — mixed record types discriminator undocumented']
+  },
+  'MCOBPYR0': {
+    wave: 'Wave 4',
+    direct:   ['MCOBDR00','MCOBSTD0','MCOBNOD0','MCOBMOB0'],
+    indirect: ['All COB calculations','COB-FEED SQL Server','Secondary payer payments'],
+    ghost:    ['COB-PAYER-AGREEMENTS — 40 payers hardcoded undocumented']
+  },
+  'MiMember Feed': {
+    wave: 'Wave 1',
+    direct:   ['MMEMLD00 load job','MEMBER-IDX refresh','MRETROE0 retro elig'],
+    indirect: ['All eligibility checks','All accumulator lookups','COB flag updates','Newborn auto-coverage'],
+    ghost:    []
+  }
+};
+
+function showBlastRadius() {
+  if (_kgSim) { _kgSim.stop(); _kgSim = null; }
+  setActive('viz_blast_radius');
+  setBc('Visualizations — Blast Radius');
+  document.getElementById('cwrap').scrollTop = 0;
+
+  var v = VIZ_META['viz_blast_radius'];
+  var opts = Object.keys(blastData).map(function(k) {
+    return '<option value="'+k+'"'+(k==='MADJDRV0'?' selected':'')+'>'+k+'</option>';
+  }).join('');
+
+  document.getElementById('content').innerHTML =
+    '<div class="lc-page">'+
+    '<div class="lc-page-hdr"><div>'+
+    '<h2>'+v.title+'</h2>'+
+    '<p>'+v.subtitle+'</p>'+
+    '</div></div>'+
+    '<div style="margin:14px 0 10px;display:flex;align-items:center;gap:10px;">'+
+      '<label style="color:var(--muted);font-size:13px;white-space:nowrap;">Select component:</label>'+
+      '<select id="br-select" style="background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:13px;font-family:monospace;cursor:pointer;min-width:200px;">'+
+      opts+'</select>'+
+    '</div>'+
+    '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">'+
+      '<svg id="br-svg" viewBox="0 0 600 480" style="width:100%;height:480px;display:block;"></svg>'+
+    '</div>'+
+    '<div id="br-ghost-strip" style="margin-top:8px;display:none;"></div>'+
+    '<div id="br-stats" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>'+
+    '<div style="margin-top:14px;">'+
+      '<button id="br-ask-btn" class="lc-art-btn" style="font-size:13px;padding:7px 18px;">Ask about blast radius →</button>'+
+    '</div>'+
+    '</div>';
+
+  document.getElementById('br-select').onchange = function() { renderBlastRadius(this.value); };
+  document.getElementById('br-ask-btn').onclick  = function() {
+    var comp = document.getElementById('br-select').value;
+    openChatWithQ('What is the full blast radius if I change '+comp+' in MiCPS? What programs, jobs, and feeds would be affected?');
+  };
+
+  renderBlastRadius('MADJDRV0');
+}
+
+function renderBlastRadius(comp) {
+  var data = blastData[comp];
+  if (!data) return;
+  var svg = d3.select('#br-svg');
+  var existing = svg.select('.br-main');
+  if (!existing.empty()) {
+    existing.transition().duration(300).style('opacity', 0);
+    setTimeout(function() {
+      d3.select('#br-svg').select('.br-main').remove();
+      drawBlastRadius(comp, data);
+    }, 310);
+  } else {
+    drawBlastRadius(comp, data);
+  }
+  updateBrExtras(comp, data);
+}
+
+function drawBlastRadius(comp, data) {
+  var svg  = d3.select('#br-svg');
+  var CX = 300, CY = 235, R_IN = 120, R_OUT = 200;
+
+  var g = svg.append('g').attr('class', 'br-main').style('opacity', 0);
+
+  // ── direct edges (flowing dashes) ──
+  var nd = data.direct.length;
+  data.direct.forEach(function(_, i) {
+    var a = (2*Math.PI/nd)*i - Math.PI/2;
+    g.append('line')
+      .attr('x1', CX).attr('y1', CY)
+      .attr('x2', CX+R_IN*Math.cos(a)).attr('y2', CY+R_IN*Math.sin(a))
+      .attr('stroke','#D85A30').attr('stroke-width', 1.5)
+      .attr('stroke-dasharray','8 4')
+      .attr('class','br-flow-line');
+  });
+
+  // ── indirect edges (dashed, from nearest direct) ──
+  var ni = data.indirect.length;
+  data.indirect.forEach(function(_, i) {
+    var a   = (2*Math.PI/ni)*i - Math.PI/2;
+    var dai = Math.round(i * nd / ni) % nd;
+    var da  = (2*Math.PI/nd)*dai - Math.PI/2;
+    g.append('line')
+      .attr('x1', CX+R_IN*Math.cos(da)).attr('y1', CY+R_IN*Math.sin(da))
+      .attr('x2', CX+R_OUT*Math.cos(a)).attr('y2', CY+R_OUT*Math.sin(a))
+      .attr('stroke','#BA7517').attr('stroke-width', 1)
+      .attr('stroke-dasharray','4 3').attr('stroke-opacity', 0.5);
+  });
+
+  // ── direct ring nodes ──
+  data.direct.forEach(function(dep, i) {
+    var a = (2*Math.PI/nd)*i - Math.PI/2;
+    var x = CX+R_IN*Math.cos(a), y = CY+R_IN*Math.sin(a);
+    var ng = g.append('g');
+    ng.append('circle').attr('cx',x).attr('cy',y).attr('r',18)
+      .attr('fill','rgba(216,90,48,.80)').attr('stroke','#D85A30').attr('stroke-width',1.5);
+    ng.append('text').attr('x',x).attr('y',y+30).attr('text-anchor','middle')
+      .attr('font-size','10px').attr('fill','#D85A30').attr('pointer-events','none')
+      .text(dep.length>12 ? dep.slice(0,12)+'…' : dep);
+  });
+
+  // ── indirect ring nodes ──
+  data.indirect.forEach(function(dep, i) {
+    var a = (2*Math.PI/ni)*i - Math.PI/2;
+    var x = CX+R_OUT*Math.cos(a), y = CY+R_OUT*Math.sin(a);
+    var ng = g.append('g');
+    ng.append('circle').attr('cx',x).attr('cy',y).attr('r',14)
+      .attr('fill','rgba(186,117,23,.70)').attr('stroke','#BA7517').attr('stroke-width',1.5);
+    ng.append('text').attr('x',x).attr('y',y+24).attr('text-anchor','middle')
+      .attr('font-size','10px').attr('fill','#BA7517').attr('pointer-events','none')
+      .text(dep.length>13 ? dep.slice(0,13)+'…' : dep);
+  });
+
+  // ── center node ──
+  g.append('circle').attr('cx',CX).attr('cy',CY).attr('r',40)
+    .attr('fill','#1D9E75').attr('stroke','#1D9E75').attr('stroke-width',2);
+  var clabel = comp.length>10 ? comp.slice(0,9)+'…' : comp;
+  g.append('text').attr('x',CX).attr('y',CY).attr('text-anchor','middle')
+    .attr('dominant-baseline','middle').attr('font-size','13px').attr('font-weight','bold')
+    .attr('fill','#ffffff').attr('pointer-events','none').text(clabel);
+
+  g.transition().duration(300).style('opacity', 1);
+}
+
+function updateBrExtras(comp, data) {
+  // ghost strip
+  var gDiv = document.getElementById('br-ghost-strip');
+  if (data.ghost && data.ghost.length) {
+    var cards = data.ghost.map(function(entry) {
+      var parts = entry.split(' — ');
+      var name  = parts[0], note = parts[1]||'';
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 12px;border:1px dashed #E24B4A;border-radius:6px;">'+
+        '<svg width="28" height="28" style="flex-shrink:0;margin-top:1px"><circle cx="14" cy="14" r="12" fill="transparent" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4,2" class="br-ghost-circle"/></svg>'+
+        '<div><div style="font-size:11px;font-weight:600;color:#E24B4A;">'+name+'</div>'+
+        (note?'<div style="font-size:10px;color:#888;margin-top:2px;">'+note+'</div>':'')+
+        '</div></div>';
+    }).join('');
+    gDiv.innerHTML =
+      '<div style="padding:10px 14px;background:rgba(226,75,74,.06);border:1px solid rgba(226,75,74,.3);border-radius:8px;">'+
+      '<div style="font-size:12px;font-weight:600;color:#E24B4A;margin-bottom:8px;">⚠ Ghost risks</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+cards+'</div>'+
+      '</div>';
+    gDiv.style.display = 'block';
+  } else {
+    gDiv.innerHTML = ''; gDiv.style.display = 'none';
+  }
+
+  // stats bar
+  var pills = [
+    {l:'Direct',      v:data.direct.length+' dependencies', c:'#D85A30'},
+    {l:'Indirect',    v:data.indirect.length+' dependencies', c:'#BA7517'},
+    {l:'Ghost risks', v:data.ghost.length,                  c:data.ghost.length?'#E24B4A':'#555'},
+    {l:'Migration',   v:data.wave,                           c:'#2a78d6'}
+  ];
+  document.getElementById('br-stats').innerHTML = pills.map(function(p) {
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:1px solid '+p.c+';font-size:12px;">'+
+      '<span style="color:'+p.c+';font-weight:600;">'+p.l+'</span>'+
+      '<span style="color:var(--muted);">'+p.v+'</span></span>';
+  }).join('');
 }
 
 var _lcTimer = null;
