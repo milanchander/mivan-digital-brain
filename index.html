@@ -820,6 +820,12 @@
     @keyframes br-ghost-pulse { 0%,100%{opacity:.35} 50%{opacity:.9} }
     .br-ghost-circle { animation: br-ghost-pulse 2s ease-in-out infinite; }
 
+    /* Ghost Node Map */
+    @keyframes gnm-card-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    .gnm-card-fadein { animation: gnm-card-in 0.3s ease forwards; opacity:0; }
+    @keyframes gnm-badge-pulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+    .gnm-ghost-badge { animation: gnm-badge-pulse 2s ease-in-out infinite; }
+
 </style>
 </head>
 <body>
@@ -7168,6 +7174,7 @@ var VIZ_META = {
 function showVisualization(pg) {
   if (pg === 'viz_knowledge_graph') { showKnowledgeGraph(); return; }
   if (pg === 'viz_blast_radius')    { showBlastRadius();   return; }
+  if (pg === 'viz_ghost_node_map')  { showGhostNodeMap();  return; }
   var v = VIZ_META[pg];
   if (!v) return;
   if (_kgSim) { _kgSim.stop(); _kgSim = null; }
@@ -7652,6 +7659,179 @@ function updateBrExtras(comp, data) {
       '<span style="color:'+p.c+';font-weight:600;">'+p.l+'</span>'+
       '<span style="color:var(--muted);">'+p.v+'</span></span>';
   }).join('');
+}
+
+// ── GHOST NODE MAP ──
+var ghostData = [
+  {id:'ADJUD-BUSINESS-RULES-SPEC', layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 5 migration', desc:'Coverage determination rules embedded in MADJDRV0 — no external specification exists'},
+  {id:'ACCUM-FILE-LAYOUT',         layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 2 migration', desc:'Full VSAM record layout — annual reset logic and family accumulator structure undocumented'},
+  {id:'DRG-GROUPER-EXTENSIONS',    layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 3 migration', desc:'Custom DRG grouper modifications layered on CMS base — 15 years undocumented'},
+  {id:'COB-PAYER-AGREEMENTS',      layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 4 migration', desc:'~40 payers handled by hardcoded COBOL EVALUATE — not in PAYER_COB_AGREE DB2 table'},
+  {id:'AUTH-FILE-LAYOUT',          layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 2 migration', desc:'Mixed record types in AUTH-FILE KSDS — type discriminator in byte 1 undocumented'},
+  {id:'FEE-SCHED-LAYOUT',          layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 3 migration', desc:'FEE-SCHED KSDS key structure extended twice without schema update — silent pricing fallthrough risk'},
+  {id:'MEDICARE-ADVANTAGE-DOMAIN', layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'MA plan structure, HCC coding, RADV audits, encounter data'},
+  {id:'MEDICAID-DOMAIN',           layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'Medicaid managed care, capitation, state variation, LTSS, encounter data submission'},
+  {id:'PROVIDER-DATA-LIFECYCLE',   layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'Full provider enrollment and credentialing lifecycle'},
+  {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Prior authorization workflow, concurrent review, UM criteria sets'},
+  {id:'L6-TASK-INTELLIGENCE',      layer:'L6', severity:'high',     owner:'QE team',         status:'ghost',    blocks:'',                 desc:'Defect patterns, incident history, sprint velocity — requires real Jira and ServiceNow data'},
+  {id:'NCCI-TABLE-MANAGEMENT',     layer:'L4', severity:'high',     owner:'Senior edit analyst', status:'ghost', blocks:'',               desc:'How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented'},
+  {id:'BATCH-DEPENDENCY-COMPLETE', layer:'L3', severity:'high',     owner:'Operations team', status:'ghost',    blocks:'',                 desc:'Complete batch job dependency chain — full map exists only in CA7 scheduler'},
+  {id:'STATE-SPECIFIC-CLAIM-RULES',layer:'L5', severity:'medium',   owner:'Compliance team', status:'ghost',    blocks:'',                 desc:'State-level claim rules — prompt pay laws, timely filing by state, recoupment look-back periods'},
+  {id:'PROVIDER-SANCTIONS',        layer:'L2', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'OIG and SAM exclusion checking in claims — how MiCPS handles sanctioned providers'},
+  {id:'HEALTH-PRIMER',             layer:'L2', severity:'medium',   owner:'Milan Chander',   status:'complete', blocks:'',                 desc:'Plain English healthcare primer for non-health technology professionals'},
+  {id:'REGULATORY-LANDSCAPE',      layer:'L2', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'HIPAA transaction standards, ACA requirements, CMS regulations affecting commercial claims'},
+  {id:'INTRADAY-BATCH-DETAIL',     layer:'L3', severity:'medium',   owner:'Operations team', status:'ghost',    blocks:'',                 desc:'Full intraday batch cycle documentation — morning, midday, afternoon cycles'},
+  {id:'CLAIM-ADJUSTMENT-WORKFLOW', layer:'L4', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Full claim adjustment and void workflow — frequency code 7/8, ICN matching, cascade impacts'}
+];
+
+var _gnmFilter   = 'all';
+var GNM_LC       = {L2:'#1baf7a', L3:'#eda100', L4:'#eb6834', L5:'#e87ba4', L6:'#8b5cf6'};
+var GNM_TOTAL    = ghostData.length;
+var GNM_COMPLETE = ghostData.filter(function(n){ return n.status==='complete'; }).length;
+var GNM_INFLIGHT = ghostData.filter(function(n){ return n.status==='in-flight'; }).length;
+var GNM_REMAIN   = GNM_TOTAL - GNM_COMPLETE - GNM_INFLIGHT;
+var GNM_PCT      = Math.round(GNM_COMPLETE / GNM_TOTAL * 100);
+
+function gnmAskAbout(id) {
+  openChatWithQ('What do we know about '+id+' and what would it take to document it?');
+}
+
+function gnmToggleCard(id) {
+  var card = document.querySelector('.gnm-card[data-id="'+id+'"]');
+  if (!card) return;
+  var exp  = card.querySelector('.gnm-expanded');
+  var clip = card.querySelector('.gnm-desc-clip');
+  var open = exp && exp.style.display !== 'none';
+  if (exp)  exp.style.display  = open ? 'none' : 'block';
+  if (clip) clip.style.display = open ? ''     : 'none';
+}
+
+function setGnmFilter(f) {
+  _gnmFilter = f;
+  document.querySelectorAll('.gnm-filter-btn').forEach(function(b) {
+    var on = b.dataset.filter === f;
+    b.style.background  = on ? 'var(--accent)' : 'transparent';
+    b.style.color       = on ? '#fff'           : 'var(--muted)';
+    b.style.borderColor = on ? 'var(--accent)'  : 'var(--border)';
+  });
+  var area = document.getElementById('gnm-main-area');
+  if (!area) return;
+  area.style.transition = 'opacity 0.2s';
+  area.style.opacity = '0';
+  setTimeout(function() { renderGnmColumns(); area.style.opacity = '1'; }, 210);
+}
+
+function renderGnmCard(node, delay) {
+  var lc      = GNM_LC[node.layer] || '#888';
+  var topB    = node.severity==='critical' ? 'border-top:2px solid #E24B4A;' : '';
+  var leftB   = node.status==='complete'   ? 'border-left:3px solid #1baf7a;' :
+                node.status==='ghost'      ? 'border-left:3px solid #E24B4A;' : '';
+  var dim     = node.status==='complete'   ? 'opacity:0.72;' : '';
+
+  var badge = '';
+  if      (node.status==='ghost')    badge = '<span class="gnm-ghost-badge" style="background:rgba(226,75,74,.12);color:#E24B4A;border:1px solid rgba(226,75,74,.5);padding:1px 7px;border-radius:3px;font-size:10px;white-space:nowrap;">GHOST</span>';
+  else if (node.status==='in-flight')badge = '<span style="background:rgba(186,117,23,.12);color:#BA7517;border:1px solid rgba(186,117,23,.5);padding:1px 7px;border-radius:3px;font-size:10px;white-space:nowrap;">IN-FLIGHT</span>';
+  else if (node.status==='complete') badge = '<span style="background:rgba(27,175,122,.12);color:#1baf7a;border:1px solid rgba(27,175,122,.5);padding:1px 7px;border-radius:3px;font-size:10px;white-space:nowrap;">✓ COMPLETE</span>';
+
+  var blocks = node.blocks ? '<div style="font-size:10px;color:#E24B4A;margin-bottom:3px;font-weight:500;">Blocks: '+node.blocks+'</div>' : '';
+
+  return '<div class="gnm-card gnm-card-fadein" data-id="'+node.id+'" '+
+    'style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;margin-bottom:8px;'+topB+leftB+dim+'animation-delay:'+delay+'ms;" '+
+    'onclick="gnmToggleCard(\''+node.id+'\')">'+
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:5px;flex-wrap:wrap;">'+
+      '<code style="font-size:10px;color:var(--fg);word-break:break-all;line-height:1.4;flex:1;min-width:0;">'+node.id+'</code>'+
+      '<div style="display:flex;gap:4px;flex-shrink:0;align-items:center;flex-wrap:wrap;">'+
+        '<span style="background:'+lc+';padding:1px 6px;border-radius:3px;font-size:10px;color:#fff;font-weight:600;">'+node.layer+'</span>'+
+        badge+
+      '</div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">👤 '+node.owner+'</div>'+
+    blocks+
+    '<div class="gnm-desc-clip" style="font-size:11px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;">'+node.desc+'</div>'+
+    '<div class="gnm-expanded" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">'+
+      '<div style="font-size:11px;color:var(--muted);line-height:1.6;">'+node.desc+'</div>'+
+      '<button onclick="event.stopPropagation();gnmAskAbout(\''+node.id+'\')" class="lc-art-btn" style="margin-top:8px;font-size:11px;padding:4px 12px;">Ask Digital Brain →</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderGnmColumns() {
+  var area = document.getElementById('gnm-main-area');
+  if (!area) return;
+
+  if (_gnmFilter==='complete' || _gnmFilter==='ghost') {
+    var list = ghostData.filter(function(n){ return n.status===_gnmFilter; });
+    area.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">'+
+      list.map(function(n,i){ return renderGnmCard(n,i*50); }).join('')+'</div>';
+    return;
+  }
+
+  var cols = [
+    {key:'critical', label:'⚠ Critical', color:'#E24B4A'},
+    {key:'high',     label:'↑ High',     color:'#BA7517'},
+    {key:'medium',   label:'~ Medium',   color:'#888888'}
+  ].map(function(sev) {
+    var nodes = ghostData.filter(function(n) {
+      return n.severity===sev.key && (_gnmFilter==='all' || n.severity===_gnmFilter);
+    });
+    return '<div>'+
+      '<div style="font-size:12px;font-weight:700;color:'+sev.color+';margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">'+
+        sev.label+' <span style="font-weight:400;color:var(--muted);">('+nodes.length+')</span>'+
+      '</div>'+
+      nodes.map(function(n,i){ return renderGnmCard(n,i*50); }).join('')+
+    '</div>';
+  }).join('');
+
+  area.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">'+cols+'</div>';
+}
+
+function showGhostNodeMap() {
+  if (_kgSim) { _kgSim.stop(); _kgSim = null; }
+  _gnmFilter = 'all';
+  setActive('viz_ghost_node_map');
+  setBc('Visualizations — Ghost Node Map');
+  document.getElementById('cwrap').scrollTop = 0;
+
+  var v = VIZ_META['viz_ghost_node_map'];
+
+  var filters = ['All','Critical','High','Medium','Complete','Ghost'].map(function(f) {
+    var k = f.toLowerCase(), on = k==='all';
+    return '<button class="gnm-filter-btn" data-filter="'+k+'" onclick="setGnmFilter(\''+k+'\')" '+
+      'style="padding:4px 13px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid;transition:all .15s;'+
+      'background:'+(on?'var(--accent)':'transparent')+';color:'+(on?'#fff':'var(--muted)')+';border-color:'+(on?'var(--accent)':'var(--border)')+';">'+f+'</button>';
+  }).join('');
+
+  var stats = [
+    {l:'Total',     v:GNM_TOTAL,    c:'#888'},
+    {l:'Complete',  v:GNM_COMPLETE, c:'#1baf7a'},
+    {l:'In-flight', v:GNM_INFLIGHT, c:'#BA7517'},
+    {l:'Remaining', v:GNM_REMAIN,   c:'#E24B4A'}
+  ].map(function(p) {
+    return '<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;border:1px solid '+p.c+';font-size:12px;">'+
+      '<span style="color:'+p.c+';font-weight:600;">'+p.l+'</span><span style="color:var(--muted);">'+p.v+'</span></span>';
+  }).join('');
+
+  document.getElementById('content').innerHTML =
+    '<div class="lc-page">'+
+    '<div class="lc-page-hdr"><div><h2>'+v.title+'</h2><p>'+v.subtitle+'</p></div></div>'+
+    '<div style="margin:14px 0 10px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+        '<span style="font-size:13px;font-weight:600;color:var(--fg);">'+GNM_COMPLETE+' of '+GNM_TOTAL+' nodes complete ('+GNM_PCT+'%)</span>'+
+      '</div>'+
+      '<div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;">'+
+        '<div id="gnm-progress-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0;transition:width 0.7s ease;"></div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'+stats+'</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">'+filters+'</div>'+
+    '<div id="gnm-main-area"></div>'+
+    '<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">'+
+      '<button onclick="openChatWithQ(\'Help me register a new ghost node. Ask me questions to capture: the node ID, which layer it belongs to, what knowledge is missing, who the knowledge owner is, and what it blocks.\')" class="lc-art-btn" style="font-size:13px;padding:7px 18px;">+ Register New Ghost</button>'+
+    '</div>'+
+    '</div>';
+
+  renderGnmColumns();
+  setTimeout(function(){ var b=document.getElementById('gnm-progress-bar'); if(b) b.style.width=GNM_PCT+'%'; }, 100);
 }
 
 var _lcTimer = null;
