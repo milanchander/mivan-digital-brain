@@ -1,4 +1,4 @@
-# Mivan Digital Brain — chat backend launcher (Windows PowerShell)
+# Mivan Digital Brain - chat backend launcher (Windows PowerShell)
 # Creates a local venv, installs deps, and starts the WebSocket server.
 
 $ErrorActionPreference = "Stop"
@@ -17,5 +17,5 @@ python -m pip install --quiet --upgrade pip
 python -m pip install --quiet -r requirements.txt
 
 Write-Host "Starting Digital Brain chat backend on http://127.0.0.1:8000 ..." -ForegroundColor Green
-Write-Host "(No API key needed — auth comes from your Claude Code login.)" -ForegroundColor DarkGray
+Write-Host "(No API key needed - auth comes from your Claude Code login.)" -ForegroundColor DarkGray
 python app.py

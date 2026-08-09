@@ -38,3 +38,5 @@ Thumbs.db
 
 src/java/duplicate-detection/target/
 src/java/provider/target/
+src/java/ma/target/
+src/java/medicaid/target/
