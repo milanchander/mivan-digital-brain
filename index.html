@@ -6239,11 +6239,18 @@ function showOverview() {
 }
 
 // ── CHAT ──
-const isSecure       = window.location.protocol === 'https:';
-const wsProtocol     = isSecure ? 'wss://' : 'ws://';
-const httpProtocol   = isSecure ? 'https://' : 'http://';
-const BACKEND_WS_URL  = wsProtocol  + 'localhost:8000/ws/chat';
-const BACKEND_HTTP_URL = httpProtocol + 'localhost:8000';
+// Swap BACKEND_HOST to an AWS/ngrok host later — the secure/insecure choice is automatic.
+const BACKEND_HOST = 'localhost:8000';
+const isLocalBackend = BACKEND_HOST.startsWith('localhost')
+                    || BACKEND_HOST.startsWith('127.0.0.1');
+const pageIsSecure = window.location.protocol === 'https:';
+
+// localhost never has TLS — always use plain http/ws.
+// Only use https/wss for a real remote backend host.
+const useSecure = pageIsSecure && !isLocalBackend;
+
+const BACKEND_HTTP_URL = (useSecure ? 'https://' : 'http://') + BACKEND_HOST;
+const BACKEND_WS_URL   = (useSecure ? 'wss://'   : 'ws://')   + BACKEND_HOST + '/ws/chat';
 
 const panel = document.getElementById('chat-panel');
 
@@ -6493,7 +6500,8 @@ function connErrCard() {
     '1. Open a terminal\n' +
     '2. cd mivan-digital-brain/backend\n' +
     '3. Run: .\\start.ps1\n\n' +
-    'Then refresh this page.</div>';
+    'Then refresh this page.\n\n' +
+    'If you are viewing this on GitHub Pages, the backend must run on your own machine at localhost:8000. Connector data and chat only work when the backend is running locally.</div>';
 }
 
 function connAskBtn(q) {
