@@ -55,7 +55,7 @@ links_forward:
 - **T-MSIS:** Transformed Medicaid Statistical Information System — CMS national repository; states submit encounter, eligibility, and claims data; replaced legacy MSIS
 
 ### Mivan Medicaid Program
-> ⚠️ VALIDATE: Mivan Medicaid state footprint, population breakdown (TANF, CHIP, expansion, ABD), and StateLink MCO Platform involvement
+> ⚠️ VALIDATE: Mivan Medicaid state footprint and population breakdown (TANF, CHIP, expansion, ABD). (Medicaid is adjudicated on MiFCT / TriZetto Facets — see §7.)
 
 ---
 
@@ -202,20 +202,23 @@ Key Medicaid HEDIS measures:
 
 ---
 
-## 7. Medicaid MiCPS Implications
+## 7. Medicaid Platform & Implementation (MiFCT)
 
-> ⚠️ VALIDATE: L1 states Medicaid is adjudicated
-> by StateLink MCO Platform — confirm MiCPS involvement
+**Medicaid claims are adjudicated by MiFCT (Mivan Facets Claims Technology / TriZetto Facets), not MiCPS.** MiCPS handles commercial claims only. MiEDI routes Medicaid claims (LOB code `MC`) to the MiFCT Medicaid intake queue. See L3 "MiFCT — Government Claims Platform" and "LOB Routing Architecture".
 
-### What MiCPS Does for Medicaid
-- Does MiCPS adjudicate Medicaid MCO claims, or is this entirely StateLink?
-- If StateLink is the system, what batch feeds from MiCPS (if any) support Medicaid operations?
-  > ⚠️ VALIDATE: MiCPS involvement in Medicaid adjudication
+### Post-Adjudication Reporting — MedicaidStateReportingService
+After MiFCT adjudicates a Medicaid claim, it calls `MedicaidStateReportingService` (`src/java/medicaid/`) via REST to handle state reporting obligations. This is a post-adjudication reporting service — it does not adjudicate claims.
+
+- Third party liability (TPL) identification
+- Payer of last resort calculation (42 CFR 433.139)
+- Medicaid liability calculation
+- **State MMIS encounter data submission**
 
 ### Encounter Data Flow
-- How Medicaid claims data reaches state MMIS / T-MSIS
-- Which MiCPS batch feeds (if any) support Medicaid encounter submission
-- State-specific submission requirements for Mivan's Medicaid contracts
+- Adjudicated Medicaid claims from MiFCT flow to `MedicaidStateReportingService`, which stages and submits encounters to state MMIS / T-MSIS
+- State-specific submission requirements for Mivan's Medicaid contracts are applied during state MMIS submission
+
+> ⚠️ VALIDATE: MiFCT (Facets) Medicaid benefit-plan configuration and the MiFCT → `MedicaidStateReportingService` integration contract (see ghost nodes MIFCT-CONFIGURATION, MIFCT-POSTADJ-INTEGRATION).
 
 ---
 

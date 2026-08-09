@@ -58,7 +58,7 @@ links_forward:
 - **2025 effective growth rate:** 2.33% for non-ESRD rates (CMS CY2025 Rate Announcement)
 
 ### Mivan MA Program
-> ⚠️ VALIDATE: Mivan MA plan types, service areas, Star rating history, and TriStar MA Platform involvement
+> ⚠️ VALIDATE: Mivan MA plan types, service areas, and Star rating history. (MA is adjudicated on MiFCT / TriZetto Facets — see §6.)
 
 ---
 
@@ -202,24 +202,23 @@ links_forward:
 
 ---
 
-## 6. MA-Specific MiCPS Implications
+## 6. MA Platform & Implementation (MiFCT)
 
-> ⚠️ VALIDATE: All items in this section require
-> confirmation with the MiCPS operations team
+**MA claims are adjudicated by MiFCT (Mivan Facets Claims Technology / TriZetto Facets), not MiCPS.** MiCPS handles commercial claims only. MiEDI routes MA claims (LOB code `MA`) to the MiFCT MA intake queue. See L3 "MiFCT — Government Claims Platform" and "LOB Routing Architecture".
 
-### What MiCPS Does for MA
-- L1 states MA is adjudicated by the **TriStar MA Platform** — confirm whether MiCPS is involved in MA claim processing or is purely commercial/Medicaid
-  > ⚠️ VALIDATE: MiCPS involvement in MA adjudication
+### Post-Adjudication Reporting — MaPostAdjudicationService
+After MiFCT adjudicates an MA claim, it calls `MaPostAdjudicationService` (`src/java/ma/`) via REST to handle the CMS reporting obligations. This is a post-adjudication reporting service — it does not adjudicate claims.
 
-### Encounter Data Submission
-- How MiCPS-adjudicated data (if any) feeds the MA EDPS encounter submission process
-- Which MiCPS batch feeds (if any) support MA encounter data
-- CMS submission deadlines: 13 months from DOS; Final Run July 31 of the year following the payment year
+- HCC diagnosis validation and ICD-10 → HCC mapping
+- RAF score calculation (demographic + disease + interaction + LIS/dual adders)
+- Encounter record staging and **CMS EDPS submission** (deadlines: 13 months from DOS; Final Run July 31 of the year following the payment year)
 
 ### Risk Adjustment Data Flow
-- How diagnosis codes from MiCPS claims (if applicable) reach EDPS for HCC risk scoring
-- HCC coding quality — impact of MiCPS claim edits on diagnosis code accuracy and RAF scores
+- Adjudicated diagnosis codes from MiFCT flow to `MaPostAdjudicationService`, which validates HCCs and submits encounters to CMS EDPS for risk scoring
+- HCC coding quality directly affects RAF scores and CMS capitation
 - V28 transition impact — review which ICD-10 codes dropped between V24 and V28 that may affect current coding workflows
+
+> ⚠️ VALIDATE: MiFCT (Facets) MA benefit-plan configuration and the MiFCT → `MaPostAdjudicationService` integration contract (see ghost nodes MIFCT-CONFIGURATION, MIFCT-POSTADJ-INTEGRATION).
 
 ---
 

@@ -45,7 +45,7 @@ Connectors ingest and sync knowledge from source systems into the appropriate kn
 
 ## Live Implementation
 
-`src/` — AI-native parallel builds. Each program tree has a COBOL implementation and a Java Spring Boot equivalent, demonstrating the migration pattern.
+`src/` — AI-native builds. Commercial claims run on **MiCPS** (COBOL, with a Java migration path). **Medicare Advantage and Medicaid are adjudicated by MiFCT (TriZetto Facets)** — the Java services for those LOBs are *post-adjudication reporting* services called by MiFCT via REST, not claim-adjudication drivers.
 
 ### MICPS-4471 — Near-Duplicate Claim Detection (original demo)
 
@@ -54,16 +54,16 @@ Connectors ingest and sync knowledge from source systems into the appropriate kn
 - `src/stories/MICPS-4471.md`: Jira story
 - `src/README.md`: parallel build documentation
 
-### LOB Program Trees (driver + 5 subprograms each)
+### LOB Services
 
-| Line of Business | Driver | COBOL | Java | Status |
-|---|---|---|---|---|
-| Commercial | `MCOMCLDR0` | `src/cobol/commercial/` | `src/java/commercial/` | Planned — not yet built |
-| Medicare Advantage | `MAENCDR0` | `src/cobol/ma/` | `src/java/ma/` | Built |
-| Medicaid | `MMCOCLDR0` | `src/cobol/medicaid/` | `src/java/medicaid/` | Built |
-| Provider Data (cross-LOB) | `MPRVVLDR0` | `src/cobol/provider/` | `src/java/provider/` | Built |
+| Line of Business | Adjudicated by | Primary component | COBOL | Java | Status |
+|---|---|---|---|---|---|
+| Commercial | MiCPS | `MCOMCLDR0` | `src/cobol/commercial/` | `src/java/commercial/` | Planned — not yet built |
+| Medicare Advantage | **MiFCT (Facets)** | `MaPostAdjudicationService` (post-adjudication) | n/a — MiFCT adjudicates | `src/java/ma/` | Built (Java only) |
+| Medicaid | **MiFCT (Facets)** | `MedicaidStateReportingService` (post-adjudication) | n/a — MiFCT adjudicates | `src/java/medicaid/` | Built (Java only) |
+| Provider Data (cross-LOB) | MiCPS + MiFCT | `MPRVVLDR0` / `ProviderValidationOrchestrator` | `src/cobol/provider/` | `src/java/provider/` | Built |
 
-Each LOB has a matching L2 domain node under `knowledge/L2-domain/`.
+Provider validation is shared: MiCPS calls `MPRVVLDR0` (COBOL batch); MiFCT calls the REST endpoint `POST /api/v1/provider/validate/facets` (Option A). Each LOB has a matching L2 domain node under `knowledge/L2-domain/`.
 
 ## Target Infrastructure
 

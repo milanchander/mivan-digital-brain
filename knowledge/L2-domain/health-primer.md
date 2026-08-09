@@ -405,17 +405,30 @@ Medicare Advantage.
 ### MiCPS — The Core System
 
 MiCPS (Mivan Claims Processing System) is
-the mainframe system that processes all of
-this. It was built 30 years ago in COBOL
-and has been extended ever since. It works —
-processing 4 million claims per day — but
-it is being modernized.
+the mainframe system that processes Mivan's
+**commercial** claims. It was built 30 years
+ago in COBOL and has been extended ever since.
+It works — processing 4 million claims per
+day — but it is being modernized.
 
 Think of MiCPS as a very large, very fast,
 very reliable batch processing system. Most
 claims processing happens overnight in large
 batch runs. It is not a real-time API system —
 it is a mainframe.
+
+**One important thing:** MiCPS only handles
+**commercial** claims. **Medicare Advantage
+and Medicaid** claims run on a completely
+different platform called **MiFCT** (Mivan
+Facets Claims Technology — Mivan's version of
+the industry product TriZetto Facets). When a
+claim arrives, a router called MiEDI looks at
+the member's line of business and sends it to
+the right platform: commercial → MiCPS,
+Medicare Advantage / Medicaid → MiFCT. So if
+you are told a claim is "MA" or "Medicaid,"
+it is a MiFCT claim, not a MiCPS one.
 
 ### The Modernization Program
 
@@ -681,7 +694,9 @@ first contribution to the knowledge layer.
 | NPI | National Provider Identifier — unique 10-digit ID for every provider |
 | 837 | HIPAA-standard electronic format for submitting claims |
 | 835 | HIPAA-standard electronic format for payment remittance |
-| MiCPS | Mivan Claims Processing System — the mainframe that processes all of this |
+| MiCPS | Mivan Claims Processing System — the mainframe that processes Mivan's commercial claims |
+| MiFCT | Mivan Facets Claims Technology — the TriZetto Facets platform that processes Medicare Advantage and Medicaid claims (not MiCPS) |
+| MiEDI | The gateway that receives claims and routes each one by line of business to MiCPS (commercial) or MiFCT (MA/Medicaid) |
 | Ghost Node | Knowledge that is known to be missing from the Digital Brain — register it when you find it |
 
 There are two main claim types:

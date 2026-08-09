@@ -278,6 +278,15 @@ links_forward:
 
 ---
 
+### Cross-Platform Provider Validation
+
+Provider validation is **shared across both claims platforms** and is line-of-business-agnostic — the same NPI, credentialing, OIG/SAM exclusion, and network checks run regardless of LOB:
+
+- **MiCPS (Commercial)** calls the `MPRVVLDR0` COBOL program (batch, via JCL).
+- **MiFCT (MA / Medicaid, TriZetto Facets)** calls the provider validation REST API (Option A — direct HTTP): `POST /api/v1/provider/validate/facets` (`ProviderValidationOrchestrator` / `FacetsValidationRequest` → `FacetsValidationResponse`).
+
+This shared capability ensures consistent exclusion screening (critical for the federal payment prohibition) across commercial and government lines of business. See L3 "Provider Validation Integration".
+
 ## 9. Provider Data Modernization
 
 ### Current State Pain Points

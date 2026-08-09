@@ -240,14 +240,14 @@ Max context: 60KB
 
 ## LOB-Aware Traversal
 
-When a question is scoped to a specific line of business, route to that LOB's L2 domain node and its program tree — do not load the other LOBs' content. Provider Data is cross-LOB and may be loaded alongside any LOB.
+Claims are routed at intake by **MiEDI** (LOB router) to the correct platform: **Commercial → MiCPS**; **Medicare Advantage and Medicaid → MiFCT (TriZetto Facets)**. See L3 "LOB Routing Architecture" for the routing table and queues. When a question is scoped to a specific line of business, route to that LOB's L2 domain node and its platform/service — do not load the other LOBs' content. Provider Data is cross-LOB and may be loaded alongside any LOB.
 
-| Line of Business | Trigger phrases | Traversal | Program tree |
+| Line of Business | Trigger phrases | Traversal | Platform / component |
 |---|---|---|---|
-| Commercial | "commercial", "fully-insured", "ASO", "ACA", "exchange", "COBRA", "employer group" | 1. knowledge/L2-domain/commercial-claims.md<br>2. knowledge/L4-application/micps-application-knowledge.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MCOMCLDR0 *(planned — src/cobol/commercial/, src/java/commercial/)* |
-| Medicare Advantage | "Medicare Advantage", "MA", "HCC", "RAF", "RADV", "encounter data", "EDPS", "Star ratings" | 1. knowledge/L2-domain/medicare-advantage.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MAENCDR0 (src/cobol/ma/, src/java/ma/) |
-| Medicaid | "Medicaid", "managed care", "TPL", "payer of last resort", "state MMIS", "capitation", "EPSDT" | 1. knowledge/L2-domain/medicaid-managed-care.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MMCOCLDR0 (src/cobol/medicaid/, src/java/medicaid/) |
-| Provider Data (cross-LOB) | "provider", "NPI", "credentialing", "OIG", "SAM", "exclusion", "network", "sanction" | 1. knowledge/L2-domain/provider-data-lifecycle.md<br>2. knowledge/L4-application/micps-application-knowledge.md | MPRVVLDR0 (src/cobol/provider/, src/java/provider/) |
+| Commercial | "commercial", "fully-insured", "ASO", "ACA", "exchange", "COBRA", "employer group" | 1. knowledge/L2-domain/commercial-claims.md<br>2. knowledge/L4-application/micps-application-knowledge.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MiCPS — MCOMCLDR0 *(planned — src/cobol/commercial/, src/java/commercial/)* |
+| Medicare Advantage | "Medicare Advantage", "MA", "HCC", "RAF", "RADV", "encounter data", "EDPS", "Star ratings" | 1. knowledge/L2-domain/medicare-advantage.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MiFCT (Facets) adjudicates; post-adjudication MaPostAdjudicationService (src/java/ma/) |
+| Medicaid | "Medicaid", "managed care", "TPL", "payer of last resort", "state MMIS", "capitation", "EPSDT" | 1. knowledge/L2-domain/medicaid-managed-care.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MiFCT (Facets) adjudicates; post-adjudication MedicaidStateReportingService (src/java/medicaid/) |
+| Provider Data (cross-LOB) | "provider", "NPI", "credentialing", "OIG", "SAM", "exclusion", "network", "sanction" | 1. knowledge/L2-domain/provider-data-lifecycle.md<br>2. knowledge/L4-application/micps-application-knowledge.md | MPRVVLDR0 (COBOL, MiCPS) + ProviderValidationOrchestrator REST (MiFCT Option A); src/cobol/provider/, src/java/provider/ |
 
 Max context per LOB question: 120KB.
 

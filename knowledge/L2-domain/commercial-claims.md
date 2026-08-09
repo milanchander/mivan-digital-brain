@@ -886,6 +886,8 @@ Unlike Medicare (MSP federal rules) and Medicaid (payer of last resort), commerc
 
 ## Related Lines of Business & Implementation
 
+> **Platform note:** This document covers **commercial** claims, which are adjudicated by **MiCPS**. **Medicare Advantage and Medicaid are adjudicated by a different platform — MiFCT (TriZetto Facets)** — not MiCPS. MiEDI routes each claim by line of business. See L3 "LOB Routing Architecture".
+
 ### Sibling LOB Domain Nodes
 - Medicare Advantage — `knowledge/L2-domain/medicare-advantage.md`
 - Medicaid Managed Care — `knowledge/L2-domain/medicaid-managed-care.md`

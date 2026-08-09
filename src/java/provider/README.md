@@ -58,11 +58,30 @@ list.**
 | Method | Path | Purpose |
 |--------|------|---------|
 | POST | `/api/v1/provider/validate` | Full five-step validation |
+| POST | `/api/v1/provider/validate/facets` | **Facets integration (Option A)** — validate provider for MA/Medicaid claims |
 | GET  | `/api/v1/provider/{npi}` | Provider master record |
 | GET  | `/api/v1/provider/{npi}/credentials` | Credentialing status |
 | GET  | `/api/v1/provider/{npi}/network-status` | INN/OON + tier |
 | GET  | `/api/v1/provider/exclusions/check/{npi}` | Exclusion screen |
 | GET  | `/api/v1/provider/sanctions/{npi}` | Sanction / validation history |
+
+### MiFCT (Facets) Integration — Option A
+
+Provider validation is cross-LOB and shared by both claims platforms. **MiCPS**
+(commercial, COBOL) calls the `MPRVVLDR0` batch program; **MiFCT** (TriZetto
+Facets, adjudicating MA and Medicaid) calls the REST endpoint directly:
+
+```
+POST /api/v1/provider/validate/facets
+```
+
+This is the **Option A** integration — MiFCT calls the shared
+`ProviderValidationOrchestrator` over HTTP after LOB routing. The request
+(`FacetsValidationRequest`) carries the Facets transaction ID, NPI, tax ID,
+date of service, LOB code (`MA`/`MC`), claim ID, and plan ID; the response
+(`FacetsValidationResponse`) returns validation status, network tier, fee
+schedule, credentialing/exclusion flags, and deny reason. The underlying
+validation is identical to commercial — provider validation is LOB-agnostic.
 
 ## How to run
 

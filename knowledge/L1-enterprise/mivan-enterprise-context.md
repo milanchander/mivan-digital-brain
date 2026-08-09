@@ -42,30 +42,30 @@ MiCPS (Mivan Claims Processing System) is Mivan's homegrown mainframe claims adj
 | Platform | IBM z/OS mainframe |
 | Languages | COBOL, JCL, CICS (online transaction processing via IBM CICS), VSAM (file management — KSDS, ESDS, RRDS file types used for reference data, work files, and intermediate claims processing) |
 | Database | IBM DB2 |
-| Lines of Business | Commercial medical claims only (Medicare Advantage adjudicated on TriStar MA Platform; Medicaid adjudicated on StateLink MCO Platform) |
+| Lines of Business | Commercial medical claims only (Medicare Advantage and Medicaid are adjudicated on **MiFCT** — Mivan Facets Claims Technology / TriZetto Facets — not MiCPS) |
 | Age | ~30 years in production; continuously extended |
 | Throughput | Processes ~4 million claims per day at peak |
 | Integration Style | Batch file exchange (SFTP), MQ messaging; no REST APIs |
 | Documentation | Sparse; system knowledge concentrated in a small group of senior engineers |
 
-### Lines of Business & Program Trees
+### Lines of Business & Platforms
 
-The Digital Brain documents four lines of business, each with a domain knowledge node (L2) and a parallel-build program tree (COBOL driver + Java Spring Boot equivalent):
+The Digital Brain documents four lines of business. **Commercial** claims are adjudicated by **MiCPS** (COBOL). **Medicare Advantage** and **Medicaid** are adjudicated by **MiFCT (TriZetto Facets)** — the Java services below are *post-adjudication reporting* services called by MiFCT via REST, not claim-adjudication drivers. **Provider validation** is cross-LOB and shared by both platforms.
 
-| Line of Business | L2 Domain Node | Program Driver | Focus |
-|---|---|---|---|
-| Commercial | `knowledge/L2-domain/commercial-claims.md` | `MCOMCLDR0` *(planned — `src/cobol/commercial/`, `src/java/commercial/`)* | Fully-insured / ASO / ACA / COBRA claim processing |
-| Medicare Advantage | `knowledge/L2-domain/medicare-advantage.md` | `MAENCDR0` (`src/cobol/ma/`, `src/java/ma/`) | HCC validation, RAF calculation, CMS EDPS submission |
-| Medicaid | `knowledge/L2-domain/medicaid-managed-care.md` | `MMCOCLDR0` (`src/cobol/medicaid/`, `src/java/medicaid/`) | TPL identification, payer of last resort, state MMIS |
-| Provider Data (cross-LOB) | `knowledge/L2-domain/provider-data-lifecycle.md` | `MPRVVLDR0` (`src/cobol/provider/`, `src/java/provider/`) | NPI lookup, credentialing, OIG exclusion, network verify |
+| Line of Business | L2 Domain Node | Adjudicated by | Primary component | Focus |
+|---|---|---|---|---|
+| Commercial | `knowledge/L2-domain/commercial-claims.md` | MiCPS | `MCOMCLDR0` *(planned — `src/cobol/commercial/`, `src/java/commercial/`)* | Fully-insured / ASO / ACA / COBRA claim processing |
+| Medicare Advantage | `knowledge/L2-domain/medicare-advantage.md` | MiFCT (Facets) | `MaPostAdjudicationService` (`src/java/ma/`) | Post-adjudication: HCC validation, RAF calculation, CMS EDPS submission |
+| Medicaid | `knowledge/L2-domain/medicaid-managed-care.md` | MiFCT (Facets) | `MedicaidStateReportingService` (`src/java/medicaid/`) | Post-adjudication: TPL identification, payer of last resort, state MMIS |
+| Provider Data (cross-LOB) | `knowledge/L2-domain/provider-data-lifecycle.md` | MiCPS + MiFCT | `MPRVVLDR0` / `ProviderValidationOrchestrator` (`src/cobol/provider/`, `src/java/provider/`) | NPI lookup, credentialing, OIG exclusion, network verify |
 
-> ⚠️ VALIDATE: Per the MiCPS platform table above, MiCPS itself adjudicates commercial claims only; Medicare Advantage and Medicaid are adjudicated on the TriStar and StateLink platforms respectively. The MA and Medicaid program trees model those separate-system flows.
+> ⚠️ VALIDATE: Confirm the MiFCT (Facets) deployment details and the MiEDI LOB routing table maintenance procedure. See L3 "LOB Routing Architecture" for how MiEDI routes claims to MiCPS vs MiFCT.
 
 ### Surrounding Systems
 
 | System | Purpose | Technology |
 |--------|---------|-----------|
-| MiEDI | EDI clearinghouse gateway — 837 intake and 835 output | IBM Sterling B2B |
+| MiEDI | EDI clearinghouse gateway — 837 intake and 835 output; **LOB router** directing claims to MiCPS (Commercial) or MiFCT (MA / Medicaid) | IBM Sterling B2B |
 | MiMember | Member eligibility and enrollment | Oracle, on-prem |
 | MiProvider | Provider master data management | SQL Server, on-prem |
 | MiPortal | Provider and member self-service web portal | Java / Spring, on-prem |
