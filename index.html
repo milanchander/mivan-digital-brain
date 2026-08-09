@@ -8335,130 +8335,114 @@ function kgShowTooltip(d) {
 }
 
 // ── BLAST RADIUS ──
-var blastData = {
-  'MADJDRV0': {
-    wave: 'Wave 5',
-    direct:   ['MCOVDET0','MAUTHCK0','MROUTNG0','MDENCD00','MPENDMG0','MSUSPMG0','CLAIM_ADJUD','CLAIM_AUDIT'],
-    indirect: ['MPRICNG0','MCOBPRC0','MPYMTCL0','MOUGEN00','SQL Server MiOps','AWS S3 CLAIMS-FULL','All ERA files','MiPay EFT'],
-    ghost:    ['ADJUD-BUSINESS-RULES-SPEC — undocumented rules may be affected']
-  },
-  'ACCUM-FILE': {
-    wave: 'Wave 2',
-    direct:   ['MACCUML0','MACCUPD0','MACCURS0 reset job','CICS eligibility'],
-    indirect: ['All cost-share calcs','PAYMENT-CALC job','OOP max tracking','ACCUM-FEED SQL Server'],
-    ghost:    ['ACCUM-FILE-LAYOUT — record layout partially undocumented']
-  },
-  'CLAIM_PAYMENT': {
-    wave: 'Wave 1 partial',
-    direct:   ['MPYMTDR0','MPYMREC0','M835GEN0','MEFTGEN0','MOVPDR00'],
-    indirect: ['835 ERA to providers','EFT to MiPay','PAYMENT-FEED SQL Server','CLAIMS-FULL S3','Finance GL'],
-    ghost:    []
-  },
-  'PROV-MSTR': {
-    wave: 'Wave 2',
-    direct:   ['All edit programs','MADJDRV0 NPI lookup','MFEELKP0 fee lookup','CICS prov lookup'],
-    indirect: ['All adjudication','All pricing','Provider portal','MiProvider feed dependency'],
-    ghost:    ['PROV-MSTR key structure — composite key partially undocumented']
-  },
-  'FEE-SCHED': {
-    wave: 'Wave 3',
-    direct:   ['MFEELKP0','MPRICDR0','CICS fee lookup'],
-    indirect: ['All in-network payments','Provider dispute resolution','FEE_SCHED_AUDIT table'],
-    ghost:    ['FEE-SCHED-LAYOUT — key structure extended twice undocumented']
-  },
-  'ADJUD-MAIN': {
-    wave: 'Wave 5 — critical path',
-    direct:   ['All L4 programs in sequence','CLAIM_ADJUD writes','PEND_QUEUE writes','SUSPENSE writes'],
-    indirect: ['All downstream batch jobs','All outbound feeds','SQL Server refresh','S3 landing zone'],
-    ghost:    ['ADJUD-BUSINESS-RULES-SPEC']
-  },
-  'DRG-RATES': {
-    wave: 'Wave 3',
-    direct:   ['MDRGPRC0','MDRGGRP0','Institutional pricing'],
-    indirect: ['All institutional payments','Annual CMS update cycle','DRG outlier calcs'],
-    ghost:    ['DRG-GROUPER-EXTENSIONS — custom modifications undocumented']
-  },
-  'AUTH-FILE': {
-    wave: 'Wave 2',
-    direct:   ['MAUTHCK0','CICS auth validation','Real-time auth lookup'],
-    indirect: ['All prior auth decisions','Auth-related denials','MiAuth nightly feed'],
-    ghost:    ['AUTH-FILE-LAYOUT — mixed record types discriminator undocumented']
-  },
-  'MCOBPYR0': {
-    wave: 'Wave 4',
-    direct:   ['MCOBDR00','MCOBSTD0','MCOBNOD0','MCOBMOB0'],
-    indirect: ['All COB calculations','COB-FEED SQL Server','Secondary payer payments'],
-    ghost:    ['COB-PAYER-AGREEMENTS — 40 payers hardcoded undocumented']
-  },
-  'MiMember Feed': {
-    wave: 'Wave 1',
-    direct:   ['MMEMLD00 load job','MEMBER-IDX refresh','MRETROE0 retro elig'],
-    indirect: ['All eligibility checks','All accumulator lookups','COB flag updates','Newborn auto-coverage'],
-    ghost:    []
-  },
-  'MPRVVLDR0': {
-    wave: 'Wave 2',
-    direct: ['MPRVNPI0','MPRVCRD0','MPRVEXC0','MPRVNET0','MPRVSANL0','PROV-MSTR VSAM','PROVIDER_MASTER DB2'],
-    indirect: ['All claim editing','All adjudication pricing','MFEELKP0 fee lookup','Provider portal display','MiProvider nightly feed'],
-    ghost: ['PROV-MSTR key structure — composite key partially undocumented']
-  },
-  'MaPostAdjudicationService (MA)': {
-    wave: 'MA — adjudicated by MiFCT (Facets); Java post-adjudication reporting',
-    direct: ['MiFCT (Facets) — adjudication upstream','HCC validation','RAF calculation','EDPS submission','MA_ENROLLMENT DB2','HCC_CODE_MAP DB2','MA_RAF_SCORE DB2'],
-    indirect: ['CMS capitation payments','RADV audit exposure','MA Star ratings','RAF score accuracy','EDPS submission to CMS'],
-    ghost: ['MIFCT-POSTADJ-INTEGRATION — MiFCT → MaPostAdjudicationService REST contract not documented']
-  },
-  'MedicaidStateReportingService (Medicaid)': {
-    wave: 'Medicaid — adjudicated by MiFCT (Facets); Java post-adjudication reporting',
-    direct: ['MiFCT (Facets) — adjudication upstream','TPL identification','payer of last resort','state MMIS submission','MEDICAID_ELIGIBILITY DB2','TPL_PAYER_FILE DB2'],
-    indirect: ['State MMIS submission','Medicaid capitation accuracy','TPL recovery amounts','Federal compliance — 42 CFR 433.139'],
-    ghost: ['MIFCT-POSTADJ-INTEGRATION — MiFCT → MedicaidStateReportingService REST contract not documented']
-  },
-  'MiFCT (Facets)': {
-    wave: 'Government claims platform — adjudicates MA + Medicaid',
-    direct: ['MA claims adjudication','Medicaid claims adjudication','MaPostAdjudicationService (REST)','MedicaidStateReportingService (REST)','Provider Validation API (Option A REST)'],
-    indirect: ['All MA/Medicaid encounter reporting','CMS EDPS submission','State MMIS submission','Provider validation for govt claims'],
-    ghost: ['MIFCT-CONFIGURATION — Facets benefit-plan build not documented','FACETS-LOB-ROUTING-TABLE — MiEDI routing table not documented']
-  },
-  'MPRVEXC0': {
-    wave: 'Wave 2',
-    direct: ['OIG_EXCLUSION_LIST DB2','SAM_EXCLUSION_LIST DB2','STATE_EXCLUSION_LIST DB2','PROVIDER_SANCTION_LOG DB2'],
-    indirect: ['All claim payments to providers','Federal penalty exposure','Monthly OIG update dependency','State Medicaid compliance'],
-    ghost: []
-  },
-  'MCOMCLDR0 (planned)': {
-    wave: 'Planned — Commercial program tree not yet built',
-    direct: ['Commercial claim intake','Plan-type resolution (fully-insured vs ASO)','ACA preventive / cost-share logic','BENEFIT_PARAMS DB2','MEMBER-IDX'],
-    indirect: ['All commercial adjudication','State mandate application (MBUSNED0)','Commercial COB (birthday / active-employment rule)','Prompt-pay compliance'],
-    ghost: ['MCOMCLDR0 subprogram inventory — PLANNED, not yet built (src/cobol/commercial/, src/java/commercial/)']
-  }
+var businessFunctions = {
+  'Commercial': [
+    {id:'claims-adjudication', name:'Claims Adjudication', lob:'Commercial', wave:'Wave 5', crossLob:false,
+     systems:[{name:'ADJUD-MAIN'},{name:'MADJDRV0'},{name:'CLAIM_ADJUD DB2'},{name:'ACCUM-FILE VSAM'},{name:'COVERAGE_POLICY DB2'}],
+     dependent_functions:['Pricing / Fee Schedule','Coordination of Benefits','Payment & Remittance','Overpayment & Recovery','Claims Intake & Editing'],
+     downstream_lobs:['Commercial'],
+     ghost_risks:['ADJUD-BUSINESS-RULES-SPEC — coverage rules live only in COBOL','ACCUM-FILE-LAYOUT — record layout undocumented']},
+    {id:'eligibility', name:'Eligibility & Benefits', lob:'Commercial', wave:'Wave 1', crossLob:false,
+     systems:[{name:'MELIGDR0'},{name:'MACCUML0'},{name:'ACCUM-FILE VSAM'},{name:'MEMBER-IDX VSAM'}],
+     dependent_functions:['Claims Adjudication','Accumulator tracking'],
+     downstream_lobs:['Commercial'], ghost_risks:['ACCUM-FILE-LAYOUT — record layout undocumented']},
+    {id:'duplicate-detection', name:'Duplicate Detection', lob:'Commercial', wave:'Wave 1', crossLob:false,
+     systems:[{name:'MOVPDUP1'},{name:'MOVPDUP0'},{name:'CLAIM_PAYMENT DB2'},{name:'NEAR_DUP_QUEUE DB2'}],
+     dependent_functions:['Overpayment & Recovery','Payment & Remittance'], downstream_lobs:['Commercial'], ghost_risks:[]},
+    {id:'pricing', name:'Pricing / Fee Schedule', lob:'Commercial', wave:'Wave 3', crossLob:false,
+     systems:[{name:'MPRICDR0'},{name:'MDRGGRP0'},{name:'MFEELKP0'},{name:'FEE-SCHED VSAM'},{name:'DRG-RATES RRDS'}],
+     dependent_functions:['Claims Adjudication','Payment & Remittance'], downstream_lobs:['Commercial'],
+     ghost_risks:['DRG-GROUPER-EXTENSIONS — custom grouper undocumented','FEE-SCHED-LAYOUT — key structure undocumented']},
+    {id:'cob', name:'Coordination of Benefits', lob:'Commercial', wave:'Wave 4', crossLob:false,
+     systems:[{name:'MCOBDR00'},{name:'MCOBPYR0'},{name:'PAYER_COB_AGREE DB2'}],
+     dependent_functions:['Claims Adjudication','Payment & Remittance'], downstream_lobs:['Commercial'],
+     ghost_risks:['COB-PAYER-AGREEMENTS — ~40 payers hardcoded in COBOL']},
+    {id:'overpayment', name:'Overpayment & Recovery', lob:'Commercial', wave:'Wave 5', crossLob:false,
+     systems:[{name:'MOVPDR00'},{name:'MOVPOFS0'},{name:'CLAIM_PAYMENT DB2'}],
+     dependent_functions:['Duplicate Detection','Payment & Remittance'], downstream_lobs:['Commercial'],
+     ghost_risks:['State recoupment look-back limits hardcoded in MOVPOFS0']},
+    {id:'intake-editing', name:'Claims Intake & Editing', lob:'Commercial', wave:'Wave 3', crossLob:false,
+     systems:[{name:'MEDIPRS0'},{name:'MNCCIED0'},{name:'MBUSNED0'},{name:'NCCI-TABLE VSAM'}],
+     dependent_functions:['Eligibility & Benefits','Claims Adjudication'], downstream_lobs:['Commercial'],
+     ghost_risks:['NCCI-TABLE-MANAGEMENT — quarterly update process undocumented']},
+    {id:'payment', name:'Payment & Remittance', lob:'Commercial', wave:'Wave 1', crossLob:false,
+     systems:[{name:'MPYMTDR0'},{name:'M835GEN0'},{name:'MEFTGEN0'},{name:'CLAIM_PAYMENT DB2'}],
+     dependent_functions:['Claims Adjudication','Coordination of Benefits'], downstream_lobs:['Commercial'], ghost_risks:[]}
+  ],
+  'Medicare Advantage': [
+    {id:'ma-adjudication', name:'MA Adjudication', lob:'Medicare Advantage', wave:'MiFCT', crossLob:false,
+     systems:[{name:'MiFCT (Facets)'},{name:'MA_ENROLLMENT DB2'},{name:'Oracle'}],
+     dependent_functions:['MA Post-Adjudication','Provider Validation'], downstream_lobs:['Medicare Advantage'],
+     ghost_risks:['MIFCT-CONFIGURATION — Facets benefit-plan build undocumented','FACETS-LOB-ROUTING-TABLE — routing table undocumented']},
+    {id:'ma-post-adjudication', name:'MA Post-Adjudication', lob:'Medicare Advantage', wave:'MiFCT', crossLob:false,
+     systems:[{name:'MaPostAdjudicationService'},{name:'HCC_CODE_MAP DB2'},{name:'MA_RAF_SCORE DB2'}],
+     dependent_functions:['CMS EDPS submission','HCC validation','RAF calculation'], downstream_lobs:['Medicare Advantage'],
+     ghost_risks:['MIFCT-POSTADJ-INTEGRATION — MiFCT→service REST contract undocumented']}
+  ],
+  'Medicaid': [
+    {id:'medicaid-adjudication', name:'Medicaid Adjudication', lob:'Medicaid', wave:'MiFCT', crossLob:false,
+     systems:[{name:'MiFCT (Facets)'},{name:'MEDICAID_ELIGIBILITY DB2'},{name:'Oracle'}],
+     dependent_functions:['Medicaid State Reporting','Provider Validation'], downstream_lobs:['Medicaid'],
+     ghost_risks:['MIFCT-CONFIGURATION — Facets benefit-plan build undocumented','FACETS-LOB-ROUTING-TABLE — routing table undocumented']},
+    {id:'medicaid-state-reporting', name:'Medicaid State Reporting', lob:'Medicaid', wave:'MiFCT', crossLob:false,
+     systems:[{name:'MedicaidStateReportingService'},{name:'TPL_PAYER_FILE DB2'},{name:'STATE_CONTRACT DB2'}],
+     dependent_functions:['TPL identification','Payer of last resort','State MMIS submission'], downstream_lobs:['Medicaid'],
+     ghost_risks:['MIFCT-POSTADJ-INTEGRATION — MiFCT→service REST contract undocumented']}
+  ],
+  'Shared Services': [
+    {id:'provider-validation', name:'Provider Validation', lob:'Shared Services', wave:'Wave 2', crossLob:true,
+     systems:[{name:'MPRVVLDR0'},{name:'ProviderValidationOrchestrator'},{name:'PROV-MSTR VSAM'},{name:'OIG_EXCLUSION_LIST DB2'}],
+     dependent_functions:['Claims Adjudication','MA Adjudication','Medicaid Adjudication'],
+     downstream_lobs:['Commercial','Medicare Advantage','Medicaid'],
+     ghost_risks:['PROV-MSTR key structure partially undocumented']},
+    {id:'member-eligibility', name:'Member Eligibility Data', lob:'Shared Services', wave:'Shared', crossLob:true,
+     systems:[{name:'MiMember (Oracle)'},{name:'MEMBER-IDX VSAM'}],
+     dependent_functions:['Eligibility & Benefits','MA Adjudication','Medicaid Adjudication'],
+     downstream_lobs:['Commercial','Medicare Advantage','Medicaid'], ghost_risks:[]},
+    {id:'provider-master', name:'Provider Master Data', lob:'Shared Services', wave:'Shared', crossLob:true,
+     systems:[{name:'MiProvider (SQL Server)'},{name:'PROV-MSTR VSAM'}],
+     dependent_functions:['Provider Validation','Pricing / Fee Schedule'],
+     downstream_lobs:['Commercial','Medicare Advantage','Medicaid'], ghost_risks:[]}
+  ]
 };
+
+var _brLobs = ['Commercial','Medicare Advantage','Medicaid','Shared Services'];
+var _brLob = 'Commercial';
+var _brFn = null;
+
+function brWaveColor(w) {
+  if (w === 'MiFCT') return '#2a78d6';
+  if (w === 'Shared') return '#8b5cf6';
+  if (w.indexOf('Wave 1') >= 0 || w.indexOf('Wave 2') >= 0) return '#2dd4bf';
+  if (w.indexOf('Wave 3') >= 0 || w.indexOf('Wave 4') >= 0) return '#eda100';
+  if (w.indexOf('Wave 5') >= 0) return '#E24B4A';
+  return '#8b5cf6';
+}
+function brLobColor(l) {
+  return {'Commercial':'#2dd4bf','Medicare Advantage':'#2a78d6','Medicaid':'#1baf7a','Shared Services':'#8b5cf6'}[l] || '#8b949e';
+}
+function brFindFn(id) {
+  var out = null;
+  _brLobs.forEach(function(l) { (businessFunctions[l]||[]).forEach(function(f) { if (f.id === id) out = f; }); });
+  return out;
+}
 
 function showBlastRadius() {
   if (_kgSim) { _kgSim.stop(); _kgSim = null; }
   setActive('viz_blast_radius');
   setBc('Visualizations — Blast Radius');
   document.getElementById('cwrap').scrollTop = 0;
-
   var v = VIZ_META['viz_blast_radius'];
-  var opts = Object.keys(blastData).map(function(k) {
-    return '<option value="'+k+'"'+(k==='MADJDRV0'?' selected':'')+'>'+k+'</option>';
-  }).join('');
 
   document.getElementById('content').innerHTML =
     '<div class="lc-page">'+
-    '<div class="lc-page-hdr"><div>'+
-    '<h2>'+v.title+'</h2>'+
-    '<p>'+v.subtitle+'</p>'+
-    '</div></div>'+
-    '<div style="margin:14px 0 10px;display:flex;align-items:center;gap:10px;">'+
-      '<label style="color:var(--muted);font-size:13px;white-space:nowrap;">Select component:</label>'+
-      '<select id="br-select" style="background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:13px;font-family:monospace;cursor:pointer;min-width:200px;">'+
-      opts+'</select>'+
-    '</div>'+
+    '<div class="lc-page-hdr"><div><h2>'+v.title+'</h2><p>'+v.subtitle+'</p></div></div>'+
+    '<div id="br-tabs" style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 12px;"></div>'+
+    '<div id="br-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:16px;"></div>'+
     '<div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">'+
       '<svg id="br-svg" viewBox="0 0 600 480" style="width:100%;height:480px;display:block;"></svg>'+
     '</div>'+
+    '<div id="br-crosslob" style="margin-top:8px;display:none;"></div>'+
     '<div id="br-ghost-strip" style="margin-top:8px;display:none;"></div>'+
     '<div id="br-stats" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>'+
     '<div style="margin-top:14px;">'+
@@ -8466,39 +8450,82 @@ function showBlastRadius() {
     '</div>'+
     '</div>';
 
-  document.getElementById('br-select').onchange = function() { renderBlastRadius(this.value); };
-  document.getElementById('br-ask-btn').onclick  = function() {
-    var comp = document.getElementById('br-select').value;
-    openChatWithQ('What is the full blast radius if I change '+comp+' in MiCPS? What programs, jobs, and feeds would be affected?');
-  };
-
-  renderBlastRadius('MADJDRV0');
+  _brLob = 'Commercial';
+  brRenderTabs();
+  brRenderCards();
+  brSelectFn(brFindFn('claims-adjudication') || businessFunctions[_brLob][0]);
 }
 
-function renderBlastRadius(comp) {
-  var data = blastData[comp];
-  if (!data) return;
+function brRenderTabs() {
+  var el = document.getElementById('br-tabs');
+  if (!el) return;
+  el.innerHTML = _brLobs.map(function(l) {
+    var active = l === _brLob, c = brLobColor(l);
+    return '<button class="br-tab" data-lob="'+l+'" style="cursor:pointer;font-size:13px;font-weight:600;padding:7px 16px;border-radius:20px;border:1px solid '+c+';'+
+      (active ? 'background:'+c+';color:#0d1117;' : 'background:transparent;color:'+c+';')+'">'+l+'</button>';
+  }).join('');
+  el.querySelectorAll('.br-tab').forEach(function(b) {
+    b.addEventListener('click', function() {
+      _brLob = b.dataset.lob;
+      brRenderTabs();
+      brRenderCards();
+      brSelectFn(businessFunctions[_brLob][0]);
+    });
+  });
+}
+
+function brRenderCards() {
+  var el = document.getElementById('br-cards');
+  if (!el) return;
+  var fns = businessFunctions[_brLob] || [];
+  el.innerHTML = fns.map(function(f) {
+    var wc = brWaveColor(f.wave);
+    var cross = f.crossLob ? '<span style="font-size:9.5px;font-weight:700;color:#f5c518;">⚡ Cross-LOB</span>' : '';
+    var ghost = f.ghost_risks.length ? '<span style="font-size:9.5px;font-weight:700;color:#fff;background:#E24B4A;border-radius:10px;padding:1px 7px;">'+f.ghost_risks.length+' ghost</span>' : '';
+    return '<div class="br-card" data-id="'+f.id+'" style="cursor:pointer;border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--card-bg);transition:border-color .15s;">'+
+      '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;">'+f.name+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">'+
+        '<span style="font-size:9.5px;font-weight:700;color:'+wc+';background:'+wc+'22;border:1px solid '+wc+';border-radius:10px;padding:1px 8px;">'+f.wave+'</span>'+
+        cross + ghost +
+      '</div></div>';
+  }).join('');
+  el.querySelectorAll('.br-card').forEach(function(c) {
+    c.addEventListener('mouseenter', function() { c.style.borderColor = '#2dd4bf'; });
+    c.addEventListener('mouseleave', function() { if (!_brFn || _brFn.id !== c.dataset.id) c.style.borderColor = 'var(--border)'; });
+    c.addEventListener('click', function() { brSelectFn(brFindFn(c.dataset.id)); });
+  });
+}
+
+function brSelectFn(fn) {
+  if (!fn) return;
+  _brFn = fn;
+  document.querySelectorAll('#br-cards .br-card').forEach(function(c) {
+    var sel = c.dataset.id === fn.id;
+    c.style.borderColor = sel ? '#2dd4bf' : 'var(--border)';
+    c.style.boxShadow = sel ? '0 0 0 1px #2dd4bf' : 'none';
+  });
+  var mapped = {
+    direct:   fn.systems.map(function(s) { return s.name; }),
+    indirect: fn.dependent_functions.slice(),
+    ghost:    fn.ghost_risks.slice(),
+    wave:     fn.wave
+  };
   var svg = d3.select('#br-svg');
   var existing = svg.select('.br-main');
   if (!existing.empty()) {
-    existing.transition().duration(300).style('opacity', 0);
-    setTimeout(function() {
-      d3.select('#br-svg').select('.br-main').remove();
-      drawBlastRadius(comp, data);
-    }, 310);
+    existing.transition().duration(250).style('opacity', 0);
+    setTimeout(function() { d3.select('#br-svg').select('.br-main').remove(); drawBlastRadius(fn.name, mapped); }, 260);
   } else {
-    drawBlastRadius(comp, data);
+    drawBlastRadius(fn.name, mapped);
   }
-  updateBrExtras(comp, data);
+  brExtras(fn, mapped);
 }
 
-function drawBlastRadius(comp, data) {
-  var svg  = d3.select('#br-svg');
+function drawBlastRadius(centerLabel, data) {
+  var svg = d3.select('#br-svg');
   var CX = 300, CY = 235, R_IN = 120, R_OUT = 200;
-
   var g = svg.append('g').attr('class', 'br-main').style('opacity', 0);
 
-  // ── direct edges (flowing dashes) ──
   var nd = data.direct.length;
   data.direct.forEach(function(_, i) {
     var a = (2*Math.PI/nd)*i - Math.PI/2;
@@ -8506,15 +8533,13 @@ function drawBlastRadius(comp, data) {
       .attr('x1', CX).attr('y1', CY)
       .attr('x2', CX+R_IN*Math.cos(a)).attr('y2', CY+R_IN*Math.sin(a))
       .attr('stroke','#D85A30').attr('stroke-width', 1.5)
-      .attr('stroke-dasharray','8 4')
-      .attr('class','br-flow-line');
+      .attr('stroke-dasharray','8 4').attr('class','br-flow-line');
   });
 
-  // ── indirect edges (dashed, from nearest direct) ──
   var ni = data.indirect.length;
   data.indirect.forEach(function(_, i) {
     var a   = (2*Math.PI/ni)*i - Math.PI/2;
-    var dai = Math.round(i * nd / ni) % nd;
+    var dai = nd ? Math.round(i * nd / ni) % nd : 0;
     var da  = (2*Math.PI/nd)*dai - Math.PI/2;
     g.append('line')
       .attr('x1', CX+R_IN*Math.cos(da)).attr('y1', CY+R_IN*Math.sin(da))
@@ -8523,7 +8548,6 @@ function drawBlastRadius(comp, data) {
       .attr('stroke-dasharray','4 3').attr('stroke-opacity', 0.5);
   });
 
-  // ── direct ring nodes ──
   data.direct.forEach(function(dep, i) {
     var a = (2*Math.PI/nd)*i - Math.PI/2;
     var x = CX+R_IN*Math.cos(a), y = CY+R_IN*Math.sin(a);
@@ -8532,10 +8556,9 @@ function drawBlastRadius(comp, data) {
       .attr('fill','rgba(216,90,48,.80)').attr('stroke','#D85A30').attr('stroke-width',1.5);
     ng.append('text').attr('x',x).attr('y',y+30).attr('text-anchor','middle')
       .attr('font-size','10px').attr('fill','#D85A30').attr('pointer-events','none')
-      .text(dep.length>12 ? dep.slice(0,12)+'…' : dep);
+      .text(dep.length>14 ? dep.slice(0,14)+'…' : dep);
   });
 
-  // ── indirect ring nodes ──
   data.indirect.forEach(function(dep, i) {
     var a = (2*Math.PI/ni)*i - Math.PI/2;
     var x = CX+R_OUT*Math.cos(a), y = CY+R_OUT*Math.sin(a);
@@ -8544,27 +8567,47 @@ function drawBlastRadius(comp, data) {
       .attr('fill','rgba(186,117,23,.70)').attr('stroke','#BA7517').attr('stroke-width',1.5);
     ng.append('text').attr('x',x).attr('y',y+24).attr('text-anchor','middle')
       .attr('font-size','10px').attr('fill','#BA7517').attr('pointer-events','none')
-      .text(dep.length>13 ? dep.slice(0,13)+'…' : dep);
+      .text(dep.length>15 ? dep.slice(0,15)+'…' : dep);
   });
 
-  // ── center node ──
-  g.append('circle').attr('cx',CX).attr('cy',CY).attr('r',40)
+  g.append('circle').attr('cx',CX).attr('cy',CY).attr('r',44)
     .attr('fill','#1D9E75').attr('stroke','#1D9E75').attr('stroke-width',2);
-  var clabel = comp.length>10 ? comp.slice(0,9)+'…' : comp;
-  g.append('text').attr('x',CX).attr('y',CY).attr('text-anchor','middle')
-    .attr('dominant-baseline','middle').attr('font-size','13px').attr('font-weight','bold')
-    .attr('fill','#ffffff').attr('pointer-events','none').text(clabel);
+
+  // wrapped center label (up to 3 short lines)
+  var words = centerLabel.split(' '), lines = [], cur = '';
+  words.forEach(function(w) {
+    if ((cur + ' ' + w).trim().length <= 12) { cur = (cur + ' ' + w).trim(); }
+    else { if (cur) lines.push(cur); cur = w; }
+  });
+  if (cur) lines.push(cur);
+  lines = lines.slice(0, 3);
+  var startDy = -(lines.length - 1) * 7;
+  lines.forEach(function(ln, i) {
+    g.append('text').attr('x',CX).attr('y',CY+startDy+i*14).attr('text-anchor','middle')
+      .attr('dominant-baseline','middle').attr('font-size','11px').attr('font-weight','bold')
+      .attr('fill','#ffffff').attr('pointer-events','none').text(ln);
+  });
 
   g.transition().duration(300).style('opacity', 1);
 }
 
-function updateBrExtras(comp, data) {
+function brExtras(fn, mapped) {
+  // cross-LOB banner
+  var cl = document.getElementById('br-crosslob');
+  if (fn.downstream_lobs.length > 1) {
+    var pills = fn.downstream_lobs.map(function(l) {
+      var c = brLobColor(l);
+      return '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;background:'+c+'22;color:'+c+';border:1px solid '+c+';">'+l+'</span>';
+    }).join(' ');
+    cl.innerHTML = '<div style="padding:10px 14px;background:rgba(245,197,24,.08);border:1px solid #f5c518;border-radius:8px;font-size:12.5px;color:var(--text);">⚡ <b>Cross-LOB Impact:</b> this function affects '+pills+'</div>';
+    cl.style.display = 'block';
+  } else { cl.innerHTML = ''; cl.style.display = 'none'; }
+
   // ghost strip
   var gDiv = document.getElementById('br-ghost-strip');
-  if (data.ghost && data.ghost.length) {
-    var cards = data.ghost.map(function(entry) {
-      var parts = entry.split(' — ');
-      var name  = parts[0], note = parts[1]||'';
+  if (fn.ghost_risks && fn.ghost_risks.length) {
+    var cards = fn.ghost_risks.map(function(entry) {
+      var parts = entry.split(' — '), name = parts[0], note = parts[1] || '';
       return '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 12px;border:1px dashed #E24B4A;border-radius:6px;">'+
         '<svg width="28" height="28" style="flex-shrink:0;margin-top:1px"><circle cx="14" cy="14" r="12" fill="transparent" stroke="#E24B4A" stroke-width="1.5" stroke-dasharray="4,2" class="br-ghost-circle"/></svg>'+
         '<div><div style="font-size:11px;font-weight:600;color:#E24B4A;">'+name+'</div>'+
@@ -8574,25 +8617,29 @@ function updateBrExtras(comp, data) {
     gDiv.innerHTML =
       '<div style="padding:10px 14px;background:rgba(226,75,74,.06);border:1px solid rgba(226,75,74,.3);border-radius:8px;">'+
       '<div style="font-size:12px;font-weight:600;color:#E24B4A;margin-bottom:8px;">⚠ Ghost risks</div>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+cards+'</div>'+
-      '</div>';
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+cards+'</div></div>';
     gDiv.style.display = 'block';
-  } else {
-    gDiv.innerHTML = ''; gDiv.style.display = 'none';
-  }
+  } else { gDiv.innerHTML = ''; gDiv.style.display = 'none'; }
 
   // stats bar
-  var pills = [
-    {l:'Direct',      v:data.direct.length+' dependencies', c:'#D85A30'},
-    {l:'Indirect',    v:data.indirect.length+' dependencies', c:'#BA7517'},
-    {l:'Ghost risks', v:data.ghost.length,                  c:data.ghost.length?'#E24B4A':'#555'},
-    {l:'Migration',   v:data.wave,                           c:'#2a78d6'}
+  var pills2 = [
+    {l:'Systems',         v:fn.systems.length,              c:'#D85A30'},
+    {l:'Dependent fns',   v:fn.dependent_functions.length,  c:'#BA7517'},
+    {l:'Downstream LOBs', v:fn.downstream_lobs.length,      c:'#1baf7a'},
+    {l:'Ghost risks',     v:fn.ghost_risks.length,          c:fn.ghost_risks.length?'#E24B4A':'#555'},
+    {l:'Migration',       v:fn.wave,                        c:brWaveColor(fn.wave)}
   ];
-  document.getElementById('br-stats').innerHTML = pills.map(function(p) {
+  document.getElementById('br-stats').innerHTML = pills2.map(function(p) {
     return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:1px solid '+p.c+';font-size:12px;">'+
       '<span style="color:'+p.c+';font-weight:600;">'+p.l+'</span>'+
       '<span style="color:var(--muted);">'+p.v+'</span></span>';
   }).join('');
+
+  // ask button
+  var ask = document.getElementById('br-ask-btn');
+  if (ask) ask.onclick = function() {
+    openChatWithQ('What is the business impact if '+fn.name+' changes? Which LOBs are affected and what are the known knowledge gaps?');
+  };
 }
 
 // ── GHOST NODE MAP ──
