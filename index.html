@@ -112,6 +112,22 @@
     .nl .chev { font-size: 9px; color: var(--muted); transition: transform .2s; flex-shrink: 0; }
     .nl.open .chev { transform: rotate(90deg); }
 
+    /* Start Here — highlighted first item */
+    .nl-start {
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 14px;
+      margin: 4px 8px 8px;
+      border-radius: 8px;
+      border-left: 2px solid transparent;
+    }
+    .nl-start .ico { color: #ffffff; }
+    .nl-start .lbl { color: #ffffff; }
+    .nl-start:hover { background: var(--accent-dark); color: #ffffff; }
+    .nl-start.active { background: var(--accent-dark); color: #ffffff; border-left-color: transparent; }
+    .nl-start.active .lbl, .nl-start.active .ico { color: #ffffff; }
+
     .nc { display: none; background: rgba(0,0,0,.15); }
     .nc.open { display: block; }
 
@@ -953,9 +969,9 @@
 
   <nav id="nav">
 
-    <div class="nl" data-page="readme">
-      <span class="ico">📖</span>
-      <span class="lbl">README</span>
+    <div class="nl nl-start" data-page="readme">
+      <span class="ico">★</span>
+      <span class="lbl">Start Here</span>
     </div>
 
     <div class="nl active" data-page="overview">
@@ -6661,28 +6677,6 @@ function showReadme() {
   h += rdStep('6', 'Test the chat', '<p>Click the chat button and ask:</p>' +
     rdCode('What does MADJDRV0 do and what programs does it call?'));
   h += '</div>';
-
-  // 8 — SHARING WITH YOUR TEAM
-  h += '<div class="rd-sec"><h2>Sharing With Your Team</h2>';
-  h += '<div class="rd-card" style="margin-bottom:12px"><span class="tag">LIVE NOW</span>' +
-    '<h4>Option 1 — GitHub Pages (knowledge only)</h4>' +
-    '<p style="color:var(--text)">The portal is live at:</p>' +
-    rdCode('https://milanchander.github.io/mivan-digital-brain') +
-    '<p>Anyone can browse knowledge layers and visualizations. Chat requires backend. No setup needed.</p></div>';
-  h += '<div class="rd-card" style="margin-bottom:12px"><span class="tag">QUICK SETUP</span>' +
-    '<h4>Option 2 — ngrok (chat enabled, temporary)</h4>' +
-    '<p>Share the full portal including chat with your team today using ngrok.</p>' +
-    '<p style="color:var(--text)">Steps:</p>' +
-    '<p>1. Start the backend (Step 3 above)</p>' +
-    '<p>2. Install ngrok:</p>' + rdCode('winget install ngrok') +
-    '<p>3. Start the tunnel:</p>' + rdCode('ngrok http 8000') +
-    '<p>4. Copy the ngrok URL (e.g. https://abc123.ngrok.io)</p>' +
-    '<p>5. In Claude Code run: Update index.html BACKEND_HTTP_URL and BACKEND_WS_URL to use the ngrok URL</p>' +
-    '<p>6. Push to GitHub — team uses GitHub Pages URL with your ngrok tunnel as the backend</p>' +
-    '<p style="color:var(--muted)">Works while your laptop is on.</p></div>';
-  h += '<div class="rd-card"><span class="tag">PLANNED</span>' +
-    '<h4>Option 3 — AWS Deployment (permanent)</h4>' +
-    '<p>Deploy backend to AWS ECS Fargate for a permanent public URL. Requires AWS access (request filed). This is the production path. See docs/technical-architecture.md for details.</p></div></div>';
 
   // 9 — CONTRIBUTING
   var contribs = [
