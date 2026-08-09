@@ -1159,9 +1159,21 @@
 <script type="text/plain" id="md-l1">
 ---
 layer: L1
-domain: enterprise
-source: manual
-last_synced: 2026-08-06
+node_type: enterprise
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 5
+source_count_captured: 5
+links_forward:
+  - knowledge/L2-domain/commercial-claims.md
+  - knowledge/L2-domain/medicare-advantage.md
+  - knowledge/L2-domain/medicaid-managed-care.md
+  - knowledge/L2-domain/provider-data-lifecycle.md
+  - knowledge/L2-domain/health-primer.md
+  - knowledge/L3-systems/mivan-system-landscape.md
 ---
 
 # Mivan Health Plan — Enterprise Context
@@ -1189,17 +1201,30 @@ MiCPS (Mivan Claims Processing System) is Mivan's homegrown mainframe claims adj
 | Platform | IBM z/OS mainframe |
 | Languages | COBOL, JCL, CICS (online transaction processing via IBM CICS), VSAM (file management — KSDS, ESDS, RRDS file types used for reference data, work files, and intermediate claims processing) |
 | Database | IBM DB2 |
-| Lines of Business | Commercial medical claims only (Medicare Advantage adjudicated on TriStar MA Platform; Medicaid adjudicated on StateLink MCO Platform) |
+| Lines of Business | Commercial medical claims only (Medicare Advantage and Medicaid are adjudicated on **MiFCT** — Mivan Facets Claims Technology / TriZetto Facets — not MiCPS) |
 | Age | ~30 years in production; continuously extended |
 | Throughput | Processes ~4 million claims per day at peak |
 | Integration Style | Batch file exchange (SFTP), MQ messaging; no REST APIs |
 | Documentation | Sparse; system knowledge concentrated in a small group of senior engineers |
 
+### Lines of Business & Platforms
+
+The Digital Brain documents four lines of business. **Commercial** claims are adjudicated by **MiCPS** (COBOL). **Medicare Advantage** and **Medicaid** are adjudicated by **MiFCT (TriZetto Facets)** — the Java services below are *post-adjudication reporting* services called by MiFCT via REST, not claim-adjudication drivers. **Provider validation** is cross-LOB and shared by both platforms.
+
+| Line of Business | L2 Domain Node | Adjudicated by | Primary component | Focus |
+|---|---|---|---|---|
+| Commercial | `knowledge/L2-domain/commercial-claims.md` | MiCPS | `MCOMCLDR0` *(planned — `src/cobol/commercial/`, `src/java/commercial/`)* | Fully-insured / ASO / ACA / COBRA claim processing |
+| Medicare Advantage | `knowledge/L2-domain/medicare-advantage.md` | MiFCT (Facets) | `MaPostAdjudicationService` (`src/java/ma/`) | Post-adjudication: HCC validation, RAF calculation, CMS EDPS submission |
+| Medicaid | `knowledge/L2-domain/medicaid-managed-care.md` | MiFCT (Facets) | `MedicaidStateReportingService` (`src/java/medicaid/`) | Post-adjudication: TPL identification, payer of last resort, state MMIS |
+| Provider Data (cross-LOB) | `knowledge/L2-domain/provider-data-lifecycle.md` | MiCPS + MiFCT | `MPRVVLDR0` / `ProviderValidationOrchestrator` (`src/cobol/provider/`, `src/java/provider/`) | NPI lookup, credentialing, OIG exclusion, network verify |
+
+> ⚠️ VALIDATE: Confirm the MiFCT (Facets) deployment details and the MiEDI LOB routing table maintenance procedure. See L3 "LOB Routing Architecture" for how MiEDI routes claims to MiCPS vs MiFCT.
+
 ### Surrounding Systems
 
 | System | Purpose | Technology |
 |--------|---------|-----------|
-| MiEDI | EDI clearinghouse gateway — 837 intake and 835 output | IBM Sterling B2B |
+| MiEDI | EDI clearinghouse gateway — 837 intake and 835 output; **LOB router** directing claims to MiCPS (Commercial) or MiFCT (MA / Medicaid) | IBM Sterling B2B |
 | MiMember | Member eligibility and enrollment | Oracle, on-prem |
 | MiProvider | Provider master data management | SQL Server, on-prem |
 | MiPortal | Provider and member self-service web portal | Java / Spring, on-prem |
@@ -1300,7 +1325,6 @@ The Digital Brain is not a side project — it is infrastructure for the transfo
 | Transformation Program | The 5-year initiative to migrate MiCPS to cloud-native architecture |
 | Coexistence Layer | Routing layer that directs traffic to either mainframe or cloud service during migration |
 | Tribal Knowledge | System knowledge held informally by individuals — not documented, not transferable without them |
-
 </script>
 
 <script type="text/plain" id="md-l2">
@@ -2209,9 +2233,38 @@ See L4 (`knowledge/L4-application/micps-application-knowledge.md`) for module-le
 <script type="text/plain" id="md-l3">
 ---
 layer: L3
-domain: systems
-source: web-research + manual
-last_synced: 2026-08-06
+node_type: application
+domain: claims
+app_id: micps
+last_validated: 2026-08-07
+validated_by: "Digital Brain — pending SME review"
+fidelity: PARTIAL
+source_count_declared: 8
+source_count_captured: 6
+owns:
+  - MiCPS high-level architecture
+  - Batch feed architecture
+  - Modernization architecture
+  - Coexistence pattern
+  - Wave 1-5 migration sequence
+implements: []
+links_back:
+  - L1-enterprise/mivan-enterprise-context.md
+  - L2-domain/commercial-claims.md
+  - L2-domain/medicare-advantage.md
+  - L2-domain/medicaid-managed-care.md
+  - L2-domain/provider-data-lifecycle.md
+  - L2-domain/health-primer.md
+links_forward:
+  - L4-application/micps-application-knowledge.md
+  - knowledge/L2-domain/medicare-advantage.md
+  - knowledge/L2-domain/medicaid-managed-care.md
+ghost_nodes:
+  - Complete VSAM file inventory with record layouts
+  - Production JCL job schedule and dependency chain
+  - CICS transaction catalog with program mappings
+  - Network topology and mainframe connectivity diagrams
+  - DR/failover configuration and RTO/RPO targets
 ---
 
 # Mivan Health Plan — System Landscape
@@ -2255,6 +2308,33 @@ MiCPS is composed of two distinct processing modes that operate in concert: **ba
 │  └─────────────────────────────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+### MiFCT — Government Claims Platform
+
+MiFCT (Mivan Facets Claims Technology) is Mivan's implementation of TriZetto Facets — the industry-standard commercial claims processing platform used for government lines of business.
+
+| Attribute | Detail |
+|---|---|
+| System Name | MiFCT — Mivan Facets Claims Technology |
+| Platform | TriZetto Facets (QNXT/Facets) |
+| Vendor | TriZetto (Cognizant) |
+| Technology | Java-based, Oracle database |
+| Lines of Business | Medicare Advantage + Medicaid |
+| Deployment | On-premises (AWS migration planned) |
+| Integration | REST API for external services |
+| Provider Validation | Calls MiProvider validation REST API |
+
+### Why Separate Platforms
+
+| Dimension | MiCPS (Commercial) | MiFCT (Government) |
+|---|---|---|
+| Regulatory regime | State insurance law | CMS + State (federal overlay) |
+| Payment model | FFS premium-funded | Capitation from CMS/State |
+| Claim complexity | Standard commercial | Encounter data, HCC, RAF, MMIS |
+| Compliance burden | State-specific | Federal CMS regulations |
+| Upgrade cycle | In-house controlled | TriZetto release schedule |
 
 ---
 
@@ -2421,19 +2501,33 @@ IBM DB2 for z/OS is MiCPS's relational database, used for persistent structured 
 ## 2. Integration Landscape
 
 ```
-                              ┌──────────────┐
-  EDI Clearinghouse ──837P/I──►              │
-  (MiEDI / IBM Sterling)      │              │
-                              │    MiCPS     │──835/ERA──► Provider Portal (MiPortal)
-  MiMember ──member feed──────►   (z/OS)     │──EOB──────► Member Portal / Mail
-  (Oracle on-prem)            │              │
-                              │              │──payment──► MiPay (EFT / ACH)
-  MiProvider ──prov feed──────►              │
-  (SQL Server on-prem)        │              │──claim data──► MiReport (Cognos)
-                              │              │
-  MiAuth ──auth feed──────────►              │──outbound feeds──► SQL Server (downstream apps)
-  (Legacy vendor platform)    │              │──outbound feeds──► AWS S3 (data lake / analytics)
-                              └──────────────┘
+                          ┌───────────────────────┐
+                          │   MiEDI (LOB Router)   │
+  EDI Clearinghouse ─837P/I─►  IBM Sterling B2B    │
+                          │  Routes by member LOB  │
+                          └───┬──────────┬─────────┘
+                     COM claims│          │MA / MC claims
+                              ▼          ▼
+                    ┌──────────────┐   ┌───────────────────────┐
+  MiMember ─feed───►│    MiCPS     │   │        MiFCT          │
+  (Oracle on-prem)  │   (z/OS)     │   │  (TriZetto Facets)    │
+                    │  Commercial  │   │  MA + Medicaid        │
+  MiProvider ─feed─►│              │   │                       │
+  (SQL Server)      │              │   └───┬───────────────────┘
+                    │              │       │ after adjudication (REST)
+  MiAuth ─auth─────►│              │       ▼
+  (vendor)          │              │   ┌───────────────────────────────┐
+                    │              │   │ MaPostAdjudicationService (MA) │
+                    │              │   │ MedicaidStateReportingService  │
+                    │              │   └───────────────────────────────┘
+                    └──────┬───────┘
+                           │  ┌───────────────────────────────┐
+     both platforms ───────┼─►│  Provider Validation REST API │
+     (MiCPS batch /        │  │  POST /api/v1/provider/...     │
+      MiFCT Option A)      │  └───────────────────────────────┘
+                           │──835/ERA──► MiPortal   │──payment──► MiPay
+                           │──EOB──────► Member      │──claim data─► MiReport
+                           │──outbound──► SQL Server / AWS S3 (data lake)
 ```
 
 ### Integration Points
@@ -2449,8 +2543,65 @@ IBM DB2 for z/OS is MiCPS's relational database, used for persistent structured 
 | MiReport (Cognos/DB2) | Outbound | Claim and financial data for reporting | Direct DB2 read (same z/OS) | Real-time / batch |
 | SQL Server (downstream) | Outbound | Processed claim data for operational apps | Batch ETL via FTP → SQL bulk load | Nightly |
 | AWS S3 (data lake) | Outbound | Claim records for analytics and modernization | Batch file via SFTP/MFT to S3 | Nightly |
+| MiFCT | Outbound | Adjudicated MA/Medicaid claims | REST API | Real-time + batch |
+| MaPostAdjudicationService | Called by MiFCT | Post-adjudication MA reporting | REST API | After adjudication |
+| MedicaidStateReportingService | Called by MiFCT | State MMIS reporting | REST API | After adjudication |
+| Provider Validation API | Inbound from MiFCT | NPI, credentialing, exclusion check | REST POST | Real-time |
 
 > ⚠️ VALIDATE: Confirm MQ vs. SFTP usage for each integration. Several integrations are believed to use legacy FTP — confirm whether secure FTP (SFTP/FTPS) is in use for PHI transfers.
+
+---
+
+## LOB Routing Architecture
+
+### MiEDI LOB Router
+
+All inbound claims enter through MiEDI (IBM Sterling B2B). MiEDI applies LOB routing rules to determine which platform processes each claim.
+
+Routing logic:
+1. Claim received as 837P or 837I
+2. MiEDI extracts member ID from Loop 2000B
+3. Member LOB lookup in routing table
+4. Route to appropriate platform:
+   - Commercial → MiCPS intake queue
+   - Medicare Advantage → MiFCT MA intake
+   - Medicaid → MiFCT Medicaid intake
+
+| LOB Code | Platform | Intake Queue |
+|---|---|---|
+| COM | MiCPS | MIVAN.MIEDI.COMMERCIAL.IN |
+| MA | MiFCT | MIVAN.MIEDI.MA.IN |
+| MC | MiFCT | MIVAN.MIEDI.MEDICAID.IN |
+
+LOB Routing Table maintenance:
+- Stored in MiEDI routing configuration
+- Updated when members change LOB
+- Mid-year LOB changes are handled by effective date logic in the routing table
+- Routing table owner: MiEDI operations team
+
+> ⚠️ VALIDATE: Confirm actual MiEDI queue names and routing table maintenance procedure.
+
+### Post-Adjudication Processing
+
+After MiFCT adjudicates government claims two Java services handle reporting obligations:
+
+| Service | LOB | Purpose |
+|---|---|---|
+| MaPostAdjudicationService | MA | CMS EDPS encounter data, HCC validation, RAF calculation |
+| MedicaidStateReportingService | Medicaid | TPL identification, payer of last resort, state MMIS submission |
+
+These services are called by MiFCT via REST API after adjudication is complete. They do not participate in adjudication.
+
+### Provider Validation Integration
+
+Both MiCPS and MiFCT use the same provider validation service. This ensures consistent NPI, credentialing, exclusion, and network checks regardless of LOB.
+
+Integration pattern:
+- MiCPS: calls MPRVVLDR0 COBOL program (batch, via JCL)
+- MiFCT: calls ProviderValidationOrchestrator REST API (Option A — direct HTTP POST)
+  Endpoint: POST /api/v1/provider/validate/facets
+
+This is the integration layer between MiFCT and the shared provider validation capability.
 
 ---
 
@@ -2491,12 +2642,16 @@ AWS S3 is the landing zone for the Mivan data lake and the primary target for th
 
 | Feed Name | Data Sent | S3 Path (Logical) | Format | Frequency | Downstream Consumers |
 |-----------|-----------|------------------|--------|-----------|---------------------|
-| CLAIMS-FULL | Full adjudicated claim records — header, lines, diagnosis, adjudication result | s3://mivan-datalake/raw/claims/daily/ | Fixed-width (mainframe EBCDIC → ASCII converted) | Nightly | Snowflake (analytics), modernization ETL, ML feature pipelines |
+| CLAIMS-FULL (Commercial) | Full adjudicated commercial claim records — header, lines, diagnosis, adjudication result | s3://mivan-datalake/raw/claims/commercial/daily/ (from MiCPS) | Fixed-width (mainframe EBCDIC → ASCII converted) | Nightly | Snowflake (analytics), modernization ETL, ML feature pipelines |
+| CLAIMS-FULL (MA) | Full adjudicated Medicare Advantage claim records | s3://mivan-datalake/raw/claims/ma/daily/ (from MiFCT) | CSV / Parquet | Nightly | Snowflake (analytics), CMS encounter reconciliation, RADV support |
+| CLAIMS-FULL (Medicaid) | Full adjudicated Medicaid claim records | s3://mivan-datalake/raw/claims/medicaid/daily/ (from MiFCT) | CSV / Parquet | Nightly | Snowflake (analytics), state MMIS reconciliation |
 | CLAIMS-DELTA | Incremental — claims adjudicated or status-changed since last run | s3://mivan-datalake/raw/claims/delta/ | Fixed-width / CSV | Nightly + intraday | Real-time analytics, modernization coexistence layer |
 | ERA-FILES | X12 835 ERA files | s3://mivan-datalake/raw/era/ | X12 EDI (835) | Post-batch | ERA processing, provider remittance analytics |
 | PROVIDER-SNAP | Provider master snapshot | s3://mivan-datalake/raw/provider/daily/ | Fixed-width | Nightly | Provider analytics, network adequacy reporting |
 | MEMBER-ACCUM | Member accumulator snapshot | s3://mivan-datalake/raw/accumulators/daily/ | Fixed-width | Nightly | Benefit accumulator service (cloud-native target) |
 | AUDIT-LOG | Claim audit trail export | s3://mivan-datalake/raw/audit/ | Fixed-width | Nightly | Compliance, post-pay audit workloads |
+
+> **LOB path separation:** Logical LOB separation in S3 enables LOB-specific analytics, regulatory reporting, and data governance. Both MiCPS and MiFCT write to the same S3 bucket with LOB-specific path prefixes.
 
 **File Format Notes**
 
@@ -2677,6 +2832,11 @@ Modules are migrated in order of increasing business complexity. Earlier migrati
 | Wave 4 | COB Engine | Complex; requires cross-payer data; phased by COB method |
 | Wave 5 | Adjudication Engine Core | Highest complexity; most tribal knowledge; last to migrate |
 | Wave 5 | Overpayment & Recovery | Dependent on adjudication; migrated as companion to Wave 5 |
+
+**Scope notes:**
+- Waves 1–5 apply to **MiCPS commercial** migration only.
+- **MiFCT modernization is a separate program** (AWS deployment of TriZetto Facets) and is **not in scope** for this wave plan.
+- The **Provider Data Service (Wave 2)** serves **both** MiCPS and MiFCT — MiCPS via the MPRVVLDR0 COBOL batch path and MiFCT via the Option A REST endpoint (`POST /api/v1/provider/validate/facets`).
 
 ### 5c. Coexistence Pattern
 
@@ -2859,7 +3019,11 @@ This section documents the highest-risk areas of technical debt in MiCPS. These 
 | Strangler Fig | Migration pattern: incrementally replace legacy functions with cloud-native equivalents |
 | Shadow Mode | Running cloud-native service in parallel with mainframe to validate outputs before cutover |
 | Coexistence Router | API gateway / routing layer that directs traffic to mainframe or cloud service during migration |
-
+| MiFCT | Mivan Facets Claims Technology — TriZetto Facets implementation for MA and Medicaid |
+| TriZetto Facets | Commercial claims processing platform by TriZetto (Cognizant) |
+| LOB Router | MiEDI routing rules that direct claims to MiCPS or MiFCT based on member LOB |
+| Post-Adjudication Service | Java service called after MiFCT adjudication to handle CMS/state reporting |
+| Option A Integration | Direct REST API call from Facets to provider validation service |
 </script>
 
 <script type="text/plain" id="md-l4">
@@ -5746,15 +5910,15 @@ You also know the complete MICPS-4471 supporting artifacts:
 - Aurora PostgreSQL schema-postgres.sql: mirrors DB2 DDL exactly -- mivancps.claim_payment and mivancps.near_dup_queue with same constraints and indexes. Applied via Flyway in prod.
 - application.yml: H2 dev profile (MODE=PostgreSQL, MIVANCPS schema), H2 console at /h2-console, Swagger UI at /swagger-ui.html, Actuator exposing health/info/metrics.
 
-The Digital Brain documents four lines of business, each with an L2 domain knowledge node and a program tree (COBOL driver + Java Spring Boot equivalent):
+The Digital Brain documents four lines of business. Commercial claims are adjudicated by MiCPS (COBOL). Medicare Advantage and Medicaid are adjudicated by MiFCT (Mivan Facets Claims Technology / TriZetto Facets) — the Java services for those LOBs are POST-ADJUDICATION reporting services called by MiFCT via REST, not claim-adjudication drivers. MiEDI routes each claim by LOB to MiCPS or MiFCT.
 
 1. Commercial — MCOMCLDR0 commercial claims driver. Handles fully-insured, ASO (ERISA), ACA marketplace, and COBRA claim processing. Domain node: knowledge/L2-domain/commercial-claims.md (renamed from health-payer-domain.md and enriched with commercial LOB content). PLANNED — the MCOMCLDR0 tree (src/cobol/commercial/, src/java/commercial/) is documented but not yet built.
 
-2. MAENCDR0 — Medicare Advantage encounter data driver. Subprograms: MAELGCK0, MAHCCVL0, MARAFCL0, MAENCBL0, MAEDPSUB0. Java equivalent: EncounterDataOrchestrator in src/java/ma/. Domain node: knowledge/L2-domain/medicare-advantage.md.
+2. Medicare Advantage — adjudicated by MiFCT (Facets). MaPostAdjudicationService (src/java/ma/) is a post-adjudication reporting service called by MiFCT via REST: HCC diagnosis validation, RAF score calculation, and CMS EDPS encounter submission. There is no COBOL MA program tree. Domain node: knowledge/L2-domain/medicare-advantage.md.
 
-3. MMCOCLDR0 — Medicaid claim processing driver. Subprograms: MMCOELV0, MMCOTPL0, MMCOLRP0, MMCOENC0, MMCOSSUB0. Key rule: 42 CFR 433.139 Medicaid payer of last resort. Java equivalent: MedicaidClaimOrchestrator in src/java/medicaid/. Domain node: knowledge/L2-domain/medicaid-managed-care.md.
+3. Medicaid — adjudicated by MiFCT (Facets). MedicaidStateReportingService (src/java/medicaid/) is a post-adjudication reporting service called by MiFCT via REST: TPL identification, payer of last resort (42 CFR 433.139), and state MMIS submission. There is no COBOL Medicaid program tree. Domain node: knowledge/L2-domain/medicaid-managed-care.md.
 
-4. MPRVVLDR0 — Provider validation driver (cross-LOB). Subprograms: MPRVNPI0, MPRVCRD0, MPRVEXC0, MPRVNET0, MPRVSANL0. MPRVEXC0 is critical — federal law prohibits payment to excluded providers. Java equivalent: ProviderValidationOrchestrator in src/java/provider/. Domain node: knowledge/L2-domain/provider-data-lifecycle.md.
+4. MPRVVLDR0 — Provider validation driver (cross-LOB). Subprograms: MPRVNPI0, MPRVCRD0, MPRVEXC0, MPRVNET0, MPRVSANL0. MPRVEXC0 is critical — federal law prohibits payment to excluded providers. Java equivalent: ProviderValidationOrchestrator in src/java/provider/. Shared by both platforms — MiCPS calls MPRVVLDR0 (COBOL batch); MiFCT calls POST /api/v1/provider/validate/facets (Option A). Domain node: knowledge/L2-domain/provider-data-lifecycle.md.
 
 You can explain any program, its paragraphs, DB2 tables, VSAM files, Java equivalent, and how it fits into the Mivan modernization wave sequence.`;
 
@@ -5782,45 +5946,47 @@ const KNOWLEDGE_BASE = {
   java_schema:         document.getElementById('md-java-schema').textContent,
   java_config:         document.getElementById('md-java-config').textContent,
   'ma_programs': `
-# Medicare Advantage Program Tree
+# Medicare Advantage — Post-Adjudication Reporting
 
-## Driver: MAENCDR0
-Orchestrates full MA encounter data processing.
-Reads adjudicated MA claims, validates HCC
-diagnoses, calculates RAF scores, builds
-encounter records, submits to CMS EDPS.
+## Adjudication: MiFCT (TriZetto Facets)
+MA claims are adjudicated by MiFCT (Mivan Facets
+Claims Technology), NOT MiCPS. There is no COBOL
+MA program tree. MiEDI routes MA claims (LOB=MA)
+to the MiFCT MA intake queue.
 
-Program tree:
-- MAELGCK0: MA eligibility verification
-- MAHCCVL0: HCC diagnosis validation
-- MARAFCL0: RAF score calculation
-- MAENCBL0: Encounter record builder
-- MAEDPSUB0: CMS EDPS submission
+## Post-Adjudication: MaPostAdjudicationService
+After MiFCT adjudicates a claim it calls this Java
+service via REST (Option A). It handles CMS
+reporting obligations only — it does not adjudicate:
+- HCC diagnosis validation
+- RAF score calculation (demographic + disease + adders)
+- Encounter record staging
+- CMS EDPS submission
 
 Key DB2 tables: MA_ENROLLMENT, HCC_CODE_MAP,
 HCC_VALIDATION_RESULT, MA_RAF_SCORE
 
-Java equivalent: EncounterDataOrchestrator
-Location: src/java/ma/
-
-JCL: MAENCJB0 — 5-step nightly job stream
+Service: MaPostAdjudicationService
+Location: src/java/ma/ (Java only — no COBOL)
 `,
 
   'medicaid_programs': `
-# Medicaid Program Tree
+# Medicaid — Post-Adjudication State Reporting
 
-## Driver: MMCOCLDR0
-Orchestrates Medicaid claim processing.
-Verifies eligibility, identifies TPL payers,
-applies payer-of-last-resort rules,
-builds encounter records, submits to state MMIS.
+## Adjudication: MiFCT (TriZetto Facets)
+Medicaid claims are adjudicated by MiFCT (Mivan
+Facets Claims Technology), NOT MiCPS. There is no
+COBOL Medicaid program tree. MiEDI routes Medicaid
+claims (LOB=MC) to the MiFCT Medicaid intake queue.
 
-Program tree:
-- MMCOELV0: Medicaid eligibility verification
-- MMCOTPL0: Third party liability identification
-- MMCOLRP0: Payer of last resort calculation
-- MMCOENC0: Encounter record builder
-- MMCOSSUB0: State MMIS submission
+## Post-Adjudication: MedicaidStateReportingService
+After MiFCT adjudicates a claim it calls this Java
+service via REST (Option A). It handles state
+reporting obligations only — it does not adjudicate:
+- Third party liability (TPL) identification
+- Payer of last resort calculation
+- Medicaid liability calculation
+- State MMIS encounter submission
 
 Key rule: 42 CFR 433.139 — Medicaid is always
 payer of last resort. Federal law, no exceptions.
@@ -5829,10 +5995,8 @@ Key DB2 tables: MEDICAID_ELIGIBILITY,
 TPL_PAYER_FILE, TPL_RESULT, MEDICAID_LIABILITY,
 STATE_CONTRACT
 
-Java equivalent: MedicaidClaimOrchestrator
-Location: src/java/medicaid/
-
-JCL: MMCOJB00 — 5-step nightly job stream
+Service: MedicaidStateReportingService
+Location: src/java/medicaid/ (Java only — no COBOL)
 `,
 
   'provider_programs': `
@@ -6754,8 +6918,8 @@ function showReadme() {
     '</tbody></table></div>';
   h += '<div class="rd-cards3">' +
     '<div class="rd-card"><span class="tag">Commercial</span><h4>MCOMCLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>Fully-insured, ASO, ACA, COBRA — <em>planned, not yet built</em></p></div>' +
-    '<div class="rd-card"><span class="tag">Medicare Advantage</span><h4>MAENCDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>HCC validation, RAF calculation, EDPS submission</p></div>' +
-    '<div class="rd-card"><span class="tag">Medicaid</span><h4>MMCOCLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>TPL identification, payer of last resort, state MMIS</p></div>' +
+    '<div class="rd-card"><span class="tag">Medicare Advantage</span><h4>MaPostAdjudicationService</h4><p>Adjudicated by MiFCT (Facets) · Java post-adjudication<br>HCC validation, RAF calculation, EDPS submission</p></div>' +
+    '<div class="rd-card"><span class="tag">Medicaid</span><h4>MedicaidStateReportingService</h4><p>Adjudicated by MiFCT (Facets) · Java post-adjudication<br>TPL identification, payer of last resort, state MMIS</p></div>' +
     '<div class="rd-card"><span class="tag">Provider Validation</span><h4>MPRVVLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>NPI lookup, credentialing, OIG exclusion, network verify</p></div>' +
     '</div>';
   h += '<div class="rd-livecard"><h4>MICPS-4471 — Near Duplicate Claim Detection</h4>' +
@@ -7781,14 +7945,15 @@ function initKnowledgeGraph() {
     {id:'Skills',   label:'7 Skills',             layer:'Skills',color:'#4a3aa7',r:20,ghost:false,desc:'COBOL Feature Builder, Migrator, Test Gen, Reviewer. Java Feature Builder, Test Gen, Reviewer.',nav:null},
     {id:'MICPS4471',label:'MICPS-4471',           layer:'Live',  color:'#4a3aa7',r:18,ghost:false,desc:'Live parallel build. MOVPDUP1 COBOL + DuplicateClaimDetectionService Java. 13 tests passing.',nav:'micps4471'},
     {id:'Ghosts',   label:'14 Gaps',              layer:'Ghost', color:'#888888',r:14,ghost:true, desc:'Ghost node registry — 14 known knowledge gaps. 6 critical, 7 high, 1 medium remaining.',nav:null},
-    {id:'MA-Driver', label:'MAENCDR0', layer:'MA', color:'#2a78d6', r:16, ghost:false, desc:'MA Encounter Data Driver — orchestrates HCC validation, RAF calculation, EDPS submission. 5 subprograms.', nav:'l2'},
-    {id:'MA-HCC', label:'MAHCCVL0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'HCC diagnosis validation — maps ICD-10 to CMS HCC model. Called by MAENCDR0.', nav:null},
-    {id:'MA-RAF', label:'MARAFCL0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'RAF score calculator — demographic factor plus HCC total. Drives CMS capitation.', nav:null},
-    {id:'MA-EDPS', label:'MAEDPSUB0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'CMS EDPS submission — sends encounter data to CMS for risk adjustment.', nav:null},
-    {id:'MC-Driver', label:'MMCOCLDR0', layer:'Medicaid', color:'#1baf7a', r:16, ghost:false, desc:'Medicaid Claim Driver — eligibility, TPL, payer of last resort, state MMIS submission. 5 subprograms.', nav:'l2'},
-    {id:'MC-TPL', label:'MMCOTPL0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Third party liability — identifies other payers. Medicaid is always payer of last resort per 42 CFR 433.139.', nav:null},
-    {id:'MC-LRP', label:'MMCOLRP0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Payer of last resort — calculates Medicaid liability after all TPL payers have paid.', nav:null},
-    {id:'MC-State', label:'MMCOSSUB0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'State MMIS submission — submits encounter data to state Medicaid system per contract.', nav:null},
+    {id:'MiFCT', label:'MiFCT (Facets)', layer:'System', color:'#e0662e', r:20, ghost:false, desc:'Mivan Facets Claims Technology (TriZetto Facets) — adjudicates Medicare Advantage and Medicaid claims. Calls the Java post-adjudication services via REST.', nav:'l3'},
+    {id:'MA-Driver', label:'MaPostAdjudication', layer:'MA', color:'#2a78d6', r:16, ghost:false, desc:'MA post-adjudication reporting service (Java). MiFCT adjudicates MA claims; this handles HCC validation, RAF calculation, and CMS EDPS submission. Called by MiFCT via REST. No COBOL.', nav:'l2'},
+    {id:'MA-HCC', label:'HCC Validation', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'HCC diagnosis validation step — maps ICD-10 to CMS HCC model. Part of MaPostAdjudicationService (Java).', nav:null},
+    {id:'MA-RAF', label:'RAF Calculation', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'RAF score calculation step — demographic factor plus HCC total. Drives CMS capitation. Part of MaPostAdjudicationService.', nav:null},
+    {id:'MA-EDPS', label:'EDPS Submission', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'CMS EDPS encounter submission step. Part of MaPostAdjudicationService.', nav:null},
+    {id:'MC-Driver', label:'MedicaidStateReporting', layer:'Medicaid', color:'#1baf7a', r:16, ghost:false, desc:'Medicaid post-adjudication state reporting service (Java). MiFCT adjudicates; this handles TPL, payer of last resort, and state MMIS submission. Called by MiFCT via REST. No COBOL.', nav:'l2'},
+    {id:'MC-TPL', label:'TPL Identification', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Third party liability identification step. Medicaid is always payer of last resort per 42 CFR 433.139. Part of MedicaidStateReportingService.', nav:null},
+    {id:'MC-LRP', label:'Payer of Last Resort', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Payer of last resort — calculates Medicaid liability after all TPL payers have paid. Part of MedicaidStateReportingService.', nav:null},
+    {id:'MC-State', label:'State MMIS', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'State MMIS encounter submission step. Part of MedicaidStateReportingService.', nav:null},
     {id:'PRV-Driver', label:'MPRVVLDR0', layer:'Provider', color:'#eda100', r:16, ghost:false, desc:'Provider Validation Driver — NPI lookup, credentialing, exclusion check, network verify. 5 subprograms.', nav:'l2'},
     {id:'PRV-NPI', label:'MPRVNPI0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'NPI lookup — reads PROV-MSTR VSAM first, DB2 fallback. Returns network status and fee schedule pointer.', nav:null},
     {id:'PRV-EXCL', label:'MPRVEXC0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Exclusion check — checks OIG LEIE, SAM, state lists. CRITICAL: federal law prohibits payment to excluded providers.', nav:null},
@@ -7838,7 +8003,11 @@ function initKnowledgeGraph() {
     {source:'PRV-Driver', target:'PRV-CRED', type:'containment'},
     {source:'L4a', target:'PRV-Driver', type:'links_forward'},
     {source:'MICPS4471', target:'PRV-Driver', type:'lateral'},
-    {source:'L2a', target:'COM-Driver', type:'implements'}
+    {source:'L2a', target:'COM-Driver', type:'implements'},
+    {source:'L3', target:'MiFCT', type:'lateral'},
+    {source:'MiFCT', target:'MA-Driver', type:'used_by'},
+    {source:'MiFCT', target:'MC-Driver', type:'used_by'},
+    {source:'MiFCT', target:'PRV-Driver', type:'used_by'}
   ];
 
   // Clone to prevent D3 mutation on re-init
@@ -8039,17 +8208,23 @@ var blastData = {
     indirect: ['All claim editing','All adjudication pricing','MFEELKP0 fee lookup','Provider portal display','MiProvider nightly feed'],
     ghost: ['PROV-MSTR key structure — composite key partially undocumented']
   },
-  'MAENCDR0': {
-    wave: 'Wave — MA separate system',
-    direct: ['MAELGCK0','MAHCCVL0','MARAFCL0','MAENCBL0','MAEDPSUB0','MA_ENROLLMENT DB2','HCC_CODE_MAP DB2'],
+  'MaPostAdjudicationService (MA)': {
+    wave: 'MA — adjudicated by MiFCT (Facets); Java post-adjudication reporting',
+    direct: ['MiFCT (Facets) — adjudication upstream','HCC validation','RAF calculation','EDPS submission','MA_ENROLLMENT DB2','HCC_CODE_MAP DB2','MA_RAF_SCORE DB2'],
     indirect: ['CMS capitation payments','RADV audit exposure','MA Star ratings','RAF score accuracy','EDPS submission to CMS'],
-    ghost: []
+    ghost: ['MIFCT-POSTADJ-INTEGRATION — MiFCT → MaPostAdjudicationService REST contract not documented']
   },
-  'MMCOCLDR0': {
-    wave: 'Wave — Medicaid separate system',
-    direct: ['MMCOELV0','MMCOTPL0','MMCOLRP0','MMCOENC0','MMCOSSUB0','MEDICAID_ELIGIBILITY DB2','TPL_PAYER_FILE DB2'],
+  'MedicaidStateReportingService (Medicaid)': {
+    wave: 'Medicaid — adjudicated by MiFCT (Facets); Java post-adjudication reporting',
+    direct: ['MiFCT (Facets) — adjudication upstream','TPL identification','payer of last resort','state MMIS submission','MEDICAID_ELIGIBILITY DB2','TPL_PAYER_FILE DB2'],
     indirect: ['State MMIS submission','Medicaid capitation accuracy','TPL recovery amounts','Federal compliance — 42 CFR 433.139'],
-    ghost: []
+    ghost: ['MIFCT-POSTADJ-INTEGRATION — MiFCT → MedicaidStateReportingService REST contract not documented']
+  },
+  'MiFCT (Facets)': {
+    wave: 'Government claims platform — adjudicates MA + Medicaid',
+    direct: ['MA claims adjudication','Medicaid claims adjudication','MaPostAdjudicationService (REST)','MedicaidStateReportingService (REST)','Provider Validation API (Option A REST)'],
+    indirect: ['All MA/Medicaid encounter reporting','CMS EDPS submission','State MMIS submission','Provider validation for govt claims'],
+    ghost: ['MIFCT-CONFIGURATION — Facets benefit-plan build not documented','FACETS-LOB-ROUTING-TABLE — MiEDI routing table not documented']
   },
   'MPRVEXC0': {
     wave: 'Wave 2',
@@ -8237,10 +8412,14 @@ var ghostData = [
   {id:'MEDICARE-ADVANTAGE-DOMAIN', layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'MA plan structure, HCC coding, RADV audits, encounter data'},
   {id:'MEDICAID-DOMAIN',           layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid managed care, capitation, state variation, LTSS, encounter data submission'},
   {id:'PROVIDER-DATA-LIFECYCLE',   layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Full provider enrollment and credentialing lifecycle'},
-  {id:'MA-PROGRAM-TREE',           layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicare Advantage program tree — MAENCDR0 driver and 5 subprograms built'},
-  {id:'MEDICAID-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid program tree — MMCOCLDR0 driver and 5 subprograms built'},
+  {id:'MA-POST-ADJUDICATION',      layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'MA post-adjudication reporting — MaPostAdjudicationService (Java) built. MiFCT (Facets) adjudicates MA claims; no COBOL tree.'},
+  {id:'MEDICAID-STATE-REPORTING',  layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid post-adjudication state reporting — MedicaidStateReportingService (Java) built. MiFCT (Facets) adjudicates; no COBOL tree.'},
   {id:'PROVIDER-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Provider validation program tree — MPRVVLDR0 driver and 5 subprograms built'},
   {id:'COMMERCIAL-PROGRAM-TREE',   layer:'L4', severity:'high',     owner:'Digital Brain team', status:'ghost',    blocks:'',              desc:'Commercial claims program tree — MCOMCLDR0 driver and 5 subprograms PLANNED, not yet built'},
+  {id:'MIFCT-CONFIGURATION',       layer:'L3', severity:'high',     owner:'MiFCT operations team', status:'ghost', blocks:'',              desc:'MiFCT (TriZetto Facets) configuration and benefit-plan build documentation for MA and Medicaid'},
+  {id:'FACETS-LOB-ROUTING-TABLE',  layer:'L3', severity:'high',     owner:'MiEDI operations team', status:'ghost', blocks:'',              desc:'MiEDI LOB routing table contents and maintenance — member→COM/MA/MC mapping, effective-date handling, queue names'},
+  {id:'MIFCT-POSTADJ-INTEGRATION', layer:'L3', severity:'high',     owner:'Integration team', status:'ghost',    blocks:'',              desc:'MiFCT → post-adjudication service REST contract — schemas, retry/error handling, SLA'},
+  {id:'MIFCT-MODERNIZATION',       layer:'L3', severity:'medium',   owner:'Transformation program office', status:'ghost', blocks:'',       desc:'MiFCT (Facets) modernization — AWS deployment; separate from MiCPS Wave 1–5, not yet scoped'},
   {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Prior authorization workflow, concurrent review, UM criteria sets'},
   {id:'L6-TASK-INTELLIGENCE',      layer:'L6', severity:'high',     owner:'QE team',         status:'ghost',    blocks:'',                 desc:'Defect patterns, incident history, sprint velocity — requires real Jira and ServiceNow data'},
   {id:'NCCI-TABLE-MANAGEMENT',     layer:'L4', severity:'high',     owner:'Senior edit analyst', status:'ghost', blocks:'',               desc:'How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented'},
