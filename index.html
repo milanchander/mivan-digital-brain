@@ -128,6 +128,44 @@
     .nl-start.active { background: var(--accent-dark); color: #ffffff; border-left-color: transparent; }
     .nl-start.active .lbl, .nl-start.active .ico { color: #ffffff; }
 
+    /* Contribute — highlighted item + badge */
+    .nl-contribute { border-left: 2px solid var(--accent); }
+    .nl-contribute .lbl { color: var(--text); font-weight: 500; }
+    .nl-contribute .ico { color: var(--accent); }
+    .nl-badge { background:#E24B4A; color:#fff; font-size:10px; font-weight:700; border-radius:10px; padding:1px 7px; margin-left:auto; flex-shrink:0; }
+
+    /* Contribute panel */
+    .ctr-paths { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0; }
+    .ctr-path { border:1px solid var(--border); border-radius:10px; padding:18px 20px; background:var(--card-bg); }
+    .ctr-path.primary { border-color:var(--accent); box-shadow:0 0 0 1px rgba(45,212,191,.25); }
+    .ctr-path .ico { font-size:22px; margin-bottom:8px; }
+    .ctr-path h3 { font-size:15px; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .ctr-path p { font-size:12.5px; color:var(--muted); line-height:1.6; margin-bottom:14px; }
+    .ctr-sec-title { font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border); }
+    .ctr-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:12px; }
+    .ctr-card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; background:var(--card-bg); }
+    .ctr-card h4 { font-size:14px;font-weight:700;color:var(--text);margin:8px 0 6px; }
+    .ctr-card p { font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:8px; }
+    .ctr-badges { display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:4px; }
+    .ctr-pill { display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;white-space:nowrap; }
+    .ctr-meta { font-size:11px;color:var(--muted);margin:6px 0; }
+    .ctr-btn-row { display:flex;gap:8px;flex-wrap:wrap;margin-top:10px; }
+    .ctr-primary { background:var(--accent);color:#0d1117;border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer; }
+    .ctr-primary:hover{filter:brightness(1.08);}
+    .ctr-outline { background:transparent;color:var(--accent);border:1px solid var(--accent);padding:7px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer; }
+    .ctr-outline:hover{background:rgba(45,212,191,.1);}
+    .ctr-gray { background:transparent;color:var(--muted);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer; }
+    .ctr-gray:hover{color:var(--text);border-color:var(--muted);}
+    .ctr-input,.ctr-textarea,.ctr-select { width:100%;background:var(--surface,#161b22);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:9px 12px;font-family:inherit;margin-top:4px; }
+    .ctr-textarea { resize:vertical; }
+    .ctr-field-label { font-size:12px;font-weight:600;color:var(--text);margin-top:14px;display:block; }
+    .ctr-progress { height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:10px 0; }
+    .ctr-progress-bar { height:100%;background:var(--accent);transition:width .3s; }
+    .ctr-q { font-size:16px;line-height:1.5;color:var(--text);margin:14px 0; }
+    .ctr-note { background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text);margin:12px 0; }
+    .ctr-success { background:rgba(27,175,122,.1);border:1px solid #1baf7a;border-radius:8px;padding:14px 16px;color:var(--text);font-size:13.5px;line-height:1.6; }
+    .ctr-draft { border:1px solid var(--border);border-radius:8px;padding:16px 18px;background:var(--card-bg);margin:12px 0; }
+
     .nc { display: none; background: rgba(0,0,0,.15); }
     .nc.open { display: block; }
 
@@ -972,6 +1010,12 @@
     <div class="nl nl-start" data-page="readme">
       <span class="ico">★</span>
       <span class="lbl">Start Here</span>
+    </div>
+
+    <div class="nl nl-contribute" data-page="contribute">
+      <span class="ico">✦</span>
+      <span class="lbl">Contribute</span>
+      <span class="nl-badge" id="contrib-badge" style="display:none;"></span>
     </div>
 
     <div class="nl active" data-page="overview">
@@ -6077,6 +6121,7 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
     if (page === 'readme') { showReadme(); return; }
+    if (page === 'contribute') { showContribute(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -6847,6 +6892,520 @@ function openChatWithQ(q) {
   openChat();
   setTimeout(function() { var el = document.getElementById('chat-in'); if (el) el.value = q; }, 120);
 }
+
+// ── CONTRIBUTE (Knowledge Contribution Framework) ──
+var CTR_P1 = [
+  {id:"UTILIZATION-MANAGEMENT", layer:"L2", priority:"high", title:"Utilization Management",
+   description:"Prior authorization workflows, concurrent review, UM criteria sets (InterQual/MCG), retrospective review process",
+   estimated_time:"30-45 minutes", best_contributor:"UM clinical staff, medical directors", interview_available:true},
+  {id:"STATE-SPECIFIC-CLAIM-RULES", layer:"L5", priority:"medium", title:"State-Specific Claim Rules",
+   description:"Prompt pay laws, timely filing by state, state mandate requirements, recoupment look-back limits",
+   estimated_time:"45-60 minutes", best_contributor:"Compliance team, state operations", interview_available:true},
+  {id:"PROVIDER-SANCTIONS", layer:"L2", priority:"medium", title:"Provider Sanctions & Exclusions",
+   description:"OIG/SAM checking process in MiCPS, state exclusion list management, sanctioned provider claim handling workflow",
+   estimated_time:"20-30 minutes", best_contributor:"Provider relations, compliance", interview_available:true},
+  {id:"REGULATORY-LANDSCAPE", layer:"L2", priority:"medium", title:"Regulatory Landscape",
+   description:"HIPAA transaction standards, ACA requirements, CMS regulations affecting commercial claims processing",
+   estimated_time:"45-60 minutes", best_contributor:"Compliance team, regulatory affairs", interview_available:true}
+];
+var CTR_P2 = [
+  {id:"ADJUD-BUSINESS-RULES-SPEC", layer:"L4", priority:"critical", title:"Adjudication Business Rules",
+   description:"Coverage determination rules embedded in MADJDRV0 — what is covered, what is excluded, how decisions are made",
+   estimated_time:"2-3 hours (multiple sessions)", best_contributor:"James Whitfield", interview_available:true},
+  {id:"ACCUM-FILE-LAYOUT", layer:"L4", priority:"critical", title:"ACCUM-FILE Record Layout",
+   description:"Full VSAM record layout — annual reset logic, family vs individual accumulator structure, mid-year enrollment handling",
+   estimated_time:"1-2 hours", best_contributor:"James Whitfield", interview_available:true},
+  {id:"COB-PAYER-AGREEMENTS", layer:"L4", priority:"critical", title:"COB Payer Agreements",
+   description:"The ~40 payers handled by hardcoded COBOL logic — which payers, what COB method applies, why they were hardcoded",
+   estimated_time:"1-2 hours", best_contributor:"James Whitfield + COB team", interview_available:true},
+  {id:"L6-TASK-INTELLIGENCE", layer:"L6", priority:"high", title:"Task Intelligence — Defect Patterns",
+   description:"Known defect patterns, recurring incident types, test edge cases from production experience",
+   estimated_time:"60-90 minutes", best_contributor:"QE team, operations team", interview_available:true},
+  {id:"MIFCT-CONFIGURATION", layer:"L3", priority:"high", title:"MiFCT Facets Configuration",
+   description:"TriZetto Facets benefit plan build, MA and Medicaid configuration, Facets-specific processing rules",
+   estimated_time:"60-90 minutes", best_contributor:"MiFCT configuration team", interview_available:true}
+];
+
+var CTR_QUESTIONS = {
+  "UTILIZATION-MANAGEMENT":[
+    "What types of services require prior authorization for Mivan commercial members? Give examples of high-volume PA categories.",
+    "What clinical criteria sets does Mivan use for medical necessity determinations — InterQual, MCG (Milliman Care Guidelines), or proprietary criteria? Do these vary by service type?",
+    "Walk me through a standard prior authorization workflow from provider submission to final decision. Who reviews it? What are the timeframes?",
+    "What are the most common reasons a prior authorization request is denied? What is the appeal process?",
+    "How does concurrent review work for inpatient hospital stays? What triggers a concurrent review and who conducts it?",
+    "What is the retrospective review process — when does it apply and how are decisions made?",
+    "How does Mivan handle urgent/expedited prior authorization requests? What are the timeframes and who can request expedited review?",
+    "Are there any known gaps or pain points in the current UM process that cause claim denials or appeals?"
+  ],
+  "ADJUD-BUSINESS-RULES-SPEC":[
+    "What is the general logic that MADJDRV0 uses to determine if a service is covered? Walk me through the decision sequence.",
+    "How are plan exclusions implemented — are they in a database table or hardcoded in COBOL? Give examples of common exclusions.",
+    "What are the exact conditions that route a claim to manual review instead of auto-adjudication? List as many as you can remember.",
+    "How does the prior authorization check work in MAUTHCK0 — what fields are compared and what tolerance rules exist?",
+    "Are there any plan codes or member types that have special adjudication logic not handled by the standard COVERAGE_POLICY table?",
+    "What happens when MADJDRV0 cannot find a coverage rule for a service — what is the default behavior?",
+    "What are the CARC codes most commonly assigned by the adjudication engine and what triggers each?",
+    "Are there any regulatory dates hardcoded in the adjudication programs that need to be updated periodically?"
+  ],
+  "ACCUM-FILE-LAYOUT":[
+    "Describe the overall structure of a record in the ACCUM-FILE. What are the main fields and their order?",
+    "How are individual vs family deductibles stored in the same ACCUM-FILE record? Are they separate fields or calculated?",
+    "How does the annual reset work — what fields are zeroed, what fields are preserved, and how is the reset triggered?",
+    "How does mid-year enrollment affect the accumulator — does a new member get a fresh record or a prorated one?",
+    "What is the packed decimal format used for monetary fields — how many digits before and after the decimal?",
+    "Are there any fields in ACCUM-FILE that have changed meaning over time or been repurposed for different uses?",
+    "What is the VSAM key structure — is it just member ID or a composite key?"
+  ],
+  "COB-PAYER-AGREEMENTS":[
+    "Can you list the major payers that are handled by hardcoded COBOL logic in MCOBPYR0 rather than the PAYER_COB_AGREE table?",
+    "For each hardcoded payer, what COB method applies — Standard, Non-Duplication, MOB, or Carve-Out?",
+    "Why were these payers hardcoded originally — was it a technical limitation, a contractual requirement, or a timing issue?",
+    "Are any of the hardcoded payer agreements still active today or have some been superseded?",
+    "How does MCOBPYR0 determine which hardcoded path to take — is it by payer ID, payer name, or some other identifier?",
+    "What happens when a new COB payer needs to be added — is it always a code change or can some be added to the DB2 table?"
+  ],
+  "L6-TASK-INTELLIGENCE":[
+    "What are the most common defect patterns you have seen in MiCPS claims processing? Describe the top 3-5 recurring issues.",
+    "Which MiCPS modules or programs have the highest defect rates historically?",
+    "What are the most common production incident types — ABEND codes, data corruption, feed failures?",
+    "What test scenarios or edge cases have caught bugs that were not in the original requirements?",
+    "What are the most common regression failures when a new release goes to TEST?",
+    "Are there any known timing-sensitive issues — race conditions, batch window conflicts, or sequence-dependent processing?",
+    "What production incidents have happened in the last 12 months that should be documented as known patterns?"
+  ],
+  "MIFCT-CONFIGURATION":[
+    "How is the MiFCT (TriZetto Facets) benefit plan configured for Medicare Advantage — what are the key configuration components?",
+    "How does MiFCT handle the LOB routing from MiEDI — what happens when a claim arrives in the MA or Medicaid intake queue?",
+    "What Facets modules are used for MA and Medicaid adjudication — which are standard and which are custom?",
+    "How does MiFCT call the Provider Validation REST API — what triggers the call and what does it do with the response?",
+    "What are the main configuration tables in Facets that control adjudication behavior for MA and Medicaid?"
+  ],
+  "STATE-SPECIFIC-CLAIM-RULES":[
+    "Which states have the most restrictive prompt pay laws for commercial claims? What are their timelines?",
+    "What state mandates affect Mivan's commercial benefit design — which services are mandated in the most states you operate in?",
+    "How are state-specific timely filing limits tracked and enforced in MiCPS?",
+    "What are the state variation rules for recoupment look-back periods — which states have the shortest limits?",
+    "Are there any states where surprise billing protections have created processing challenges?"
+  ],
+  "PROVIDER-SANCTIONS":[
+    "Walk me through how OIG exclusion checking works in the current MiCPS process — when is it checked and by which program?",
+    "How often is the OIG LEIE list refreshed in MiCPS and what triggers the update?",
+    "What happens to a claim when the rendering provider is found to be excluded — what is the denial process?",
+    "How are state exclusion lists handled — are they separate from the OIG list?",
+    "Has there been a case where an excluded provider was paid — what happened and how was it recovered?"
+  ],
+  "REGULATORY-LANDSCAPE":[
+    "What are the most impactful CMS regulations that affect Mivan's commercial claims processing today?",
+    "How has the ACA affected claim processing — what specific rules have required MiCPS code changes?",
+    "What HIPAA transaction standards does Mivan use — which versions of the 837, 835, 270/271 are in production?",
+    "What upcoming regulatory changes are you aware of that will require system changes in the next 12-18 months?",
+    "Are there any state regulatory requirements that override federal standards for Mivan's fully-insured plans?"
+  ]
+};
+
+var CTR_TEMPLATES = [
+  {id:"business-rules", name:"Business Rules", layer:"L5", node_type:"process",
+   fields:[
+     {k:"rule_name", label:"Rule name", type:"input"},
+     {k:"lob", label:"LOB", type:"select", options:["Commercial","Medicare Advantage","Medicaid","All"]},
+     {k:"trigger", label:"Trigger condition (when does this rule apply?)", type:"textarea"},
+     {k:"logic", label:"Business logic (what happens?)", type:"textarea"},
+     {k:"exceptions", label:"Exceptions (edge cases)", type:"textarea"},
+     {k:"source", label:"Source (where did you learn this?)", type:"input"},
+     {k:"validate", label:"VALIDATE needed?", type:"select", options:["No","Yes"]}
+   ]},
+  {id:"process-flow", name:"Process Flow", layer:"L4", node_type:"process",
+   fields:[
+     {k:"process_name", label:"Process name", type:"input"},
+     {k:"lob", label:"LOB", type:"select", options:["Commercial","Medicare Advantage","Medicaid","All"]},
+     {k:"trigger", label:"Trigger (what starts this process?)", type:"textarea"},
+     {k:"steps", label:"Steps (numbered list)", type:"textarea"},
+     {k:"systems", label:"Systems involved (comma-separated: MiCPS, MiFCT, MiMember, MiProvider, Other)", type:"input"},
+     {k:"timing", label:"Timing (how long does this take?)", type:"input"},
+     {k:"issues", label:"Known issues or gaps", type:"textarea"}
+   ]},
+  {id:"system-behavior", name:"System Behavior", layer:"L3", node_type:"application",
+   fields:[
+     {k:"system_name", label:"System name", type:"input"},
+     {k:"component", label:"Program or component", type:"input"},
+     {k:"does", label:"What it does (plain English)", type:"textarea"},
+     {k:"inputs", label:"Inputs (what does it read?)", type:"textarea"},
+     {k:"outputs", label:"Outputs (what does it produce?)", type:"textarea"},
+     {k:"limitations", label:"Known limitations or undocumented behavior", type:"textarea"},
+     {k:"source", label:"Source", type:"select", options:["Runbook","Personal knowledge","Code review"]}
+   ]}
+];
+
+var _ctr = null;              // active interview state
+var CTR_REVIEWER = "Milan";
+
+function ctrEsc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function ctrToday(){ return new Date().toISOString().slice(0,10); }
+function ctrPriColor(p){ return {critical:'#E24B4A', high:'#eda100', medium:'#8b949e'}[p] || '#8b949e'; }
+function ctrLayerColor(l){ return {L2:'#1baf7a', L3:'#eda100', L4:'#eb6834', L5:'#e87ba4', L6:'#8b5cf6'}[l] || '#8b949e'; }
+function ctrAllGhosts(){ return CTR_P1.concat(CTR_P2); }
+function ctrFindGhost(id){ var out=null; ctrAllGhosts().forEach(function(g){ if(g.id===id) out=g; }); return out; }
+
+function ctrPendingList(){
+  var out = [];
+  for (var i=0;i<sessionStorage.length;i++){
+    var k = sessionStorage.key(i);
+    if (k && k.indexOf('contribution_') === 0){
+      try { var v = JSON.parse(sessionStorage.getItem(k)); v._key = k; out.push(v); } catch(e){}
+    }
+  }
+  out.sort(function(a,b){ return (b.submittedAt||'').localeCompare(a.submittedAt||''); });
+  return out;
+}
+function ctrRecountPending(){
+  var n = ctrPendingList().filter(function(c){ return c.status === 'pending_review'; }).length;
+  sessionStorage.setItem('pending_contributions', String(n));
+  contribUpdateBadge();
+  return n;
+}
+function contribUpdateBadge(){
+  var b = document.getElementById('contrib-badge');
+  if (!b) return;
+  var n = parseInt(sessionStorage.getItem('pending_contributions') || '0', 10);
+  if (n > 0){ b.textContent = n; b.style.display = 'inline-block'; }
+  else { b.style.display = 'none'; }
+}
+
+// ── Landing page ──
+function showContribute(){
+  if (_kgSim) { _kgSim.stop(); _kgSim = null; }
+  setActive('contribute');
+  setBc('Contribute');
+  document.getElementById('cwrap').scrollTop = 0;
+  ctrRecountPending();
+
+  var pending = ctrPendingList().filter(function(c){ return c.status === 'pending_review'; });
+  var h = '<div class="lc-page">';
+  h += '<div class="lc-page-hdr"><div><h2>Contribute to the Digital Brain</h2>'+
+       '<p>Help close knowledge gaps by sharing what you know about Mivan\'s systems and processes</p></div></div>';
+
+  // two paths
+  h += '<div class="ctr-paths">'+
+    '<div class="ctr-path primary"><div class="ico">💬</div><h3>Guided Interview</h3>'+
+      '<p>The Digital Brain asks you structured questions about a knowledge gap. Answer in plain English — no technical format required. Best for domain experts and SMEs.</p>'+
+      '<button class="ctr-primary" onclick="document.getElementById(\'ctr-gaps\').scrollIntoView({behavior:\'smooth\'})">Start Interview →</button></div>'+
+    '<div class="ctr-path"><div class="ico">📄</div><h3>Use a Template</h3>'+
+      '<p>Fill in a structured form for a specific knowledge area. Best for well-defined content like business rules tables or process flows.</p>'+
+      '<button class="ctr-outline" onclick="ctrBrowseTemplates()">Browse Templates →</button></div>'+
+    '</div>';
+
+  // pending review
+  if (pending.length){
+    h += '<div class="ctr-sec-title">Awaiting Your Review</div><div class="ctr-cards">';
+    h += pending.map(function(c){
+      var g = ctrFindGhost(c.ghostNodeId) || {title:c.ghostNodeId};
+      return '<div class="ctr-card"><div class="ctr-badges"><span class="ctr-pill" style="background:#E24B4A22;color:#E24B4A;">PENDING</span></div>'+
+        '<h4>'+ctrEsc(g.title)+'</h4>'+
+        '<div class="ctr-meta">'+ctrEsc(c.ghostNodeId)+' · '+ctrEsc(c.contributorName)+' · '+ctrEsc((c.submittedAt||'').slice(0,10))+'</div>'+
+        '<div class="ctr-btn-row"><button class="ctr-outline" onclick="ctrShowReview()">Review →</button></div></div>';
+    }).join('');
+    h += '</div>';
+  }
+
+  // ghost node priority lists
+  h += '<div class="ctr-sec-title">Knowledge Gaps — Contribution Needed</div>';
+  h += '<p style="font-size:12px;color:var(--muted);margin:-4px 0 12px;">Priority 1 — Domain Knowledge</p><div class="ctr-cards">';
+  h += CTR_P1.map(ctrGhostCard).join('');
+  h += '</div>';
+  h += '<p style="font-size:12px;color:var(--muted);margin:18px 0 12px;" id="ctr-gaps">Priority 2 — Technical Knowledge</p><div class="ctr-cards">';
+  h += CTR_P2.map(ctrGhostCard).join('');
+  h += '</div>';
+
+  if (pending.length){
+    h += '<div style="margin-top:22px;"><button class="ctr-gray" onclick="ctrShowReview()">Review Contributions ('+pending.length+') →</button></div>';
+  }
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+function ctrGhostCard(g){
+  var pc = ctrPriColor(g.priority), lc = ctrLayerColor(g.layer);
+  return '<div class="ctr-card">'+
+    '<div class="ctr-badges">'+
+      '<span class="ctr-pill" style="background:'+pc+'22;color:'+pc+';">'+g.priority.toUpperCase()+'</span>'+
+      '<span class="ctr-pill" style="background:'+lc+'22;color:'+lc+';">'+g.layer+'</span>'+
+    '</div>'+
+    '<h4>'+ctrEsc(g.title)+'</h4>'+
+    '<p>'+ctrEsc(g.description)+'</p>'+
+    '<div class="ctr-meta">⏱ '+ctrEsc(g.estimated_time)+'</div>'+
+    '<div class="ctr-meta" style="color:var(--muted);">Best contributor: '+ctrEsc(g.best_contributor)+'</div>'+
+    '<div class="ctr-btn-row">'+
+      (g.interview_available?'<button class="ctr-primary" onclick="contribStartInterview(\''+g.id+'\')">Start Interview</button>':'')+
+      '<button class="ctr-outline" onclick="ctrBrowseTemplates()">Use Template</button>'+
+    '</div></div>';
+}
+
+// ── Guided interview ──
+function contribStartInterview(ghostId){
+  var g = ctrFindGhost(ghostId);
+  if (!g) return;
+  var qs = CTR_QUESTIONS[ghostId] || ["Describe what you know about "+g.title+"."];
+  _ctr = { ghost:g, questions:qs, answers:new Array(qs.length).fill(''), idx:0 };
+  // restore any saved draft
+  try {
+    var saved = JSON.parse(sessionStorage.getItem('contribution_draft_'+ghostId) || 'null');
+    if (saved && saved.answers) { _ctr.answers = saved.answers; _ctr.idx = saved.idx || 0; }
+  } catch(e){}
+  ctrRenderInterview();
+}
+
+function ctrCaptureAnswer(){
+  var ta = document.getElementById('ctr-answer');
+  if (ta && _ctr) _ctr.answers[_ctr.idx] = ta.value;
+}
+
+function ctrRenderInterview(){
+  var g = _ctr.ghost, n = _ctr.questions.length, i = _ctr.idx;
+  var pct = Math.round(((i) / n) * 100);
+  var name = sessionStorage.getItem('contributor_name') || '';
+  var last = i >= n - 1;
+  var h = '<div class="lc-page">';
+  h += '<button class="ctr-gray" onclick="showContribute()">← Back</button>';
+  h += '<div class="lc-page-hdr" style="margin-top:12px"><div><h2>'+ctrEsc(g.title)+'</h2><p>'+ctrEsc(g.description)+'</p></div></div>';
+  h += '<label class="ctr-field-label">Your name <span style="color:#E24B4A">*</span></label>';
+  h += '<input class="ctr-input" id="ctr-name" placeholder="Your name" value="'+ctrEsc(name)+'" oninput="sessionStorage.setItem(\'contributor_name\', this.value)">';
+  h += '<div class="ctr-meta" style="margin-top:14px;">Question '+(i+1)+' of '+n+'</div>';
+  h += '<div class="ctr-progress"><div class="ctr-progress-bar" style="width:'+pct+'%"></div></div>';
+  h += '<div class="ctr-q">'+ctrEsc(_ctr.questions[i])+'</div>';
+  h += '<textarea class="ctr-textarea" id="ctr-answer" rows="4" placeholder="Answer in plain English…">'+ctrEsc(_ctr.answers[i]||'')+'</textarea>';
+  h += '<div class="ctr-btn-row" style="margin-top:12px;">';
+  if (i > 0) h += '<button class="ctr-gray" onclick="ctrPrev()">← Previous</button>';
+  if (!last) h += '<button class="ctr-primary" onclick="ctrNext()">Next Question →</button>';
+  else       h += '<button class="ctr-primary" onclick="ctrFinish()">Finish → Curate</button>';
+  h += '<button class="ctr-gray" onclick="ctrSkip()">Skip Question</button>';
+  h += '<button class="ctr-gray" onclick="ctrSaveDraft()">Save Draft</button>';
+  h += '</div><div id="ctr-draft-note" class="ctr-meta"></div>';
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+  document.getElementById('cwrap').scrollTop = 0;
+}
+
+function ctrNext(){ ctrCaptureAnswer(); if (_ctr.idx < _ctr.questions.length-1){ _ctr.idx++; ctrRenderInterview(); } }
+function ctrPrev(){ ctrCaptureAnswer(); if (_ctr.idx > 0){ _ctr.idx--; ctrRenderInterview(); } }
+function ctrSkip(){ ctrCaptureAnswer(); if (!_ctr.answers[_ctr.idx]) _ctr.answers[_ctr.idx] = ''; if (_ctr.idx < _ctr.questions.length-1){ _ctr.idx++; ctrRenderInterview(); } else { ctrFinish(); } }
+function ctrSaveDraft(){
+  ctrCaptureAnswer();
+  sessionStorage.setItem('contribution_draft_'+_ctr.ghost.id, JSON.stringify({answers:_ctr.answers, idx:_ctr.idx}));
+  var el = document.getElementById('ctr-draft-note'); if (el) el.textContent = '✓ Draft saved';
+}
+
+function ctrFinish(){
+  ctrCaptureAnswer();
+  var name = (document.getElementById('ctr-name')||{}).value || sessionStorage.getItem('contributor_name') || '';
+  if (!name.trim()){ var el=document.getElementById('ctr-draft-note'); if(el){el.style.color='#E24B4A';el.textContent='Please enter your name before curating.';} return; }
+  sessionStorage.setItem('contributor_name', name);
+  ctrCurate(_ctr.ghost, _ctr.questions, _ctr.answers, name);
+}
+
+// ── Curation engine ──
+function ctrBuildQA(questions, answers){
+  return questions.map(function(q,i){
+    var a = (answers[i]||'').trim();
+    return (i+1)+'. Q: '+q+'\n   A: '+(a || '(skipped)');
+  }).join('\n\n');
+}
+function ctrSystemPrompt(g, name){
+  return 'You are the Mivan Digital Brain knowledge curator. A domain expert has just completed a knowledge contribution interview. Your job is to synthesize their answers into a properly formatted knowledge entry for the Digital Brain.\n\n'+
+    'Format the output as a markdown document with:\n'+
+    '- Proper YAML frontmatter (layer, node_type, domain, source: sme-interview, last_synced: '+ctrToday()+', validated_by: '+name+', fidelity: DRAFT)\n'+
+    '- Clear section headings\n'+
+    '- Factual content only — no speculation\n'+
+    '- VALIDATE: flags where the SME was uncertain\n'+
+    '- Links to related knowledge nodes where relevant\n'+
+    '- A Summary section at the top\n\n'+
+    'Ghost node being addressed: '+g.id+'\nTarget layer: '+g.layer+'\nContributor: '+name;
+}
+function ctrCurateBackend(systemPrompt, userMsg){
+  return new Promise(function(resolve, reject){
+    var sock; try { sock = new WebSocket(BACKEND_WS_URL); } catch(e){ return reject(e); }
+    var acc='', done=false;
+    var to = setTimeout(function(){ if(!done){ done=true; try{sock.close();}catch(e){} reject(new Error('timeout')); } }, 120000);
+    sock.onopen = function(){ sock.send(JSON.stringify({ message:userMsg, system:systemPrompt, page_context:'contribute', session_id:null })); };
+    sock.onerror = function(){ if(!done){ done=true; clearTimeout(to); reject(new Error('unreachable')); } };
+    sock.onmessage = function(ev){
+      var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
+      if (m.type==='stream_text') acc += m.text;
+      else if (m.type==='complete'){ done=true; clearTimeout(to); try{sock.close();}catch(e){} resolve(acc.trim()); }
+      else if (m.type==='error'){ done=true; clearTimeout(to); try{sock.close();}catch(e){} reject(new Error(m.message||'error')); }
+    };
+  });
+}
+function ctrRawDraft(g, name, qa){
+  return '---\nlayer: '+g.layer+'\nnode_type: domain\ndomain: claims\nsource: sme-interview\nlast_synced: '+ctrToday()+'\nvalidated_by: '+name+'\nfidelity: DRAFT\nghost_node_id: '+g.id+'\n---\n\n# '+g.title+'\n\n> Backend curator unavailable — raw interview captured. Curate before graduating.\n\n## Interview Q&A\n\n'+qa;
+}
+
+function ctrCurate(g, questions, answers, name){
+  var content = document.getElementById('content');
+  content.innerHTML = '<div class="lc-page"><div class="loading"><div class="spinner"></div>Digital Brain is curating your contribution…</div></div>';
+  var qa = ctrBuildQA(questions, answers);
+  var sys = ctrSystemPrompt(g, name);
+  var user = 'Here are the interview questions and answers:\n\n'+qa+'\n\nPlease synthesize this into a knowledge entry.';
+  ctrCurateBackend(sys, user)
+    .then(function(md){ ctrRenderDraft(g, name, md || ctrRawDraft(g, name, qa)); })
+    .catch(function(){ ctrRenderDraft(g, name, ctrRawDraft(g, name, qa), true); });
+}
+
+function ctrRenderDraft(g, name, md, fallback){
+  window._ctrDraft = { ghostNodeId:g.id, contributorName:name, draft:md };
+  var h = '<div class="lc-page">';
+  h += '<div class="lc-page-hdr"><div><h2>Curated Draft — '+ctrEsc(g.title)+'</h2>'+
+       '<p>Contributor: '+ctrEsc(name)+' · Target layer: '+g.layer+'</p></div></div>';
+  if (fallback) h += '<div class="ctr-note">⚠ The backend curator was unreachable, so this shows your raw interview. You can still submit it for review, or edit it below.</div>';
+  h += '<div class="ctr-draft"><div class="md" id="ctr-draft-rendered">'+marked.parse(md)+'</div></div>';
+  h += '<textarea class="ctr-textarea" id="ctr-draft-edit" rows="16" style="display:none;">'+ctrEsc(md)+'</textarea>';
+  h += '<div class="ctr-btn-row" style="margin-top:12px;">'+
+    '<button class="ctr-primary" onclick="ctrSubmit()">Looks Good — Submit for Review</button>'+
+    '<button class="ctr-outline" onclick="ctrToggleEdit()">Edit</button>'+
+    '<button class="ctr-gray" onclick="contribStartInterview(\''+g.id+'\')">Redo Interview</button>'+
+    '</div></div>';
+  document.getElementById('content').innerHTML = h;
+  document.getElementById('cwrap').scrollTop = 0;
+}
+function ctrToggleEdit(){
+  var ta = document.getElementById('ctr-draft-edit'), rn = document.getElementById('ctr-draft-rendered');
+  if (ta.style.display === 'none'){ ta.style.display='block'; rn.style.display='none'; }
+  else { window._ctrDraft.draft = ta.value; rn.innerHTML = marked.parse(ta.value); ta.style.display='none'; rn.style.display='block'; }
+}
+
+function ctrSubmit(){
+  var d = window._ctrDraft; if (!d) return;
+  var ta = document.getElementById('ctr-draft-edit'); if (ta && ta.style.display !== 'none') d.draft = ta.value;
+  var g = ctrFindGhost(d.ghostNodeId) || {layer:'MEM'};
+  var ts = new Date().toISOString();
+  var rec = { ghostNodeId:d.ghostNodeId, contributorName:d.contributorName, submittedAt:ts, draft:d.draft, status:'pending_review' };
+  sessionStorage.setItem('contribution_'+d.ghostNodeId+'_'+Date.now(), JSON.stringify(rec));
+  sessionStorage.removeItem('contribution_draft_'+d.ghostNodeId);
+  ctrRecountPending();
+  document.getElementById('content').innerHTML =
+    '<div class="lc-page"><div class="ctr-success">✓ Contribution submitted for '+CTR_REVIEWER+'\'s review. '+
+    'It will be added to the MEM layer and graduated to '+g.layer+' after approval.</div>'+
+    '<div class="ctr-btn-row" style="margin-top:16px;"><button class="ctr-outline" onclick="showContribute()">Back to Contribute</button>'+
+    '<button class="ctr-gray" onclick="ctrShowReview()">Review Pending ('+ctrRecountPending()+')</button></div></div>';
+}
+
+// ── Review panel ──
+function ctrShowReview(){
+  setActive('contribute');
+  setBc('Contribute — Review');
+  document.getElementById('cwrap').scrollTop = 0;
+  var pending = ctrPendingList().filter(function(c){ return c.status === 'pending_review'; });
+  var h = '<div class="lc-page"><button class="ctr-gray" onclick="showContribute()">← Back</button>';
+  h += '<div class="lc-page-hdr" style="margin-top:12px"><div><h2>Review Contributions</h2>'+
+       '<p>Pending SME contributions awaiting '+CTR_REVIEWER+'\'s approval</p></div></div>';
+  if (!pending.length){ h += '<div class="ctr-note">No contributions pending review.</div></div>'; document.getElementById('content').innerHTML=h; return; }
+  pending.forEach(function(c){
+    var g = ctrFindGhost(c.ghostNodeId) || {title:c.ghostNodeId, layer:'MEM'};
+    h += '<div class="ctr-draft">'+
+      '<div class="ctr-badges"><span class="ctr-pill" style="background:'+ctrLayerColor(g.layer)+'22;color:'+ctrLayerColor(g.layer)+';">'+g.layer+'</span>'+
+        '<span class="ctr-pill" style="background:#E24B4A22;color:#E24B4A;">PENDING</span></div>'+
+      '<h4 style="font-size:15px;font-weight:700;color:var(--text);margin:8px 0 4px;">'+ctrEsc(g.title)+' <span style="font-size:12px;color:var(--muted);font-weight:400;">('+ctrEsc(c.ghostNodeId)+')</span></h4>'+
+      '<div class="ctr-meta">'+ctrEsc(c.contributorName)+' · '+ctrEsc((c.submittedAt||'').slice(0,10))+'</div>'+
+      '<div class="md" style="margin:10px 0;border-top:1px solid var(--border);padding-top:10px;">'+marked.parse(c.draft||'')+'</div>'+
+      '<div class="ctr-btn-row">'+
+        '<button class="ctr-primary" style="background:#1baf7a;" onclick="ctrApprove(\''+c._key+'\')">Approve</button>'+
+        '<button class="ctr-outline" style="color:#eda100;border-color:#eda100;" onclick="ctrRequestChanges(\''+c._key+'\')">Request Changes</button>'+
+        '<button class="ctr-outline" style="color:#E24B4A;border-color:#E24B4A;" onclick="ctrReject(\''+c._key+'\')">Reject</button>'+
+      '</div>'+
+      '<div id="fb-'+c._key+'"></div>'+
+      '</div>';
+  });
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+}
+function ctrApprove(key){
+  var rec; try{ rec = JSON.parse(sessionStorage.getItem(key)); }catch(e){ return; }
+  rec.status = 'approved'; rec.approvedAt = new Date().toISOString();
+  sessionStorage.setItem(key, JSON.stringify(rec));
+  ctrRecountPending();
+  var g = ctrFindGhost(rec.ghostNodeId) || {};
+  alert('Approved. In a real deployment this would commit to knowledge/MEM/contributions/'+rec.ghostNodeId.toLowerCase()+'-'+ctrToday()+'.md and update ghost-nodes.md status to IN-FLIGHT.');
+  ctrShowReview();
+}
+function ctrRequestChanges(key){
+  var box = document.getElementById('fb-'+key);
+  if (!box) return;
+  box.innerHTML = '<label class="ctr-field-label">Feedback for contributor</label>'+
+    '<textarea class="ctr-textarea" id="fbtext-'+key+'" rows="3" placeholder="What needs to change?"></textarea>'+
+    '<div class="ctr-btn-row" style="margin-top:8px;"><button class="ctr-outline" onclick="ctrSaveFeedback(\''+key+'\')">Save Feedback</button></div>';
+}
+function ctrSaveFeedback(key){
+  var t = (document.getElementById('fbtext-'+key)||{}).value || '';
+  var rec; try{ rec = JSON.parse(sessionStorage.getItem(key)); }catch(e){ return; }
+  rec.feedback = t; rec.status = 'changes_requested';
+  sessionStorage.setItem(key, JSON.stringify(rec));
+  ctrRecountPending();
+  ctrShowReview();
+}
+function ctrReject(key){
+  sessionStorage.removeItem(key);
+  ctrRecountPending();
+  ctrShowReview();
+}
+
+// ── Templates ──
+function ctrBrowseTemplates(){
+  setActive('contribute');
+  setBc('Contribute — Templates');
+  document.getElementById('cwrap').scrollTop = 0;
+  var h = '<div class="lc-page"><button class="ctr-gray" onclick="showContribute()">← Back</button>';
+  h += '<div class="lc-page-hdr" style="margin-top:12px"><div><h2>Contribution Templates</h2>'+
+       '<p>Structured forms for well-defined knowledge. Submitted through the same curation engine as the guided interview.</p></div></div>';
+  h += '<div class="ctr-cards">';
+  h += CTR_TEMPLATES.map(function(t){
+    var lc = ctrLayerColor(t.layer);
+    return '<div class="ctr-card"><div class="ctr-badges"><span class="ctr-pill" style="background:'+lc+'22;color:'+lc+';">'+t.layer+'</span></div>'+
+      '<h4>'+ctrEsc(t.name)+'</h4><p>'+t.fields.length+' fields</p>'+
+      '<div class="ctr-btn-row"><button class="ctr-primary" onclick="ctrTemplateForm(\''+t.id+'\')">Open →</button></div></div>';
+  }).join('');
+  h += '</div></div>';
+  document.getElementById('content').innerHTML = h;
+}
+function ctrTemplateForm(tid){
+  var t = null; CTR_TEMPLATES.forEach(function(x){ if(x.id===tid) t=x; });
+  if (!t) return;
+  var name = sessionStorage.getItem('contributor_name') || '';
+  var h = '<div class="lc-page"><button class="ctr-gray" onclick="ctrBrowseTemplates()">← Back</button>';
+  h += '<div class="lc-page-hdr" style="margin-top:12px"><div><h2>Template — '+ctrEsc(t.name)+'</h2><p>Fill in what you know. Leave blank what you do not.</p></div></div>';
+  h += '<label class="ctr-field-label">Your name <span style="color:#E24B4A">*</span></label>'+
+       '<input class="ctr-input" id="ctr-tpl-name" placeholder="Your name" value="'+ctrEsc(name)+'">';
+  t.fields.forEach(function(f){
+    h += '<label class="ctr-field-label">'+ctrEsc(f.label)+'</label>';
+    if (f.type === 'textarea') h += '<textarea class="ctr-textarea" data-k="'+f.k+'" rows="3"></textarea>';
+    else if (f.type === 'select') h += '<select class="ctr-select" data-k="'+f.k+'">'+f.options.map(function(o){return '<option>'+ctrEsc(o)+'</option>';}).join('')+'</select>';
+    else h += '<input class="ctr-input" data-k="'+f.k+'">';
+  });
+  h += '<div class="ctr-btn-row" style="margin-top:16px;"><button class="ctr-primary" onclick="ctrSubmitTemplate(\''+t.id+'\')">Submit →</button></div>';
+  h += '<div id="ctr-tpl-note" class="ctr-meta"></div></div>';
+  document.getElementById('content').innerHTML = h;
+  document.getElementById('cwrap').scrollTop = 0;
+}
+function ctrSubmitTemplate(tid){
+  var t = null; CTR_TEMPLATES.forEach(function(x){ if(x.id===tid) t=x; });
+  if (!t) return;
+  var name = (document.getElementById('ctr-tpl-name')||{}).value || '';
+  if (!name.trim()){ var el=document.getElementById('ctr-tpl-note'); if(el){el.style.color='#E24B4A';el.textContent='Please enter your name.';} return; }
+  sessionStorage.setItem('contributor_name', name);
+  var vals = {};
+  document.querySelectorAll('#content [data-k]').forEach(function(el){ vals[el.dataset.k] = el.value; });
+  var body = t.fields.map(function(f){ return '**'+f.label+'**\n'+((vals[f.k]||'').trim() || '(not provided)'); }).join('\n\n');
+  // pseudo-ghost for a template submission
+  var g = { id:'TEMPLATE-'+t.id.toUpperCase(), layer:t.layer, title:t.name+' contribution' };
+  var sys = 'You are the Mivan Digital Brain knowledge curator. A domain expert submitted a "'+t.name+'" template. Synthesize it into a knowledge entry with YAML frontmatter (layer: '+t.layer+', node_type: '+t.node_type+', domain: claims, source: sme-interview, last_synced: '+ctrToday()+', validated_by: '+name+', fidelity: DRAFT), clear headings, factual content only, VALIDATE: flags where uncertain, and a Summary at the top.';
+  var user = 'Template: '+t.name+'\n\n'+body+'\n\nPlease synthesize this into a knowledge entry.';
+  var content = document.getElementById('content');
+  content.innerHTML = '<div class="lc-page"><div class="loading"><div class="spinner"></div>Digital Brain is curating your contribution…</div></div>';
+  ctrCurateBackend(sys, user)
+    .then(function(md){ ctrRenderDraft(g, name, md || ctrRawDraft(g, name, body)); })
+    .catch(function(){ ctrRenderDraft(g, name, ctrRawDraft(g, name, body), true); });
+}
+
+contribUpdateBadge();
+
 
 // ── README PANEL ──
 function rdCopy(btn) {
