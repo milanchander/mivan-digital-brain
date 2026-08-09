@@ -17,7 +17,7 @@ owns:
 implements: []
 links_back:
   - L1-enterprise/mivan-enterprise-context.md
-  - L2-domain/health-payer-domain.md
+  - L2-domain/commercial-claims.md
 links_forward:
   - L4-application/micps-application-knowledge.md
 ghost_nodes:

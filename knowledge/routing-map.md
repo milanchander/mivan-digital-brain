@@ -35,7 +35,7 @@ fidelity: DRAFT
 
 COBOL Developer:
 1. knowledge/L1-enterprise/mivan-enterprise-context.md
-2. knowledge/L2-domain/health-payer-domain.md
+2. knowledge/L2-domain/commercial-claims.md
    → sections: claims-lifecycle, adjudication-engine
 3. knowledge/L3-systems/mivan-system-landscape.md
    → sections: micps-architecture, cics, vsam, db2
@@ -45,7 +45,7 @@ Max context: 120KB
 
 Java Developer:
 1. knowledge/L1-enterprise/mivan-enterprise-context.md
-2. knowledge/L2-domain/health-payer-domain.md
+2. knowledge/L2-domain/commercial-claims.md
    → sections: claims-lifecycle, adjudication-engine, pricing
 3. knowledge/L3-systems/mivan-system-landscape.md
    → sections: modernization-architecture, coexistence-pattern
@@ -54,7 +54,7 @@ Java Developer:
 Max context: 120KB
 
 QE Engineer:
-1. knowledge/L2-domain/health-payer-domain.md
+1. knowledge/L2-domain/commercial-claims.md
    → sections: claims-lifecycle, denial-codes
 2. knowledge/L3-systems/mivan-system-landscape.md
    → sections: batch-feed-architecture, feed-failure-handling
@@ -71,14 +71,14 @@ Max context: 150KB
 
 Business Analyst:
 1. knowledge/L1-enterprise/mivan-enterprise-context.md
-2. knowledge/L2-domain/health-payer-domain.md (full)
+2. knowledge/L2-domain/commercial-claims.md (full)
 3. knowledge/L3-systems/mivan-system-landscape.md
    → sections: micps-functional-modules
 Max context: 100KB
 
 Non-Health (Complete Beginner):
 1. knowledge/L2-domain/health-primer.md [GHOST]
-2. knowledge/L2-domain/health-payer-domain.md
+2. knowledge/L2-domain/commercial-claims.md
    → sections: claims-lifecycle
 3. knowledge/L1-enterprise/mivan-enterprise-context.md
    → sections: organization-overview, transformation-mandate

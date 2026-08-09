@@ -9,7 +9,7 @@ fidelity: DRAFT
 ghost_node_id: PROVIDER-DATA-LIFECYCLE
 links_back:
   - knowledge/L1-enterprise/mivan-enterprise-context.md
-  - knowledge/L2-domain/health-payer-domain.md
+  - knowledge/L2-domain/commercial-claims.md
 links_forward:
   - knowledge/L3-systems/mivan-system-landscape.md
   - knowledge/L4-application/micps-application-knowledge.md

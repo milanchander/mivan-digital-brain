@@ -10,7 +10,7 @@ ghost_node_id: HEALTH-PRIMER
 links_back:
   - knowledge/L1-enterprise/mivan-enterprise-context.md
 links_forward:
-  - knowledge/L2-domain/health-payer-domain.md
+  - knowledge/L2-domain/commercial-claims.md
   - knowledge/L2-domain/medicare-advantage.md
   - knowledge/L2-domain/medicaid-managed-care.md
   - knowledge/L2-domain/provider-data-lifecycle.md
@@ -1028,7 +1028,7 @@ For any story touching claims processing:
 
 | Topic | Document |
 |---|---|
-| Detailed claims lifecycle in MiCPS | knowledge/L2-domain/health-payer-domain.md |
+| Detailed claims lifecycle in MiCPS | knowledge/L2-domain/commercial-claims.md |
 | Medicare Advantage specifics | knowledge/L2-domain/medicare-advantage.md |
 | Medicaid specifics | knowledge/L2-domain/medicaid-managed-care.md |
 | Provider data and credentialing | knowledge/L2-domain/provider-data-lifecycle.md |

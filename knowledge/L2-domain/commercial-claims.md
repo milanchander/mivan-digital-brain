@@ -1,21 +1,103 @@
 ---
 layer: L2
 node_type: domain
-domain: claims
-app_id: micps
-last_validated: 2026-08-07
-validated_by: "Digital Brain — pending SME review"
-fidelity: PARTIAL
-source_count_declared: 12
-source_count_captured: 10
+domain: commercial-claims
+source: web-research + manual
+last_synced: 2026-08-08
+validated_by: Milan Chander
+fidelity: HIGH
+ghost_node_id: null
+links_back:
+  - knowledge/L1-enterprise/mivan-enterprise-context.md
+links_forward:
+  - knowledge/L3-systems/mivan-system-landscape.md
+  - knowledge/L4-application/micps-application-knowledge.md
+  - knowledge/L5-business-rules/claims-business-rules.md
+audience: all
+lob: commercial
 ---
 
-# Health Payer Domain Knowledge — Commercial Claims Processing
+# Commercial Claims — Domain Knowledge
+## Mivan Health Plan — Commercial Line of Business
 
 > **Validation flag legend used in this document:**
 > `> ⚠️ VALIDATE:` marks a statement that requires confirmation against Mivan-specific policy, system behavior, or contractual terms before treating as authoritative.
 
 ---
+
+## 0. Commercial LOB Overview
+
+### What Is Commercial Health Insurance
+
+Commercial health insurance covers individuals and employer groups outside of government programs (Medicare and Medicaid). It is the largest line of business for most national health plans including Mivan.
+
+Mivan's commercial book covers:
+- Fully-insured employer groups — Mivan bears the financial risk; employer pays premium
+- ASO (Administrative Services Only) — employer self-funds the risk; Mivan administers claims for a fee
+- Individual marketplace — ACA exchange plans; CMS regulates benefit design and pricing
+- COBRA continuation coverage — former employees continuing group coverage
+
+### Commercial vs Government Programs
+
+| Dimension | Commercial | Medicare Advantage | Medicaid |
+|---|---|---|---|
+| Who pays Mivan | Employer/member premiums | CMS capitation | State capitation |
+| Who regulates | State insurance dept | CMS — federal | State + CMS joint |
+| Benefit design | Plan designs by Mivan | CMS-mandated baseline | State benefit package |
+| Timely filing | State law / contract | CMS: 365 days | State contract |
+| Prior auth | Plan policy | CMS limits what plans can require | State-directed |
+| COB | Birthday rule, active employment | Medicare Secondary Payer rules | Payer of last resort |
+| Encounter data | Not required | Required — CMS EDPS | Required — state MMIS |
+| Overpayment | Contract-driven | CMS 60-day rule | State look-back limits |
+
+### Fully-Insured vs ASO
+
+**Fully-insured:**
+- Mivan collects premiums and pays claims
+- Mivan bears the financial risk of high claims
+- Subject to state insurance regulations
+- Premium taxes apply
+- State prompt pay laws apply
+- ACA MLR (Medical Loss Ratio) requirements apply
+
+**ASO (Administrative Services Only):**
+- Employer funds claims from their own assets
+- Mivan processes claims and administers benefits for a fee
+- Governed by ERISA — federal law preempts state insurance laws
+- No state prompt pay law applies to ERISA plans
+- No premium tax
+- Different COB rules — ERISA plans can override some state COB rules
+- Mivan still applies plan design and processes claims identically
+- Claims examiners may not know if a claim is fully-insured or ASO
+
+**Developer impact:**
+ASO vs fully-insured status affects:
+- Applicable regulatory requirements in L5
+- Prompt pay timing requirements
+- COB method applicability
+- Overpayment recovery look-back limits
+Always check plan type before assuming a regulatory rule applies.
+
+### ACA Individual Marketplace
+
+ACA marketplace plans (exchange plans) have additional requirements:
+- Essential Health Benefits — 10 categories must be covered (ambulatory, emergency, hospitalization, maternity, mental health, prescription drugs, rehabilitative, laboratory, preventive, pediatric)
+- Preventive services — covered at 100% before deductible (USPSTF A/B recommendations)
+- Annual out-of-pocket maximum — ACA sets annual limits ($9,450 individual / $18,900 family for 2026)
+- No lifetime or annual dollar limits on essential health benefits
+- Cost-sharing reduction (CSR) plans — enhanced benefits for low-income members
+- Metal tiers — Bronze, Silver, Gold, Platinum based on actuarial value
+
+**Developer impact:**
+ACA preventive service coverage at 100% before deductible is a specific coding requirement in the adjudication engine. Claims for USPSTF A/B-rated preventive services must bypass deductible application. This is a common source of incorrect cost-share calculations.
+
+### COBRA Continuation Coverage
+
+- Former employees may continue group coverage for up to 18-36 months by paying full premium
+- Same benefits as active employees
+- Mivan processes COBRA claims identically to active employee claims
+- Eligibility flag in MEMBER-IDX indicates COBRA status
+- COBRA termination is a common source of retroactive eligibility changes
 
 ## 1. Claims Lifecycle — End to End
 
@@ -760,3 +842,44 @@ Providers have the right to dispute overpayment demands. Commercial payer disput
 | PMPM | Per Member Per Month — capitation payment unit |
 | TOB | Type of Bill — 3-digit code on 837I identifying facility and claim frequency |
 | POS | Place of Service — 2-digit code on 837P |
+
+## Commercial-Specific Complexity Areas
+
+### Grandfathered Plans
+
+Plans in existence before March 23, 2010 (ACA enactment) may be grandfathered and exempt from certain ACA requirements:
+- Do not need to cover preventive services at 100% before deductible
+- Different cost-sharing rules may apply
+- MiCPS has a grandfathered plan indicator in the benefit parameters table
+- VALIDATE: How many Mivan commercial plans are still grandfathered as of 2026?
+
+### Self-Funded Plan Design Variations
+
+ASO employers have significant flexibility in plan design. Common variations that affect MiCPS processing:
+- Carve-outs — pharmacy, behavioral health, or dental carved out to separate vendors
+- Embedded vs aggregate deductibles — family deductible structure differs
+- Reference-based pricing — allowable set as percentage of Medicare rather than contracted rate
+- Direct contracting — employer contracts directly with specific providers
+- Custom accumulator rules — some employers exclude certain services from deductible
+
+### State Variation in Commercial
+
+Unlike ERISA self-funded plans, fully-insured commercial plans are subject to state mandates:
+- Mandated benefit requirements by state (e.g. infertility coverage, chiropractic, autism treatment)
+- State-specific timely filing limits
+- State-specific COB rules
+- State prompt pay interest rates
+- State surprise billing protections
+
+MiCPS handles state variation through the STATE_CONTRACT table and state-specific business rules in MBUSNED0.
+VALIDATE: How are state mandates implemented in MiCPS — plan-level configuration or state-code logic in COBOL?
+
+### Commercial COB Specifics
+
+Commercial COB follows NAIC model rules:
+- Birthday rule for dependents
+- Active employment rule — active employer coverage is primary over retirement coverage
+- Gender rule — still present in some legacy MiCPS plan configurations (see L4 COB module)
+- COBRA is always secondary to active coverage
+
+Unlike Medicare (MSP federal rules) and Medicaid (payer of last resort), commercial COB is governed by state law and NAIC guidelines — giving plans more flexibility but also more variation.

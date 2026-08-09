@@ -12,7 +12,7 @@ owns:
   - Java developer 5-day onboarding curriculum
 implements: []
 links_back:
-  - L2-domain/health-payer-domain.md
+  - L2-domain/commercial-claims.md
   - L3-systems/mivan-system-landscape.md
   - L4-application/micps-application-knowledge.md
   - L5-business-rules/claims-business-rules.md

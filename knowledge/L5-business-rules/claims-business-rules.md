@@ -18,7 +18,7 @@ owns:
   - Near-duplicate detection rules
 implements: []
 links_back:
-  - L2-domain/health-payer-domain.md
+  - L2-domain/commercial-claims.md
   - L4-application/micps-application-knowledge.md
 links_forward: []
 ghost_nodes:
