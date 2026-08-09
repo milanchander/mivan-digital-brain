@@ -5778,7 +5778,17 @@ You also know the complete MICPS-4471 supporting artifacts:
 - DuplicateClaimController: POST /api/v1/claims/evaluate (returns EvaluationResult) and POST /api/v1/claims/seed (saves ClaimPayment via repository for demo seeding).
 - Java models: ClaimPayment (JPA entity, all 12 CLMPAYRC fields), DuplicateCheckRequest (record DTO with toEntity()), DuplicateCheckResponse (record DTO with from(EvaluationResult) factory and human-readable message).
 - Aurora PostgreSQL schema-postgres.sql: mirrors DB2 DDL exactly -- mivancps.claim_payment and mivancps.near_dup_queue with same constraints and indexes. Applied via Flyway in prod.
-- application.yml: H2 dev profile (MODE=PostgreSQL, MIVANCPS schema), H2 console at /h2-console, Swagger UI at /swagger-ui.html, Actuator exposing health/info/metrics.`;
+- application.yml: H2 dev profile (MODE=PostgreSQL, MIVANCPS schema), H2 console at /h2-console, Swagger UI at /swagger-ui.html, Actuator exposing health/info/metrics.
+
+You have knowledge of three new program trees built for the Mivan Digital Brain:
+
+1. MAENCDR0 — Medicare Advantage encounter data driver. Subprograms: MAELGCK0, MAHCCVL0, MARAFCL0, MAENCBL0, MAEDPSUB0. Java equivalent: EncounterDataOrchestrator in src/java/ma/.
+
+2. MMCOCLDR0 — Medicaid claim processing driver. Subprograms: MMCOELV0, MMCOTPL0, MMCOLRP0, MMCOENC0, MMCOSSUB0. Key rule: 42 CFR 433.139 Medicaid payer of last resort. Java equivalent: MedicaidClaimOrchestrator in src/java/medicaid/.
+
+3. MPRVVLDR0 — Provider validation driver. Subprograms: MPRVNPI0, MPRVCRD0, MPRVEXC0, MPRVNET0, MPRVSANL0. MPRVEXC0 is critical — federal law prohibits payment to excluded providers. Java equivalent: ProviderValidationOrchestrator in src/java/provider/.
+
+You can explain any program, its paragraphs, DB2 tables, VSAM files, Java equivalent, and how it fits into the Mivan modernization wave sequence.`;
 
 const KNOWLEDGE_BASE = {
   l1: document.getElementById('md-l1').textContent,
@@ -5806,6 +5816,93 @@ const KNOWLEDGE_BASE = {
   training_agenda:     document.getElementById('md-training-agenda').textContent,
   training_java:       document.getElementById('md-training-java').textContent,
       qe_track:            document.getElementById('md-qe-track').textContent,
+  'ma_programs': `
+# Medicare Advantage Program Tree
+
+## Driver: MAENCDR0
+Orchestrates full MA encounter data processing.
+Reads adjudicated MA claims, validates HCC
+diagnoses, calculates RAF scores, builds
+encounter records, submits to CMS EDPS.
+
+Program tree:
+- MAELGCK0: MA eligibility verification
+- MAHCCVL0: HCC diagnosis validation
+- MARAFCL0: RAF score calculation
+- MAENCBL0: Encounter record builder
+- MAEDPSUB0: CMS EDPS submission
+
+Key DB2 tables: MA_ENROLLMENT, HCC_CODE_MAP,
+HCC_VALIDATION_RESULT, MA_RAF_SCORE
+
+Java equivalent: EncounterDataOrchestrator
+Location: src/java/ma/
+
+JCL: MAENCJB0 — 5-step nightly job stream
+`,
+
+  'medicaid_programs': `
+# Medicaid Program Tree
+
+## Driver: MMCOCLDR0
+Orchestrates Medicaid claim processing.
+Verifies eligibility, identifies TPL payers,
+applies payer-of-last-resort rules,
+builds encounter records, submits to state MMIS.
+
+Program tree:
+- MMCOELV0: Medicaid eligibility verification
+- MMCOTPL0: Third party liability identification
+- MMCOLRP0: Payer of last resort calculation
+- MMCOENC0: Encounter record builder
+- MMCOSSUB0: State MMIS submission
+
+Key rule: 42 CFR 433.139 — Medicaid is always
+payer of last resort. Federal law, no exceptions.
+
+Key DB2 tables: MEDICAID_ELIGIBILITY,
+TPL_PAYER_FILE, TPL_RESULT, MEDICAID_LIABILITY,
+STATE_CONTRACT
+
+Java equivalent: MedicaidClaimOrchestrator
+Location: src/java/medicaid/
+
+JCL: MMCOJB00 — 5-step nightly job stream
+`,
+
+  'provider_programs': `
+# Provider Data Program Tree
+
+## Driver: MPRVVLDR0
+Orchestrates complete provider validation
+at claim intake. Validates NPI, checks
+credentialing, checks OIG/SAM/state exclusions,
+verifies network participation and tier.
+
+Program tree:
+- MPRVNPI0: NPI lookup (PROV-MSTR VSAM + DB2)
+- MPRVCRD0: Credentialing status check
+- MPRVEXC0: OIG/SAM/state exclusion check
+- MPRVNET0: Network and tier verification
+- MPRVSANL0: Sanction audit logging
+
+CRITICAL: MPRVEXC0 is mandatory — federal law
+prohibits payment to OIG/SAM excluded providers.
+Monthly OIG LEIE update must be applied.
+
+Key VSAM: PROV-MSTR (KSDS) — primary provider
+reference, updated nightly from MiProvider feed
+
+Key DB2 tables: PROVIDER_MASTER,
+PROVIDER_CREDENTIAL, OIG_EXCLUSION_LIST,
+SAM_EXCLUSION_LIST, NETWORK_CONTRACT,
+PROVIDER_SANCTION_LOG
+
+Java equivalent: ProviderValidationOrchestrator
+Location: src/java/provider/
+
+JCL: MPRVJB00 — 5-step job, called from MEDITV00
+`,
 };
 
 function pageKey(page) {
@@ -7275,7 +7372,20 @@ function initKnowledgeGraph() {
     {id:'MEM',      label:'MEM Layer',            layer:'MEM',   color:'#888888',r:14,ghost:false,desc:'Schema-exempt memory layer. 3 entries: parallel build decision, AWS deployment, SME sessions.',nav:null},
     {id:'Skills',   label:'7 Skills',             layer:'Skills',color:'#4a3aa7',r:20,ghost:false,desc:'COBOL Feature Builder, Migrator, Test Gen, Reviewer. Java Feature Builder, Test Gen, Reviewer.',nav:null},
     {id:'MICPS4471',label:'MICPS-4471',           layer:'Live',  color:'#4a3aa7',r:18,ghost:false,desc:'Live parallel build. MOVPDUP1 COBOL + DuplicateClaimDetectionService Java. 13 tests passing.',nav:'micps4471'},
-    {id:'Ghosts',   label:'14 Gaps',              layer:'Ghost', color:'#888888',r:14,ghost:true, desc:'Ghost node registry — 14 known knowledge gaps. 6 critical, 7 high, 1 medium remaining.',nav:null}
+    {id:'Ghosts',   label:'14 Gaps',              layer:'Ghost', color:'#888888',r:14,ghost:true, desc:'Ghost node registry — 14 known knowledge gaps. 6 critical, 7 high, 1 medium remaining.',nav:null},
+    {id:'MA-Driver', label:'MAENCDR0', layer:'MA', color:'#2a78d6', r:16, ghost:false, desc:'MA Encounter Data Driver — orchestrates HCC validation, RAF calculation, EDPS submission. 5 subprograms.', nav:'l2'},
+    {id:'MA-HCC', label:'MAHCCVL0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'HCC diagnosis validation — maps ICD-10 to CMS HCC model. Called by MAENCDR0.', nav:null},
+    {id:'MA-RAF', label:'MARAFCL0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'RAF score calculator — demographic factor plus HCC total. Drives CMS capitation.', nav:null},
+    {id:'MA-EDPS', label:'MAEDPSUB0', layer:'MA', color:'#2a78d6', r:12, ghost:false, desc:'CMS EDPS submission — sends encounter data to CMS for risk adjustment.', nav:null},
+    {id:'MC-Driver', label:'MMCOCLDR0', layer:'Medicaid', color:'#1baf7a', r:16, ghost:false, desc:'Medicaid Claim Driver — eligibility, TPL, payer of last resort, state MMIS submission. 5 subprograms.', nav:'l2'},
+    {id:'MC-TPL', label:'MMCOTPL0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Third party liability — identifies other payers. Medicaid is always payer of last resort per 42 CFR 433.139.', nav:null},
+    {id:'MC-LRP', label:'MMCOLRP0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'Payer of last resort — calculates Medicaid liability after all TPL payers have paid.', nav:null},
+    {id:'MC-State', label:'MMCOSSUB0', layer:'Medicaid', color:'#1baf7a', r:12, ghost:false, desc:'State MMIS submission — submits encounter data to state Medicaid system per contract.', nav:null},
+    {id:'PRV-Driver', label:'MPRVVLDR0', layer:'Provider', color:'#eda100', r:16, ghost:false, desc:'Provider Validation Driver — NPI lookup, credentialing, exclusion check, network verify. 5 subprograms.', nav:'l2'},
+    {id:'PRV-NPI', label:'MPRVNPI0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'NPI lookup — reads PROV-MSTR VSAM first, DB2 fallback. Returns network status and fee schedule pointer.', nav:null},
+    {id:'PRV-EXCL', label:'MPRVEXC0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Exclusion check — checks OIG LEIE, SAM, state lists. CRITICAL: federal law prohibits payment to excluded providers.', nav:null},
+    {id:'PRV-NET', label:'MPRVNET0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Network verification — returns INN/OON status, tier assignment, fee schedule ID.', nav:null},
+    {id:'PRV-CRED', label:'MPRVCRD0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Credentialing check — validates license, DEA, malpractice, board cert, CAQH status.', nav:null}
   ];
 
   var edgesData = [
@@ -7303,7 +7413,22 @@ function initKnowledgeGraph() {
     {source:'MEM',   target:'L3',       type:'graduation_target'},
     {source:'Ghosts',target:'L4c',      type:'tracks'},
     {source:'Ghosts',target:'L4d',      type:'tracks'},
-    {source:'Ghosts',target:'L4f',      type:'tracks'}
+    {source:'Ghosts',target:'L4f',      type:'tracks'},
+    {source:'L2b', target:'MA-Driver', type:'implements'},
+    {source:'MA-Driver', target:'MA-HCC', type:'containment'},
+    {source:'MA-Driver', target:'MA-RAF', type:'containment'},
+    {source:'MA-Driver', target:'MA-EDPS', type:'containment'},
+    {source:'L2c', target:'MC-Driver', type:'implements'},
+    {source:'MC-Driver', target:'MC-TPL', type:'containment'},
+    {source:'MC-Driver', target:'MC-LRP', type:'containment'},
+    {source:'MC-Driver', target:'MC-State', type:'containment'},
+    {source:'L2d', target:'PRV-Driver', type:'implements'},
+    {source:'PRV-Driver', target:'PRV-NPI', type:'containment'},
+    {source:'PRV-Driver', target:'PRV-EXCL', type:'containment'},
+    {source:'PRV-Driver', target:'PRV-NET', type:'containment'},
+    {source:'PRV-Driver', target:'PRV-CRED', type:'containment'},
+    {source:'L4a', target:'PRV-Driver', type:'links_forward'},
+    {source:'MICPS4471', target:'PRV-Driver', type:'lateral'}
   ];
 
   // Clone to prevent D3 mutation on re-init
@@ -7497,6 +7622,30 @@ var blastData = {
     direct:   ['MMEMLD00 load job','MEMBER-IDX refresh','MRETROE0 retro elig'],
     indirect: ['All eligibility checks','All accumulator lookups','COB flag updates','Newborn auto-coverage'],
     ghost:    []
+  },
+  'MPRVVLDR0': {
+    wave: 'Wave 2',
+    direct: ['MPRVNPI0','MPRVCRD0','MPRVEXC0','MPRVNET0','MPRVSANL0','PROV-MSTR VSAM','PROVIDER_MASTER DB2'],
+    indirect: ['All claim editing','All adjudication pricing','MFEELKP0 fee lookup','Provider portal display','MiProvider nightly feed'],
+    ghost: ['PROV-MSTR key structure — composite key partially undocumented']
+  },
+  'MAENCDR0': {
+    wave: 'Wave — MA separate system',
+    direct: ['MAELGCK0','MAHCCVL0','MARAFCL0','MAENCBL0','MAEDPSUB0','MA_ENROLLMENT DB2','HCC_CODE_MAP DB2'],
+    indirect: ['CMS capitation payments','RADV audit exposure','MA Star ratings','RAF score accuracy','EDPS submission to CMS'],
+    ghost: []
+  },
+  'MMCOCLDR0': {
+    wave: 'Wave — Medicaid separate system',
+    direct: ['MMCOELV0','MMCOTPL0','MMCOLRP0','MMCOENC0','MMCOSSUB0','MEDICAID_ELIGIBILITY DB2','TPL_PAYER_FILE DB2'],
+    indirect: ['State MMIS submission','Medicaid capitation accuracy','TPL recovery amounts','Federal compliance — 42 CFR 433.139'],
+    ghost: []
+  },
+  'MPRVEXC0': {
+    wave: 'Wave 2',
+    direct: ['OIG_EXCLUSION_LIST DB2','SAM_EXCLUSION_LIST DB2','STATE_EXCLUSION_LIST DB2','PROVIDER_SANCTION_LOG DB2'],
+    indirect: ['All claim payments to providers','Federal penalty exposure','Monthly OIG update dependency','State Medicaid compliance'],
+    ghost: ['PROVIDER-SANCTIONS — OIG/SAM checking process in MiCPS not fully documented']
   }
 };
 
@@ -7669,9 +7818,12 @@ var ghostData = [
   {id:'COB-PAYER-AGREEMENTS',      layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 4 migration', desc:'~40 payers handled by hardcoded COBOL EVALUATE — not in PAYER_COB_AGREE DB2 table'},
   {id:'AUTH-FILE-LAYOUT',          layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 2 migration', desc:'Mixed record types in AUTH-FILE KSDS — type discriminator in byte 1 undocumented'},
   {id:'FEE-SCHED-LAYOUT',          layer:'L4', severity:'critical', owner:'James Whitfield', status:'ghost',    blocks:'Wave 3 migration', desc:'FEE-SCHED KSDS key structure extended twice without schema update — silent pricing fallthrough risk'},
-  {id:'MEDICARE-ADVANTAGE-DOMAIN', layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'MA plan structure, HCC coding, RADV audits, encounter data'},
-  {id:'MEDICAID-DOMAIN',           layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'Medicaid managed care, capitation, state variation, LTSS, encounter data submission'},
-  {id:'PROVIDER-DATA-LIFECYCLE',   layer:'L2', severity:'high',     owner:'TBD',             status:'complete', blocks:'',                 desc:'Full provider enrollment and credentialing lifecycle'},
+  {id:'MEDICARE-ADVANTAGE-DOMAIN', layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'MA plan structure, HCC coding, RADV audits, encounter data'},
+  {id:'MEDICAID-DOMAIN',           layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid managed care, capitation, state variation, LTSS, encounter data submission'},
+  {id:'PROVIDER-DATA-LIFECYCLE',   layer:'L2', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Full provider enrollment and credentialing lifecycle'},
+  {id:'MA-PROGRAM-TREE',           layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicare Advantage program tree — MAENCDR0 driver and 5 subprograms built'},
+  {id:'MEDICAID-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid program tree — MMCOCLDR0 driver and 5 subprograms built'},
+  {id:'PROVIDER-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Provider validation program tree — MPRVVLDR0 driver and 5 subprograms built'},
   {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Prior authorization workflow, concurrent review, UM criteria sets'},
   {id:'L6-TASK-INTELLIGENCE',      layer:'L6', severity:'high',     owner:'QE team',         status:'ghost',    blocks:'',                 desc:'Defect patterns, incident history, sprint velocity — requires real Jira and ServiceNow data'},
   {id:'NCCI-TABLE-MANAGEMENT',     layer:'L4', severity:'high',     owner:'Senior edit analyst', status:'ghost', blocks:'',               desc:'How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented'},
