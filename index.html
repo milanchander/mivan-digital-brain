@@ -8042,7 +8042,7 @@ function showKnowledgeGraph() {
         '<button id="kg-btn-release" class="lc-art-btn" style="font-size:12px;padding:5px 13px;">▶ Release</button>' +
       '</div>' +
     '</div>' +
-    '<div id="kg-canvas" style="width:100%;height:580px;border:1px solid var(--border);border-radius:8px;overflow:hidden;"></div>' +
+    '<div id="kg-canvas" style="width:100%;height:700px;border:1px solid var(--border);border-radius:8px;overflow:hidden;"></div>' +
     '<div id="kg-tooltip" style="margin-top:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:none;"></div>' +
     '</div>';
 
@@ -8053,7 +8053,7 @@ function initKnowledgeGraph() {
   var container = document.getElementById('kg-canvas');
   if (!container || typeof d3 === 'undefined') return;
   var W = container.clientWidth || 800;
-  var H = 580;
+  var H = 700;
 
   var nodesData = [
     {id:'L1',       label:'L1 · Enterprise',layer:'L1',    color:'#2a78d6',r:26,ghost:false,desc:'Mivan org structure, transformation mandate, cloud footprint. Fidelity: HIGH.',nav:'l1'},
@@ -8156,18 +8156,23 @@ function initKnowledgeGraph() {
 
   // ── CLUSTERS (convex-hull grouping) ──
   var KG_CLUSTERS = [
-    {key:1, label:'Commercial LOB',  color:'#2a78d6', ids:['L2a','COM-Driver','MiCPS','MICPS4471']},
-    {key:2, label:'Government LOB',   color:'#1baf7a', ids:['L2b','L2c','MiFCT','MA-Driver','MA-HCC','MA-RAF','MA-EDPS','MC-Driver','MC-TPL','MC-LRP','MC-State']},
-    {key:3, label:'Shared Services',  color:'#888888', ids:['MiMember','MiProvider','L2d','PRV-Driver','PRV-NPI','PRV-EXCL','PRV-NET','PRV-CRED']},
-    {key:4, label:'Knowledge Layer',  color:'#8b5cf6', ids:['L1','L3','L4a','L4b','L4c','L4d','L4e','L4f','L4g','L5a','L5b','L6','L2e','MEM','Skills','Ghosts']}
+    {key:1, label:'Commercial LOB',  color:'#2a78d6', ids:['L2a','COM-Driver','L4a','L4b','L4c','L4d','L4e','L4f','L4g','MICPS4471','MiCPS']},
+    {key:2, label:'Government LOB',   color:'#1baf7a', ids:['L2b','L2c','MA-Driver','MC-Driver','MA-HCC','MA-RAF','MA-EDPS','MC-TPL','MC-LRP','MC-State','MiFCT']},
+    {key:3, label:'Shared Services',  color:'#888888', ids:['PRV-Driver','PRV-NPI','PRV-EXCL','PRV-NET','PRV-CRED','L2d','MEM','L2e','MiMember','MiProvider']},
+    {key:4, label:'Knowledge Layer',  color:'#8b5cf6', ids:['L1','L3','L5a','L5b','L6','Skills','Ghosts']}
   ];
   var KG_CL_OF = {};
   KG_CLUSTERS.forEach(function(c) { c.ids.forEach(function(id) { KG_CL_OF[id] = c.key; }); });
   var KG_CENTERS = {
-    1:{x:W*0.28,y:H*0.30}, 2:{x:W*0.72,y:H*0.30},
-    3:{x:W*0.28,y:H*0.72}, 4:{x:W*0.72,y:H*0.72}
+    1:{x:180,y:400}, 2:{x:580,y:220},
+    3:{x:180,y:650}, 4:{x:750,y:500}
   };
-  nodes.forEach(function(n) { n.cluster = KG_CL_OF[n.id] || 4; });
+  nodes.forEach(function(n) {
+    n.cluster = KG_CL_OF[n.id] || 4;
+    var c = KG_CENTERS[n.cluster];
+    n.x = c.x + (Math.random()-0.5)*100;   // cluster center ±50px jitter
+    n.y = c.y + (Math.random()-0.5)*100;
+  });
 
   var svg = d3.select('#kg-canvas')
     .append('svg')
@@ -8178,11 +8183,32 @@ function initKnowledgeGraph() {
   svg.append('defs').append('style')
     .text('@keyframes kg-ghost-pulse{0%,100%{opacity:.4}50%{opacity:1}}.kg-ghost-circle{animation:kg-ghost-pulse 2s ease-in-out infinite}');
 
+  // Cluster-aware repulsion: weaker within a cluster (-120), stronger across clusters (-300)
+  function clusterCharge() {
+    var ns;
+    function force(alpha) {
+      for (var i = 0; i < ns.length; i++) {
+        for (var j = i + 1; j < ns.length; j++) {
+          var a = ns[i], b = ns[j];
+          var dx = b.x - a.x, dy = b.y - a.y, d2 = dx*dx + dy*dy;
+          if (d2 === 0) { dx = (Math.random()-0.5); dy = (Math.random()-0.5); d2 = dx*dx + dy*dy || 1; }
+          var dist = Math.sqrt(d2);
+          var strength = (a.cluster === b.cluster) ? 120 : 300;
+          var f = strength * alpha / dist;
+          var fx = dx / dist * f, fy = dy / dist * f;
+          a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
+        }
+      }
+    }
+    force.initialize = function(n) { ns = n; };
+    return force;
+  }
+
   var sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(edges).id(function(d) { return d.id; }).distance(70).strength(0.35))
-    .force('charge', d3.forceManyBody().strength(-240))
-    .force('x', d3.forceX(function(d) { return KG_CENTERS[d.cluster].x; }).strength(0.30))
-    .force('y', d3.forceY(function(d) { return KG_CENTERS[d.cluster].y; }).strength(0.30))
+    .force('link', d3.forceLink(edges).id(function(d) { return d.id; }).distance(70).strength(0.30))
+    .force('charge', clusterCharge())
+    .force('x', d3.forceX(function(d) { return KG_CENTERS[d.cluster].x; }).strength(0.15))
+    .force('y', d3.forceY(function(d) { return KG_CENTERS[d.cluster].y; }).strength(0.15))
     .force('collide', d3.forceCollide().radius(function(d) { return d.r + 12; }))
     .alphaDecay(0.02);
 
@@ -8308,7 +8334,7 @@ function initKnowledgeGraph() {
   });
 
   document.getElementById('kg-btn-reset').onclick = function() {
-    nodes.forEach(function(d) { d.fx=null; d.fy=null; d.x=W/2+(Math.random()-.5)*200; d.y=H/2+(Math.random()-.5)*200; });
+    nodes.forEach(function(d) { var c = KG_CENTERS[d.cluster]; d.fx=null; d.fy=null; d.x=c.x+(Math.random()-.5)*100; d.y=c.y+(Math.random()-.5)*100; });
     sim.alpha(1).restart();
   };
   document.getElementById('kg-btn-pin').onclick = function() {
