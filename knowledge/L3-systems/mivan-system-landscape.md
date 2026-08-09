@@ -24,6 +24,8 @@ links_back:
   - L2-domain/health-primer.md
 links_forward:
   - L4-application/micps-application-knowledge.md
+  - knowledge/L2-domain/medicare-advantage.md
+  - knowledge/L2-domain/medicaid-managed-care.md
 ghost_nodes:
   - Complete VSAM file inventory with record layouts
   - Production JCL job schedule and dependency chain
@@ -73,6 +75,33 @@ MiCPS is composed of two distinct processing modes that operate in concert: **ba
 │  └─────────────────────────────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+### MiFCT — Government Claims Platform
+
+MiFCT (Mivan Facets Claims Technology) is Mivan's implementation of TriZetto Facets — the industry-standard commercial claims processing platform used for government lines of business.
+
+| Attribute | Detail |
+|---|---|
+| System Name | MiFCT — Mivan Facets Claims Technology |
+| Platform | TriZetto Facets (QNXT/Facets) |
+| Vendor | TriZetto (Cognizant) |
+| Technology | Java-based, Oracle database |
+| Lines of Business | Medicare Advantage + Medicaid |
+| Deployment | On-premises (AWS migration planned) |
+| Integration | REST API for external services |
+| Provider Validation | Calls MiProvider validation REST API |
+
+### Why Separate Platforms
+
+| Dimension | MiCPS (Commercial) | MiFCT (Government) |
+|---|---|---|
+| Regulatory regime | State insurance law | CMS + State (federal overlay) |
+| Payment model | FFS premium-funded | Capitation from CMS/State |
+| Claim complexity | Standard commercial | Encounter data, HCC, RAF, MMIS |
+| Compliance burden | State-specific | Federal CMS regulations |
+| Upgrade cycle | In-house controlled | TriZetto release schedule |
 
 ---
 
@@ -239,19 +268,33 @@ IBM DB2 for z/OS is MiCPS's relational database, used for persistent structured 
 ## 2. Integration Landscape
 
 ```
-                              ┌──────────────┐
-  EDI Clearinghouse ──837P/I──►              │
-  (MiEDI / IBM Sterling)      │              │
-                              │    MiCPS     │──835/ERA──► Provider Portal (MiPortal)
-  MiMember ──member feed──────►   (z/OS)     │──EOB──────► Member Portal / Mail
-  (Oracle on-prem)            │              │
-                              │              │──payment──► MiPay (EFT / ACH)
-  MiProvider ──prov feed──────►              │
-  (SQL Server on-prem)        │              │──claim data──► MiReport (Cognos)
-                              │              │
-  MiAuth ──auth feed──────────►              │──outbound feeds──► SQL Server (downstream apps)
-  (Legacy vendor platform)    │              │──outbound feeds──► AWS S3 (data lake / analytics)
-                              └──────────────┘
+                          ┌───────────────────────┐
+                          │   MiEDI (LOB Router)   │
+  EDI Clearinghouse ─837P/I─►  IBM Sterling B2B    │
+                          │  Routes by member LOB  │
+                          └───┬──────────┬─────────┘
+                     COM claims│          │MA / MC claims
+                              ▼          ▼
+                    ┌──────────────┐   ┌───────────────────────┐
+  MiMember ─feed───►│    MiCPS     │   │        MiFCT          │
+  (Oracle on-prem)  │   (z/OS)     │   │  (TriZetto Facets)    │
+                    │  Commercial  │   │  MA + Medicaid        │
+  MiProvider ─feed─►│              │   │                       │
+  (SQL Server)      │              │   └───┬───────────────────┘
+                    │              │       │ after adjudication (REST)
+  MiAuth ─auth─────►│              │       ▼
+  (vendor)          │              │   ┌───────────────────────────────┐
+                    │              │   │ MaPostAdjudicationService (MA) │
+                    │              │   │ MedicaidStateReportingService  │
+                    │              │   └───────────────────────────────┘
+                    └──────┬───────┘
+                           │  ┌───────────────────────────────┐
+     both platforms ───────┼─►│  Provider Validation REST API │
+     (MiCPS batch /        │  │  POST /api/v1/provider/...     │
+      MiFCT Option A)      │  └───────────────────────────────┘
+                           │──835/ERA──► MiPortal   │──payment──► MiPay
+                           │──EOB──────► Member      │──claim data─► MiReport
+                           │──outbound──► SQL Server / AWS S3 (data lake)
 ```
 
 ### Integration Points
@@ -267,8 +310,65 @@ IBM DB2 for z/OS is MiCPS's relational database, used for persistent structured 
 | MiReport (Cognos/DB2) | Outbound | Claim and financial data for reporting | Direct DB2 read (same z/OS) | Real-time / batch |
 | SQL Server (downstream) | Outbound | Processed claim data for operational apps | Batch ETL via FTP → SQL bulk load | Nightly |
 | AWS S3 (data lake) | Outbound | Claim records for analytics and modernization | Batch file via SFTP/MFT to S3 | Nightly |
+| MiFCT | Outbound | Adjudicated MA/Medicaid claims | REST API | Real-time + batch |
+| MaPostAdjudicationService | Called by MiFCT | Post-adjudication MA reporting | REST API | After adjudication |
+| MedicaidStateReportingService | Called by MiFCT | State MMIS reporting | REST API | After adjudication |
+| Provider Validation API | Inbound from MiFCT | NPI, credentialing, exclusion check | REST POST | Real-time |
 
 > ⚠️ VALIDATE: Confirm MQ vs. SFTP usage for each integration. Several integrations are believed to use legacy FTP — confirm whether secure FTP (SFTP/FTPS) is in use for PHI transfers.
+
+---
+
+## LOB Routing Architecture
+
+### MiEDI LOB Router
+
+All inbound claims enter through MiEDI (IBM Sterling B2B). MiEDI applies LOB routing rules to determine which platform processes each claim.
+
+Routing logic:
+1. Claim received as 837P or 837I
+2. MiEDI extracts member ID from Loop 2000B
+3. Member LOB lookup in routing table
+4. Route to appropriate platform:
+   - Commercial → MiCPS intake queue
+   - Medicare Advantage → MiFCT MA intake
+   - Medicaid → MiFCT Medicaid intake
+
+| LOB Code | Platform | Intake Queue |
+|---|---|---|
+| COM | MiCPS | MIVAN.MIEDI.COMMERCIAL.IN |
+| MA | MiFCT | MIVAN.MIEDI.MA.IN |
+| MC | MiFCT | MIVAN.MIEDI.MEDICAID.IN |
+
+LOB Routing Table maintenance:
+- Stored in MiEDI routing configuration
+- Updated when members change LOB
+- Mid-year LOB changes are handled by effective date logic in the routing table
+- Routing table owner: MiEDI operations team
+
+> ⚠️ VALIDATE: Confirm actual MiEDI queue names and routing table maintenance procedure.
+
+### Post-Adjudication Processing
+
+After MiFCT adjudicates government claims two Java services handle reporting obligations:
+
+| Service | LOB | Purpose |
+|---|---|---|
+| MaPostAdjudicationService | MA | CMS EDPS encounter data, HCC validation, RAF calculation |
+| MedicaidStateReportingService | Medicaid | TPL identification, payer of last resort, state MMIS submission |
+
+These services are called by MiFCT via REST API after adjudication is complete. They do not participate in adjudication.
+
+### Provider Validation Integration
+
+Both MiCPS and MiFCT use the same provider validation service. This ensures consistent NPI, credentialing, exclusion, and network checks regardless of LOB.
+
+Integration pattern:
+- MiCPS: calls MPRVVLDR0 COBOL program (batch, via JCL)
+- MiFCT: calls ProviderValidationOrchestrator REST API (Option A — direct HTTP POST)
+  Endpoint: POST /api/v1/provider/validate/facets
+
+This is the integration layer between MiFCT and the shared provider validation capability.
 
 ---
 
@@ -309,12 +409,16 @@ AWS S3 is the landing zone for the Mivan data lake and the primary target for th
 
 | Feed Name | Data Sent | S3 Path (Logical) | Format | Frequency | Downstream Consumers |
 |-----------|-----------|------------------|--------|-----------|---------------------|
-| CLAIMS-FULL | Full adjudicated claim records — header, lines, diagnosis, adjudication result | s3://mivan-datalake/raw/claims/daily/ | Fixed-width (mainframe EBCDIC → ASCII converted) | Nightly | Snowflake (analytics), modernization ETL, ML feature pipelines |
+| CLAIMS-FULL (Commercial) | Full adjudicated commercial claim records — header, lines, diagnosis, adjudication result | s3://mivan-datalake/raw/claims/commercial/daily/ (from MiCPS) | Fixed-width (mainframe EBCDIC → ASCII converted) | Nightly | Snowflake (analytics), modernization ETL, ML feature pipelines |
+| CLAIMS-FULL (MA) | Full adjudicated Medicare Advantage claim records | s3://mivan-datalake/raw/claims/ma/daily/ (from MiFCT) | CSV / Parquet | Nightly | Snowflake (analytics), CMS encounter reconciliation, RADV support |
+| CLAIMS-FULL (Medicaid) | Full adjudicated Medicaid claim records | s3://mivan-datalake/raw/claims/medicaid/daily/ (from MiFCT) | CSV / Parquet | Nightly | Snowflake (analytics), state MMIS reconciliation |
 | CLAIMS-DELTA | Incremental — claims adjudicated or status-changed since last run | s3://mivan-datalake/raw/claims/delta/ | Fixed-width / CSV | Nightly + intraday | Real-time analytics, modernization coexistence layer |
 | ERA-FILES | X12 835 ERA files | s3://mivan-datalake/raw/era/ | X12 EDI (835) | Post-batch | ERA processing, provider remittance analytics |
 | PROVIDER-SNAP | Provider master snapshot | s3://mivan-datalake/raw/provider/daily/ | Fixed-width | Nightly | Provider analytics, network adequacy reporting |
 | MEMBER-ACCUM | Member accumulator snapshot | s3://mivan-datalake/raw/accumulators/daily/ | Fixed-width | Nightly | Benefit accumulator service (cloud-native target) |
 | AUDIT-LOG | Claim audit trail export | s3://mivan-datalake/raw/audit/ | Fixed-width | Nightly | Compliance, post-pay audit workloads |
+
+> **LOB path separation:** Logical LOB separation in S3 enables LOB-specific analytics, regulatory reporting, and data governance. Both MiCPS and MiFCT write to the same S3 bucket with LOB-specific path prefixes.
 
 **File Format Notes**
 
@@ -495,6 +599,11 @@ Modules are migrated in order of increasing business complexity. Earlier migrati
 | Wave 4 | COB Engine | Complex; requires cross-payer data; phased by COB method |
 | Wave 5 | Adjudication Engine Core | Highest complexity; most tribal knowledge; last to migrate |
 | Wave 5 | Overpayment & Recovery | Dependent on adjudication; migrated as companion to Wave 5 |
+
+**Scope notes:**
+- Waves 1–5 apply to **MiCPS commercial** migration only.
+- **MiFCT modernization is a separate program** (AWS deployment of TriZetto Facets) and is **not in scope** for this wave plan.
+- The **Provider Data Service (Wave 2)** serves **both** MiCPS and MiFCT — MiCPS via the MPRVVLDR0 COBOL batch path and MiFCT via the Option A REST endpoint (`POST /api/v1/provider/validate/facets`).
 
 ### 5c. Coexistence Pattern
 
@@ -677,3 +786,8 @@ This section documents the highest-risk areas of technical debt in MiCPS. These 
 | Strangler Fig | Migration pattern: incrementally replace legacy functions with cloud-native equivalents |
 | Shadow Mode | Running cloud-native service in parallel with mainframe to validate outputs before cutover |
 | Coexistence Router | API gateway / routing layer that directs traffic to mainframe or cloud service during migration |
+| MiFCT | Mivan Facets Claims Technology — TriZetto Facets implementation for MA and Medicaid |
+| TriZetto Facets | Commercial claims processing platform by TriZetto (Cognizant) |
+| LOB Router | MiEDI routing rules that direct claims to MiCPS or MiFCT based on member LOB |
+| Post-Adjudication Service | Java service called after MiFCT adjudication to handle CMS/state reporting |
+| Option A Integration | Direct REST API call from Facets to provider validation service |

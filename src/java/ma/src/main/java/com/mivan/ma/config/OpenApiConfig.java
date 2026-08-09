@@ -12,12 +12,11 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI maEncounterOpenApi() {
         return new OpenAPI().info(new Info()
-                .title("MA Encounter Processing API")
-                .description("Medicare Advantage encounter data pipeline. "
-                        + "Java implementation of the MAENCDR0 COBOL driver — "
-                        + "eligibility check (MAELGCK0), HCC validation (MAHCCVL0), "
-                        + "RAF calculation (MARAFCL0), encounter build (MAENCBL0), "
-                        + "and EDPS submission (MAEDPSUB0).")
+                .title("MA Post-Adjudication Reporting API")
+                .description("Post-adjudication CMS reporting for Medicare Advantage claims "
+                        + "adjudicated by MiFCT (TriZetto Facets). Handles HCC diagnosis "
+                        + "validation, RAF score calculation, encounter staging, and CMS "
+                        + "EDPS submission. This is not a claim adjudication driver.")
                 .version("1.0.0")
                 .contact(new Contact()
                         .name("Mivan Health Plan — MA Operations")

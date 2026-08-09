@@ -9,6 +9,36 @@ a single conversation with the system's principal author, James Whitfield.
 
 ---
 
+## Program Trees & Government Claims Architecture
+
+The Digital Brain models four lines of business. Only **Commercial** claims are
+adjudicated inside MiCPS; **Medicare Advantage** and **Medicaid** claims are
+adjudicated by **MiFCT (TriZetto Facets)**, with Java services handling the
+post-adjudication reporting obligations.
+
+### Government Claims Architecture
+
+MA and Medicaid claims are adjudicated by MiFCT (TriZetto Facets). The Java
+services in this repository are invoked *after* adjudication to meet downstream
+reporting obligations:
+
+- **MA** → CMS EDPS encounter data submission, HCC diagnosis validation, RAF score calculation
+- **Medicaid** → third party liability identification, payer of last resort (42 CFR 433.139), state MMIS encounter submission
+
+These are **not** claim adjudication drivers — MiFCT owns adjudication for
+government lines of business.
+
+### Program Tree Summary
+
+| Line of Business | Primary Component | Implementation |
+|---|---|---|
+| Commercial | `MCOMCLDR0` | COBOL + Java equivalent *(planned — not yet built)* |
+| Medicare Advantage | `MaPostAdjudicationService` | Java only (post-adjudication reporting after MiFCT) |
+| Medicaid | `MedicaidStateReportingService` | Java only (post-adjudication reporting after MiFCT) |
+| Provider (cross-LOB) | `ProviderValidationOrchestrator` | Java only |
+
+---
+
 ## 1. The Business Problem
 
 MiCPS already catches **exact** duplicate claims through `MOVPDUP0`: same member,

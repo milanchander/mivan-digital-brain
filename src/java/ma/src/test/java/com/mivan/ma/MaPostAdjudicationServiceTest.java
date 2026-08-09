@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class EncounterDataOrchestratorTest {
+class MaPostAdjudicationServiceTest {
 
     @Mock MaEligibilityService eligibilityService;
     @Mock HccValidationService hccValidationService;
@@ -27,7 +27,7 @@ class EncounterDataOrchestratorTest {
     @Mock EncounterBuilderService encounterBuilderService;
     @Mock EdpsSubmissionService edpsSubmissionService;
 
-    @InjectMocks EncounterDataOrchestrator orchestrator;
+    @InjectMocks MaPostAdjudicationService orchestrator;
 
     private MaEnrollment enrollment;
     private MaHccRecord hccRecord;
@@ -65,7 +65,7 @@ class EncounterDataOrchestratorTest {
     }
 
     @Test
-    void processMember_happyPath_returnsSuccess() {
+    void processPostAdjudication_happyPath_returnsSuccess() {
         when(eligibilityService.getEnrollment("1EG4TE5MK72", "H1234"))
                 .thenReturn(Optional.of(enrollment));
         when(eligibilityService.isEligible(eq("1EG4TE5MK72"), eq("H1234"), any()))
@@ -79,7 +79,7 @@ class EncounterDataOrchestratorTest {
         when(edpsSubmissionService.submitToEdps(any()))
                 .thenReturn(List.of(staged));
 
-        EncounterProcessingResult result = orchestrator.processMember(
+        EncounterProcessingResult result = orchestrator.processPostAdjudication(
                 "1EG4TE5MK72", "H1234", "2026", List.of(hccRecord));
 
         assertThat(result.isEligible()).isTrue();
@@ -89,10 +89,10 @@ class EncounterDataOrchestratorTest {
     }
 
     @Test
-    void processMember_ineligible_returnsEligFail() {
+    void processPostAdjudication_ineligible_returnsEligFail() {
         when(eligibilityService.getEnrollment(any(), any())).thenReturn(Optional.empty());
 
-        EncounterProcessingResult result = orchestrator.processMember(
+        EncounterProcessingResult result = orchestrator.processPostAdjudication(
                 "1EG4TE5MK72", "H1234", "2026", List.of(hccRecord));
 
         assertThat(result.isEligible()).isFalse();
@@ -100,7 +100,7 @@ class EncounterDataOrchestratorTest {
     }
 
     @Test
-    void processMember_noValidHcc_returnsHccFail() {
+    void processPostAdjudication_noValidHcc_returnsHccFail() {
         when(eligibilityService.getEnrollment(any(), any())).thenReturn(Optional.of(enrollment));
         when(eligibilityService.isEligible(any(), any(), any())).thenReturn(true);
         MaHccRecord invalid = new MaHccRecord();
@@ -108,7 +108,7 @@ class EncounterDataOrchestratorTest {
         when(hccValidationService.validateHccCodes(any(), any(), any()))
                 .thenReturn(List.of(invalid));
 
-        EncounterProcessingResult result = orchestrator.processMember(
+        EncounterProcessingResult result = orchestrator.processPostAdjudication(
                 "1EG4TE5MK72", "H1234", "2026", List.of(hccRecord));
 
         assertThat(result.isEligible()).isTrue();
@@ -127,7 +127,7 @@ class EncounterDataOrchestratorTest {
                 .thenReturn(List.of(staged));
         when(edpsSubmissionService.submitToEdps(any())).thenReturn(List.of(staged));
 
-        var req = new EncounterDataOrchestrator.MemberEncounterRequest(
+        var req = new MaPostAdjudicationService.MemberEncounterRequest(
                 "1EG4TE5MK72", "H1234", "2026", List.of(hccRecord));
         EncounterBatchSummary summary = orchestrator.processBatch(List.of(req, req));
 

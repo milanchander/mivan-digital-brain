@@ -12,19 +12,26 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Orchestrates the full MA encounter data processing pipeline.
+ * Post-adjudication processing for Medicare Advantage claims after TriZetto
+ * Facets (MiFCT) adjudication. Handles CMS EDPS encounter data submission, HCC
+ * diagnosis validation, and RAF score calculation. Called by MiFCT via REST API
+ * after claim adjudication is complete.
  *
- * Java equivalent of COBOL driver MAENCDR0. Executes the same five-step flow:
- *   1. MAELGCK0 → MaEligibilityService.isEligible()
- *   2. MAHCCVL0 → HccValidationService.validateHccCodes()
- *   3. MARAFCL0 → RafCalculationService.calculateRaf()
- *   4. MAENCBL0 → EncounterBuilderService.buildAndStageEncounters()
- *   5. MAEDPSUB0 → EdpsSubmissionService.submitToEdps()
+ * This is NOT a claim adjudication driver. MiFCT (TriZetto Facets) adjudicates
+ * MA claims. This service handles post-adjudication CMS reporting obligations
+ * only.
+ *
+ * Post-adjudication steps:
+ *   1. Eligibility confirmation → MaEligibilityService.isEligible()
+ *   2. HCC diagnosis validation → HccValidationService.validateHccCodes()
+ *   3. RAF score calculation → RafCalculationService.calculateRaf()
+ *   4. Encounter record staging → EncounterBuilderService.buildAndStageEncounters()
+ *   5. CMS EDPS submission → EdpsSubmissionService.submitToEdps()
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EncounterDataOrchestrator {
+public class MaPostAdjudicationService {
 
     private final MaEligibilityService eligibilityService;
     private final HccValidationService hccValidationService;
@@ -33,11 +40,12 @@ public class EncounterDataOrchestrator {
     private final EdpsSubmissionService edpsSubmissionService;
 
     /**
-     * Processes a single member's encounter data end-to-end.
-     * Corresponds to MAENCDR0 paragraph 2000-PROCESS.
+     * Runs post-adjudication CMS reporting for a single member after MiFCT has
+     * adjudicated the claim: eligibility confirmation, HCC validation, RAF
+     * calculation, encounter staging, and EDPS submission.
      */
     @Transactional
-    public EncounterProcessingResult processMember(String mbi,
+    public EncounterProcessingResult processPostAdjudication(String mbi,
                                                     String contractId,
                                                     String paymentYear,
                                                     List<MaHccRecord> hccRecords) {
@@ -91,8 +99,8 @@ public class EncounterDataOrchestrator {
     }
 
     /**
-     * Batch entry point — processes a list of members and returns an aggregate summary.
-     * Corresponds to MAENCDR0 paragraph 2000-PROCESS loop.
+     * Batch entry point — runs post-adjudication reporting for a list of members
+     * and returns an aggregate summary.
      */
     @Transactional
     public EncounterBatchSummary processBatch(List<MemberEncounterRequest> requests) {
@@ -102,7 +110,7 @@ public class EncounterDataOrchestrator {
 
         for (MemberEncounterRequest req : requests) {
             EncounterProcessingResult result =
-                    processMember(req.mbi(), req.contractId(), req.paymentYear(), req.hccRecords());
+                    processPostAdjudication(req.mbi(), req.contractId(), req.paymentYear(), req.hccRecords());
             if (!result.isEligible()) {
                 ineligible++;
             } else {

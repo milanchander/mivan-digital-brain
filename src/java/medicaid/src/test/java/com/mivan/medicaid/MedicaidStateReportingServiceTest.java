@@ -1,7 +1,7 @@
 package com.mivan.medicaid;
 
 import com.mivan.medicaid.claims.model.*;
-import com.mivan.medicaid.claims.orchestrator.MedicaidClaimOrchestrator;
+import com.mivan.medicaid.claims.orchestrator.MedicaidStateReportingService;
 import com.mivan.medicaid.claims.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MedicaidClaimOrchestratorTest {
+class MedicaidStateReportingServiceTest {
 
     @Mock MedicaidEligibilityService eligibilityService;
     @Mock ThirdPartyLiabilityService tplService;
@@ -27,7 +27,7 @@ class MedicaidClaimOrchestratorTest {
     @Mock EncounterBuildService encounterBuildService;
     @Mock StateSubmissionService stateSubmissionService;
 
-    @InjectMocks MedicaidClaimOrchestrator orchestrator;
+    @InjectMocks MedicaidStateReportingService orchestrator;
 
     private MedicaidClaimRequest request;
     private MedicaidEligibility eligibility;
@@ -100,7 +100,7 @@ class MedicaidClaimOrchestratorTest {
         when(stateSubmissionService.stageForSubmission(any()))
                 .thenReturn(true);
 
-        MedicaidClaimResponse resp = orchestrator.processMedicaidClaim(request);
+        MedicaidClaimResponse resp = orchestrator.processStateReporting(request);
 
         assertThat(resp.isEligible()).isTrue();
         assertThat(resp.isTplFound()).isTrue();
@@ -115,7 +115,7 @@ class MedicaidClaimOrchestratorTest {
         when(eligibilityService.verifyEligibility(any(), any(), any()))
                 .thenReturn(MedicaidEligibilityService.MedicaidEligibilityStatus.INELIGIBLE);
 
-        MedicaidClaimResponse resp = orchestrator.processMedicaidClaim(request);
+        MedicaidClaimResponse resp = orchestrator.processStateReporting(request);
 
         assertThat(resp.isEligible()).isFalse();
         assertThat(resp.getErrorCode()).isEqualTo("ELIG");
@@ -145,7 +145,7 @@ class MedicaidClaimOrchestratorTest {
                 .thenReturn(staging);
         when(stateSubmissionService.stageForSubmission(any())).thenReturn(true);
 
-        MedicaidClaimResponse resp = orchestrator.processMedicaidClaim(request);
+        MedicaidClaimResponse resp = orchestrator.processStateReporting(request);
 
         assertThat(resp.isTplFound()).isFalse();
         assertThat(resp.getMedicaidLiabilityAmt()).isEqualByComparingTo("97.00");
@@ -166,7 +166,7 @@ class MedicaidClaimOrchestratorTest {
                 .thenReturn(staging);
         when(stateSubmissionService.stageForSubmission(any())).thenReturn(false);
 
-        MedicaidClaimResponse resp = orchestrator.processMedicaidClaim(request);
+        MedicaidClaimResponse resp = orchestrator.processStateReporting(request);
 
         assertThat(resp.isStagedForSubmission()).isFalse();
         assertThat(resp.isSuccess()).isFalse();

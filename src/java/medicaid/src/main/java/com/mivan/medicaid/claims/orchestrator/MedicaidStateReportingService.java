@@ -12,23 +12,28 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 /**
- * Orchestrates the full Medicaid claim processing pipeline.
+ * Post-adjudication state reporting for Medicaid claims after TriZetto Facets
+ * (MiFCT) adjudication. Handles third party liability identification, payer of
+ * last resort calculation per 42 CFR 433.139, and state MMIS encounter data
+ * submission.
  *
- * Java equivalent of COBOL driver MMCOCLDR0.
+ * This is NOT a claim adjudication driver. MiFCT (TriZetto Facets) adjudicates
+ * Medicaid claims. This service handles post-adjudication state reporting
+ * obligations only.
  *
- * Executes the same five-step program tree:
- *   1. MMCOELV0 → MedicaidEligibilityService.verifyEligibility()
- *   2. MMCOTPL0 → ThirdPartyLiabilityService.identifyTpl()
- *   3. MMCOLRP0 → PayerOfLastResortService.calculateMedicaidLiability()
- *   4. MMCOENC0 → EncounterBuildService.buildEncounter()
- *   5. MMCOSSUB0 → StateSubmissionService.stageForSubmission()
+ * Post-adjudication steps:
+ *   1. Eligibility confirmation → MedicaidEligibilityService.verifyEligibility()
+ *   2. TPL identification → ThirdPartyLiabilityService.identifyTpl()
+ *   3. Payer of last resort → PayerOfLastResortService.calculateMedicaidLiability()
+ *   4. Encounter build → EncounterBuildService.buildEncounter()
+ *   5. State MMIS submission → StateSubmissionService.stageForSubmission()
  *
  * Federal rule — 42 CFR 433.139: Medicaid is always payer of last resort.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MedicaidClaimOrchestrator {
+public class MedicaidStateReportingService {
 
     private final MedicaidEligibilityService eligibilityService;
     private final ThirdPartyLiabilityService tplService;
@@ -37,18 +42,20 @@ public class MedicaidClaimOrchestrator {
     private final StateSubmissionService stateSubmissionService;
 
     /**
-     * Processes a single Medicaid claim end-to-end.
-     * Corresponds to MMCOCLDR0 paragraph 2000-PROCESS.
+     * Runs post-adjudication state reporting for a single Medicaid claim after
+     * MiFCT has adjudicated it: eligibility confirmation, TPL identification,
+     * payer-of-last-resort calculation (42 CFR 433.139), encounter build, and
+     * state MMIS staging.
      *
-     * @param request claim processing request
+     * @param request state-reporting request
      * @return MedicaidClaimResponse with outcome details
      */
     @Transactional
-    public MedicaidClaimResponse processMedicaidClaim(MedicaidClaimRequest request) {
-        log.info("Processing Medicaid claim claimId={} memberId={} state={}",
+    public MedicaidClaimResponse processStateReporting(MedicaidClaimRequest request) {
+        log.info("State reporting for Medicaid claim claimId={} memberId={} state={}",
                 request.getClaimId(), request.getMemberId(), request.getStateCd());
 
-        // MMCOCLDR0 paragraph 3000 — verify Medicaid eligibility (MMCOELV0)
+        // Step 1 — confirm Medicaid eligibility
         MedicaidEligibilityService.MedicaidEligibilityStatus eligStatus =
                 eligibilityService.verifyEligibility(
                         request.getMemberId(), request.getDos(), request.getStateCd());
@@ -65,23 +72,23 @@ public class MedicaidClaimOrchestrator {
         }
         MedicaidEligibility eligibility = eligOpt.get();
 
-        // MMCOCLDR0 paragraph 3100 — identify TPL payers (MMCOTPL0)
+        // Step 2 — identify TPL payers
         Optional<TplResult> tplOpt =
                 tplService.identifyTpl(request.getClaimId(), request.getMemberId(), request.getDos());
         TplResult tpl = tplOpt.orElse(null);
         boolean tplFound = tpl != null && tpl.hasTpl();
 
-        // MMCOCLDR0 paragraph 3200 — apply payer of last resort (MMCOLRP0)
+        // Step 3 — apply payer of last resort (42 CFR 433.139)
         BigDecimal billedAmt = BigDecimal.valueOf(100.00); // resolved from CLAIM_HEADER in prod
         MedicaidLiability liability = lastResortService.calculateMedicaidLiability(
                 request.getClaimId(), billedAmt, tpl, eligibility);
 
-        // MMCOCLDR0 paragraph 4000 — build encounter record (MMCOENC0)
+        // Step 4 — build encounter record
         MedicaidEncounterStaging staging = encounterBuildService.buildEncounter(
                 request.getClaimId(), liability, eligibility,
                 null, request.getDos(), request.getDos(), null, null);
 
-        // MMCOCLDR0 paragraph 4100 — write/stage encounter (MMCOSSUB0)
+        // Step 5 — stage encounter for state MMIS submission
         boolean staged = stateSubmissionService.stageForSubmission(staging);
 
         return MedicaidClaimResponse.builder()

@@ -1,21 +1,34 @@
-# MA Encounter Processing — Java
+# MA Post-Adjudication Reporting Service — Java
 
-Spring Boot 3 / Java 21 implementation of the Medicare Advantage encounter data pipeline.
+Spring Boot 3 / Java 21 service that handles **post-adjudication** CMS reporting
+for Medicare Advantage claims. MA claims are adjudicated by **MiFCT (TriZetto
+Facets)**; this service is invoked afterward to meet CMS reporting obligations —
+it is not a claim adjudication driver.
 
-## COBOL-to-Java Mapping
+## How This Fits in the Architecture
 
-| COBOL Program | Java Equivalent | Role |
-|---------------|----------------|------|
-| `MAENCDR0.cbl` | `EncounterDataOrchestrator.java` | Driver / orchestrator |
-| `MAELGCK0.cbl` | `MaEligibilityService.java` | Eligibility verification |
-| `MAHCCVL0.cbl` | `HccValidationService.java` | HCC diagnosis validation |
-| `MARAFCL0.cbl` | `RafCalculationService.java` | RAF score calculation |
-| `MAENCBL0.cbl` | `EncounterBuilderService.java` | Encounter record builder |
-| `MAEDPSUB0.cbl` | `EdpsSubmissionService.java` | EDPS submission |
-| `MAENROLL.cpy`  | `MaEnrollment.java` | Enrollment copybook → JPA entity |
-| `MAHCCREC.cpy`  | `MaHccRecord.java` | HCC record copybook → JPA entity |
-| `MARAFSCR.cpy`  | `MaRafScore.java` | RAF score copybook → JPA entity |
-| `MAENCSTG.cpy`  | `MaEncounterStaging.java` | Staging copybook → JPA entity |
+MiFCT (TriZetto Facets) adjudicates all Medicare Advantage claims. This Java
+service is called after adjudication to handle:
+
+1. CMS EDPS encounter data submission
+2. HCC diagnosis validation and mapping
+3. RAF score calculation
+4. Encounter record staging for CMS submission
+
+## MiFCT Integration Context
+
+| Step | Java Component | Role (post-adjudication) |
+|------|----------------|--------------------------|
+| Entry point | `MaPostAdjudicationService.java` | Post-adjudication orchestration; called by MiFCT via REST after adjudication |
+| Eligibility | `MaEligibilityService.java` | Confirms MA enrollment/eligibility |
+| HCC validation | `HccValidationService.java` | HCC diagnosis validation and mapping |
+| RAF calculation | `RafCalculationService.java` | RAF score calculation |
+| Encounter build | `EncounterBuilderService.java` | Stages encounter records for CMS |
+| EDPS submission | `EdpsSubmissionService.java` | Submits encounter data to CMS EDPS |
+| `MaEnrollment.java` | JPA entity | MA_ENROLLMENT |
+| `MaHccRecord.java` | JPA entity | MA_HCC diagnosis record |
+| `MaRafScore.java` | JPA entity | MA_RAF_SCORE |
+| `MaEncounterStaging.java` | JPA entity | MA_ENCOUNTER_STAGING |
 
 ## Running Locally
 
@@ -30,20 +43,21 @@ Spring Boot 3 / Java 21 implementation of the Medicare Advantage encounter data 
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/ma/encounters/process` | Process a single member |
-| `POST` | `/api/ma/encounters/batch` | Process a batch of members |
-| `GET`  | `/api/ma/encounters/staging/{contractId}/pending` | List pending encounters |
-| `POST` | `/api/ma/encounters/staging/{contractId}/resubmit` | Re-submit pending to EDPS |
+| `POST` | `/api/v1/ma/post-adjudication/process` | Post-adjudication reporting for a single member |
+| `POST` | `/api/v1/ma/post-adjudication/batch` | Post-adjudication reporting for a batch |
+| `GET`  | `/api/v1/ma/raf-scores/{memberId}` | RAF scores calculated for a member |
+| `GET`  | `/api/v1/ma/encounter-staging` | Encounter records staged for CMS EDPS |
 
-## Process Flow
+## Post-Adjudication Flow
 
 ```
-Input (MBI list)
-  → MaEligibilityService     (DB2 MA_ELIGIBILITY select)
-  → HccValidationService     (DB2 MA_HCC_CROSSWALK join, hierarchy flag)
-  → RafCalculationService    (demo score + HCC coefficient sum + LIS/dual adders)
-  → EncounterBuilderService  (generate encounter ID, insert MA_ENCOUNTER_STAGING)
-  → EdpsSubmissionService    (validate + mark SU, update staging table)
+MiFCT (TriZetto Facets) adjudicates the MA claim
+  → MaPostAdjudicationService.processPostAdjudication(...)
+  → MaEligibilityService     (confirm MA enrollment)
+  → HccValidationService     (HCC diagnosis validation + crosswalk)
+  → RafCalculationService    (demographic score + HCC coefficient sum + LIS/dual adders)
+  → EncounterBuilderService  (stage MA_ENCOUNTER_STAGING records)
+  → EdpsSubmissionService    (submit to CMS EDPS, mark SU)
 ```
 
 ## Production Deployment
@@ -53,5 +67,5 @@ Set the `prod` profile and provide:
 - `MA_DB_USER` / `MA_DB_PASSWORD` — via AWS Secrets Manager
 
 ```bash
-java -Dspring.profiles.active=prod -jar ma-encounter-processing.jar
+java -Dspring.profiles.active=prod -jar ma-post-adjudication-service.jar
 ```

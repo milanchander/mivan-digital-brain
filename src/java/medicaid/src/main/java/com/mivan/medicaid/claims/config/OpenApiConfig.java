@@ -12,14 +12,11 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI medicaidClaimOpenApi() {
         return new OpenAPI().info(new Info()
-                .title("Medicaid Claim Processing API")
-                .description("Medicaid claim processing pipeline. "
-                        + "Java implementation of the MMCOCLDR0 COBOL driver — "
-                        + "eligibility verification (MMCOELV0), "
-                        + "TPL identification (MMCOTPL0), "
-                        + "payer of last resort calculation (MMCOLRP0, 42 CFR 433.139), "
-                        + "encounter build (MMCOENC0), "
-                        + "and state MMIS submission (MMCOSSUB0).")
+                .title("Medicaid State Reporting API")
+                .description("Post-adjudication state reporting for Medicaid claims "
+                        + "adjudicated by MiFCT (TriZetto Facets). Handles TPL identification, "
+                        + "payer of last resort calculation (42 CFR 433.139), Medicaid liability, "
+                        + "and state MMIS encounter submission. This is not a claim adjudication driver.")
                 .version("1.0.0")
                 .contact(new Contact()
                         .name("Mivan Health Plan — Medicaid Operations")

@@ -1,6 +1,8 @@
 package com.mivan.provider.validation.controller;
 
 import com.mivan.provider.validation.model.CredentialingStatus;
+import com.mivan.provider.validation.model.FacetsValidationRequest;
+import com.mivan.provider.validation.model.FacetsValidationResponse;
 import com.mivan.provider.validation.model.ProviderMaster;
 import com.mivan.provider.validation.model.ProviderSanctionLog;
 import com.mivan.provider.validation.model.ProviderValidationRequest;
@@ -60,6 +62,17 @@ public class ProviderValidationController {
                 ? LocalDate.now() : request.getDateOfService();
         return ResponseEntity.ok(
                 orchestrator.validateProvider(request.getNpi(), dos));
+    }
+
+    @Operation(summary = "Facets integration endpoint — validate provider for MA and Medicaid claims",
+            description = "Called by MiFCT (TriZetto Facets) via direct REST API (Option A) after LOB routing. "
+                        + "Validates NPI, credentialing, OIG/SAM exclusions, and network status. "
+                        + "Returns Facets-compatible response format including tier and fee schedule.")
+    @PostMapping("/validate/facets")
+    public ResponseEntity<FacetsValidationResponse> validateForFacets(
+            @Valid @RequestBody FacetsValidationRequest request) {
+        return ResponseEntity.ok(
+                orchestrator.validateProviderForFacets(request));
     }
 
     @Operation(summary = "Get provider master record")

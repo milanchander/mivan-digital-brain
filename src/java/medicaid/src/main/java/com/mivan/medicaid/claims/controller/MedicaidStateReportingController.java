@@ -1,7 +1,7 @@
 package com.mivan.medicaid.claims.controller;
 
 import com.mivan.medicaid.claims.model.*;
-import com.mivan.medicaid.claims.orchestrator.MedicaidClaimOrchestrator;
+import com.mivan.medicaid.claims.orchestrator.MedicaidStateReportingService;
 import com.mivan.medicaid.claims.repository.MedicaidEligibilityRepository;
 import com.mivan.medicaid.claims.repository.TplResultRepository;
 import com.mivan.medicaid.claims.service.MedicaidEligibilityService;
@@ -16,37 +16,39 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * REST entry points for Medicaid post-adjudication state reporting. Invoked
+ * after MiFCT (TriZetto Facets) has adjudicated a Medicaid claim.
+ */
 @RestController
 @RequestMapping("/api/v1/medicaid")
 @RequiredArgsConstructor
-@Tag(name = "Medicaid Claim Processing",
-     description = "Medicaid claim pipeline — Java equivalent of MMCOCLDR0. "
-             + "Implements 42 CFR 433.139 payer of last resort rules.")
-public class MedicaidClaimController {
+@Tag(name = "Medicaid State Reporting",
+     description = "Post-adjudication state reporting for Medicaid claims adjudicated by MiFCT (TriZetto Facets). "
+             + "Implements 42 CFR 433.139 payer of last resort and state MMIS submission.")
+public class MedicaidStateReportingController {
 
-    private final MedicaidClaimOrchestrator orchestrator;
+    private final MedicaidStateReportingService stateReportingService;
     private final MedicaidEligibilityService eligibilityService;
     private final MedicaidEligibilityRepository eligibilityRepository;
     private final TplResultRepository tplResultRepository;
 
-    @PostMapping("/claims/process")
-    @Operation(summary = "Process a single Medicaid claim",
-               description = "Runs eligibility verification (MMCOELV0), TPL identification "
-                       + "(MMCOTPL0), payer of last resort calculation (MMCOLRP0), "
-                       + "encounter build (MMCOENC0), and state staging (MMCOSSUB0)")
-    public ResponseEntity<MedicaidClaimResponse> processClaim(
+    @PostMapping("/state-reporting/process")
+    @Operation(summary = "Run state reporting for a single Medicaid claim",
+               description = "After MiFCT adjudication: eligibility confirmation, TPL identification, "
+                       + "payer of last resort calculation (42 CFR 433.139), encounter build, and state MMIS staging")
+    public ResponseEntity<MedicaidClaimResponse> process(
             @RequestBody MedicaidClaimRequest request) {
-        return ResponseEntity.ok(orchestrator.processMedicaidClaim(request));
+        return ResponseEntity.ok(stateReportingService.processStateReporting(request));
     }
 
-    @PostMapping("/claims/batch")
-    @Operation(summary = "Process a batch of Medicaid claims",
-               description = "Equivalent to the MMCOCLDR0 JCL batch job MMCOJB00. "
-                       + "Returns per-claim results with aggregate error count.")
-    public ResponseEntity<List<MedicaidClaimResponse>> processBatch(
+    @PostMapping("/state-reporting/batch")
+    @Operation(summary = "Run state reporting for a batch of Medicaid claims",
+               description = "Returns per-claim results with aggregate error count")
+    public ResponseEntity<List<MedicaidClaimResponse>> batch(
             @RequestBody List<MedicaidClaimRequest> requests) {
         List<MedicaidClaimResponse> results = requests.stream()
-                .map(orchestrator::processMedicaidClaim)
+                .map(stateReportingService::processStateReporting)
                 .toList();
         return ResponseEntity.ok(results);
     }

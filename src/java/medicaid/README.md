@@ -1,24 +1,37 @@
-# Medicaid Claim Processing — Java
+# Medicaid State Reporting Service — Java
 
-Spring Boot 3 / Java 21 implementation of the Medicaid claim processing pipeline.
+Spring Boot 3 / Java 21 service that handles **post-adjudication** state
+reporting for Medicaid claims. Medicaid claims are adjudicated by **MiFCT
+(TriZetto Facets)**; this service is invoked afterward to meet state reporting
+obligations — it is not a claim adjudication driver.
 
 **Federal rule:** 42 CFR 433.139 — Medicaid is always payer of last resort.
 All other insurers (employer-sponsored, Medicare, private) must pay before Medicaid pays.
 
-## COBOL-to-Java Mapping
+## How This Fits in the Architecture
 
-| COBOL Program | Java Equivalent | Role |
-|---------------|----------------|------|
-| `MMCOCLDR0.cbl` | `MedicaidClaimOrchestrator.java` | Driver / orchestrator |
-| `MMCOELV0.cbl` | `MedicaidEligibilityService.java` | Eligibility verification |
-| `MMCOTPL0.cbl` | `ThirdPartyLiabilityService.java` | TPL identification (42 CFR 433.139) |
-| `MMCOLRP0.cbl` | `PayerOfLastResortService.java` | Last resort calculation |
-| `MMCOENC0.cbl` | `EncounterBuildService.java` | MMIS encounter builder |
-| `MMCOSSUB0.cbl` | `StateSubmissionService.java` | State MMIS staging & submission |
-| `MMCOELIG.cpy` | `MedicaidEligibility.java` | Eligibility copybook → JPA entity |
-| `MMCOTPLR.cpy` | `TplResult.java` | TPL result copybook → JPA entity |
-| `MMCOLIAB.cpy` | `MedicaidLiability.java` | Liability copybook → JPA entity |
-| `MMCOENCR.cpy` | `MedicaidEncounterStaging.java` | Encounter copybook → JPA entity |
+MiFCT (TriZetto Facets) adjudicates all Medicaid claims. This Java service is
+called after adjudication to handle:
+
+1. Third party liability identification
+2. Payer of last resort calculation (42 CFR 433.139)
+3. Medicaid liability calculation
+4. State MMIS encounter data submission
+
+## MiFCT Integration Context
+
+| Java Component | Role (post-adjudication) |
+|----------------|--------------------------|
+| `MedicaidStateReportingService.java` | Post-adjudication orchestration; called after MiFCT adjudication |
+| `MedicaidEligibilityService.java` | Confirms Medicaid eligibility |
+| `ThirdPartyLiabilityService.java` | TPL identification (42 CFR 433.139) |
+| `PayerOfLastResortService.java` | Medicaid liability calculation |
+| `EncounterBuildService.java` | MMIS encounter builder |
+| `StateSubmissionService.java` | State MMIS staging & submission |
+| `MedicaidEligibility.java` | JPA entity — eligibility |
+| `TplResult.java` | JPA entity — TPL result |
+| `MedicaidLiability.java` | JPA entity — liability |
+| `MedicaidEncounterStaging.java` | JPA entity — encounter staging |
 
 ## Key Regulatory Reference
 
@@ -45,16 +58,17 @@ BigDecimal is used for all monetary arithmetic — no floating point.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/v1/medicaid/claims/process` | Process a single claim |
-| `POST` | `/api/v1/medicaid/claims/batch` | Process a batch (equiv. to MMCOJB00) |
+| `POST` | `/api/v1/medicaid/state-reporting/process` | State reporting for a single claim |
+| `POST` | `/api/v1/medicaid/state-reporting/batch` | State reporting for a batch |
 | `GET`  | `/api/v1/medicaid/eligibility/{memberId}` | Get member eligibility |
 | `GET`  | `/api/v1/medicaid/tpl/{memberId}` | Get TPL results for member |
 | `GET`  | `/api/v1/medicaid/encounter-staging` | Get staged encounters by state |
 
-## Process Flow
+## Post-Adjudication Flow
 
 ```
-MedicaidClaimRequest
+MiFCT (TriZetto Facets) adjudicates the Medicaid claim
+  → MedicaidStateReportingService.processStateReporting(request)
   → MedicaidEligibilityService   (monthly churn, spend-down, CHIP, EPSDT, dual)
   → ThirdPartyLiabilityService   (42 CFR 433.139 — all other payers first)
   → PayerOfLastResortService     (billedAmt - tplPaid - memberResp, floor $0)
@@ -79,5 +93,5 @@ Set the `prod` profile and provide:
 - `MEDICAID_DB_USER` / `MEDICAID_DB_PASSWORD` — via AWS Secrets Manager
 
 ```bash
-java -Dspring.profiles.active=prod -jar medicaid-claim-processing.jar
+java -Dspring.profiles.active=prod -jar medicaid-state-reporting-service.jar
 ```

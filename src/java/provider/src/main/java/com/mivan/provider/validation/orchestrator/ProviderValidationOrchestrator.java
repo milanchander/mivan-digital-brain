@@ -1,6 +1,8 @@
 package com.mivan.provider.validation.orchestrator;
 
 import com.mivan.provider.validation.model.CredentialingStatus;
+import com.mivan.provider.validation.model.FacetsValidationRequest;
+import com.mivan.provider.validation.model.FacetsValidationResponse;
 import com.mivan.provider.validation.model.NetworkStatus;
 import com.mivan.provider.validation.model.ProviderMaster;
 import com.mivan.provider.validation.model.ProviderValidationResponse;
@@ -13,6 +15,7 @@ import com.mivan.provider.validation.service.NetworkVerificationService.NetworkV
 import com.mivan.provider.validation.service.ProviderNpiLookupService;
 import com.mivan.provider.validation.service.SanctionLogService;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,5 +128,39 @@ public class ProviderValidationOrchestrator {
         // Step 5 — sanction logging (MPRVSANL0), always runs.
         sanctionLogService.logValidation(response);
         return response;
+    }
+
+    /**
+     * Facets integration method. MiFCT calls this endpoint via REST API
+     * (Option A — direct HTTP) after LOB routing determines claim is MA or
+     * Medicaid. Same underlying validation as commercial claims through MiCPS —
+     * provider validation is LOB-agnostic.
+     *
+     * @param request the Facets-specific validation request
+     * @return the validation result in Facets-compatible format
+     */
+    public FacetsValidationResponse validateProviderForFacets(FacetsValidationRequest request) {
+        log.info("Facets provider validation — txnId={} npi={} lob={} claimId={}",
+                request.getFacetsTransactionId(), request.getNpi(),
+                request.getLobCode(), request.getClaimId());
+
+        LocalDate dos = request.getDateOfService() == null
+                ? LocalDate.now() : request.getDateOfService();
+
+        ProviderValidationResponse result = validateProvider(request.getNpi(), dos);
+
+        return FacetsValidationResponse.builder()
+                .facetsTransactionId(request.getFacetsTransactionId())
+                .npi(result.getNpi())
+                .status(result.getStatus())
+                .networkStatus(result.getNetworkStatus())
+                .tierCode(result.getTierCd())
+                .feeScheduleId(result.getFeeScheduleId())
+                .credentialingValid(result.getCredentialingStatus() == CredentialingStatus.CREDENTIALED)
+                .excluded(result.isExcluded())
+                .exclusionSource(result.getExclusionSource())
+                .denyReason(result.getDenyReason())
+                .validatedAt(LocalDateTime.now())
+                .build();
     }
 }
