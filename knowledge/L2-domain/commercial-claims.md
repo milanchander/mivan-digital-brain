@@ -883,3 +883,18 @@ Commercial COB follows NAIC model rules:
 - COBRA is always secondary to active coverage
 
 Unlike Medicare (MSP federal rules) and Medicaid (payer of last resort), commercial COB is governed by state law and NAIC guidelines — giving plans more flexibility but also more variation.
+
+## Related Lines of Business & Implementation
+
+### Sibling LOB Domain Nodes
+- Medicare Advantage — `knowledge/L2-domain/medicare-advantage.md`
+- Medicaid Managed Care — `knowledge/L2-domain/medicaid-managed-care.md`
+- Provider Data (cross-LOB) — `knowledge/L2-domain/provider-data-lifecycle.md`
+- Healthcare primer (for non-health readers) — `knowledge/L2-domain/health-primer.md`
+
+### Commercial Program Tree
+The commercial claims program tree implements the processing flow described in this document:
+- COBOL: `src/cobol/commercial/` — `MCOMCLDR0` driver plus 5 subprograms *(planned — not yet built)*
+- Java: `src/java/commercial/` — Spring Boot equivalent *(planned — not yet built)*
+
+See L4 (`knowledge/L4-application/micps-application-knowledge.md`) for module-level program detail and L5 (`knowledge/L5-business-rules/claims-business-rules.md`) for the business rules these programs implement.

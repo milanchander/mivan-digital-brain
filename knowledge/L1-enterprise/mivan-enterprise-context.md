@@ -8,6 +8,13 @@ validated_by: "Digital Brain — pending SME review"
 fidelity: PARTIAL
 source_count_declared: 5
 source_count_captured: 5
+links_forward:
+  - knowledge/L2-domain/commercial-claims.md
+  - knowledge/L2-domain/medicare-advantage.md
+  - knowledge/L2-domain/medicaid-managed-care.md
+  - knowledge/L2-domain/provider-data-lifecycle.md
+  - knowledge/L2-domain/health-primer.md
+  - knowledge/L3-systems/mivan-system-landscape.md
 ---
 
 # Mivan Health Plan — Enterprise Context
@@ -40,6 +47,19 @@ MiCPS (Mivan Claims Processing System) is Mivan's homegrown mainframe claims adj
 | Throughput | Processes ~4 million claims per day at peak |
 | Integration Style | Batch file exchange (SFTP), MQ messaging; no REST APIs |
 | Documentation | Sparse; system knowledge concentrated in a small group of senior engineers |
+
+### Lines of Business & Program Trees
+
+The Digital Brain documents four lines of business, each with a domain knowledge node (L2) and a parallel-build program tree (COBOL driver + Java Spring Boot equivalent):
+
+| Line of Business | L2 Domain Node | Program Driver | Focus |
+|---|---|---|---|
+| Commercial | `knowledge/L2-domain/commercial-claims.md` | `MCOMCLDR0` *(planned — `src/cobol/commercial/`, `src/java/commercial/`)* | Fully-insured / ASO / ACA / COBRA claim processing |
+| Medicare Advantage | `knowledge/L2-domain/medicare-advantage.md` | `MAENCDR0` (`src/cobol/ma/`, `src/java/ma/`) | HCC validation, RAF calculation, CMS EDPS submission |
+| Medicaid | `knowledge/L2-domain/medicaid-managed-care.md` | `MMCOCLDR0` (`src/cobol/medicaid/`, `src/java/medicaid/`) | TPL identification, payer of last resort, state MMIS |
+| Provider Data (cross-LOB) | `knowledge/L2-domain/provider-data-lifecycle.md` | `MPRVVLDR0` (`src/cobol/provider/`, `src/java/provider/`) | NPI lookup, credentialing, OIG exclusion, network verify |
+
+> ⚠️ VALIDATE: Per the MiCPS platform table above, MiCPS itself adjudicates commercial claims only; Medicare Advantage and Medicaid are adjudicated on the TriStar and StateLink platforms respectively. The MA and Medicaid program trees model those separate-system flows.
 
 ### Surrounding Systems
 

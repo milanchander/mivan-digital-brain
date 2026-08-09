@@ -18,7 +18,7 @@ fidelity: DRAFT
 > Target: load less than 1% of the knowledge 
 > estate per question.
 >
-> Current estate size: ~6 files × avg 50KB = ~300KB
+> Current estate size: ~12 files × avg 45KB = ~550KB
 > Target context per question: ~100KB max
 > Progressive disclosure: improves as estate grows
 
@@ -77,7 +77,7 @@ Business Analyst:
 Max context: 100KB
 
 Non-Health (Complete Beginner):
-1. knowledge/L2-domain/health-primer.md [GHOST]
+1. knowledge/L2-domain/health-primer.md
 2. knowledge/L2-domain/commercial-claims.md
    → sections: claims-lifecycle
 3. knowledge/L1-enterprise/mivan-enterprise-context.md
@@ -238,6 +238,21 @@ Max context: 60KB
 
 ---
 
+## LOB-Aware Traversal
+
+When a question is scoped to a specific line of business, route to that LOB's L2 domain node and its program tree — do not load the other LOBs' content. Provider Data is cross-LOB and may be loaded alongside any LOB.
+
+| Line of Business | Trigger phrases | Traversal | Program tree |
+|---|---|---|---|
+| Commercial | "commercial", "fully-insured", "ASO", "ACA", "exchange", "COBRA", "employer group" | 1. knowledge/L2-domain/commercial-claims.md<br>2. knowledge/L4-application/micps-application-knowledge.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MCOMCLDR0 *(planned — src/cobol/commercial/, src/java/commercial/)* |
+| Medicare Advantage | "Medicare Advantage", "MA", "HCC", "RAF", "RADV", "encounter data", "EDPS", "Star ratings" | 1. knowledge/L2-domain/medicare-advantage.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MAENCDR0 (src/cobol/ma/, src/java/ma/) |
+| Medicaid | "Medicaid", "managed care", "TPL", "payer of last resort", "state MMIS", "capitation", "EPSDT" | 1. knowledge/L2-domain/medicaid-managed-care.md<br>2. knowledge/L3-systems/mivan-system-landscape.md<br>3. knowledge/L5-business-rules/claims-business-rules.md | MMCOCLDR0 (src/cobol/medicaid/, src/java/medicaid/) |
+| Provider Data (cross-LOB) | "provider", "NPI", "credentialing", "OIG", "SAM", "exclusion", "network", "sanction" | 1. knowledge/L2-domain/provider-data-lifecycle.md<br>2. knowledge/L4-application/micps-application-knowledge.md | MPRVVLDR0 (src/cobol/provider/, src/java/provider/) |
+
+Max context per LOB question: 120KB.
+
+---
+
 ## Routing Logic for the Portal
 
 When the Digital Brain receives a question it should:
@@ -261,9 +276,11 @@ Current implementation status:
 | Layer | Files Built | Ghost Nodes | Fidelity |
 |---|---|---|---|
 | L1 | 1 | 0 | HIGH |
-| L2 | 1 | 4 (MA, Medicaid, Provider, UM) | PARTIAL |
-| L3 | 1 | 2 (batch detail, intraday) | HIGH |
-| L4 | 1 | 6 (adjud rules, ACCUM, DRG, COB, AUTH, FEE-SCHED) | PARTIAL |
-| L5 | 1 | 2 (state rules, regulatory) | PARTIAL |
-| L6 | 0 | 1 (task intelligence) | GHOST |
+| L2 | 5 | 1 (UM) | HIGH/DRAFT |
+| L3 | 1 | 4 (batch detail, intraday, member-portal, mipay) | HIGH |
+| L4 | 1 | 8 (adjud rules, ACCUM, DRG, COB, AUTH, FEE-SCHED, NCCI, adjustment) | PARTIAL |
+| L5 | 1 | 1 (state rules) | PARTIAL |
+| L6 | 0 | 2 (task intelligence, defect patterns) | GHOST |
 | MEM | 3 | 0 | DRAFT |
+
+L2 files built: commercial-claims, health-primer, medicare-advantage, medicaid-managed-care, provider-data-lifecycle.
