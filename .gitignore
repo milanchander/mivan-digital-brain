@@ -37,3 +37,4 @@ Thumbs.db
 *.swo
 
 src/java/duplicate-detection/target/
+src/java/provider/target/
