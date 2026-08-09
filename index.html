@@ -1058,6 +1058,7 @@
       <div class="ncl" data-page="viz_knowledge_graph">Knowledge Graph</div>
       <div class="ncl" data-page="viz_blast_radius">Blast Radius</div>
       <div class="ncl" data-page="viz_ghost_node_map">Ghost Node Map</div>
+      <div class="ncl" data-page="viz_architecture">Architecture Diagram</div>
     </div>
 
     <div class="ndivider"></div>
@@ -7837,6 +7838,10 @@ var VIZ_META = {
   viz_ghost_node_map: {
     title: 'Ghost Node Map',
     subtitle: 'Visual inventory of known knowledge gaps — what we know, what we do not know, and progress toward completion.'
+  },
+  viz_architecture: {
+    title: 'Architecture Diagram',
+    subtitle: 'End-to-end Mivan claims architecture by line of business — intake, adjudication platforms, shared services, post-adjudication, and downstream.'
   }
 };
 
@@ -7844,6 +7849,7 @@ function showVisualization(pg) {
   if (pg === 'viz_knowledge_graph') { showKnowledgeGraph(); return; }
   if (pg === 'viz_blast_radius')    { showBlastRadius();   return; }
   if (pg === 'viz_ghost_node_map')  { showGhostNodeMap();  return; }
+  if (pg === 'viz_architecture')    { showArchitecture();  return; }
   var v = VIZ_META[pg];
   if (!v) return;
   if (_kgSim) { _kgSim.stop(); _kgSim = null; }
@@ -7860,6 +7866,132 @@ function showVisualization(pg) {
         '<p style="color:var(--muted)">Visualization loading…</p>' +
       '</div>' +
     '</div>';
+}
+
+// ── ARCHITECTURE DIAGRAM ──
+function showArchitecture() {
+  if (_kgSim) { _kgSim.stop(); _kgSim = null; }
+  setActive('viz_architecture');
+  setBc('Visualizations — Architecture Diagram');
+  document.getElementById('cwrap').scrollTop = 0;
+  var v = VIZ_META['viz_architecture'];
+
+  var C = { teal:'#2dd4bf', blue:'#2a78d6', green:'#1baf7a', amber:'#eda100',
+            gray:'#8b949e', lblue:'#5aa2ff', lgreen:'#4ec98f' };
+  function rgba(hex,a){ var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return 'rgba('+r+','+g+','+b+','+a+')'; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function box(o){
+    var cx=o.x+o.w/2, g='<g class="arch-box" data-id="'+o.id+'" style="cursor:pointer">';
+    g+='<rect x="'+o.x+'" y="'+o.y+'" rx="10" width="'+o.w+'" height="'+o.h+'" fill="'+rgba(o.color,0.13)+'" stroke="'+o.color+'" stroke-width="2"/>';
+    g+='<text x="'+cx+'" y="'+(o.y+ (o.sub||o.tech||o.badge?24:o.h/2+5) )+'" text-anchor="middle" font-size="14" font-weight="700" fill="#e6edf3">'+esc(o.label)+'</text>';
+    if(o.sub)   g+='<text x="'+cx+'" y="'+(o.y+43)+'" text-anchor="middle" font-size="11" fill="'+o.color+'">'+esc(o.sub)+'</text>';
+    if(o.tech)  g+='<text x="'+cx+'" y="'+(o.y+60)+'" text-anchor="middle" font-size="10" fill="#8b949e">'+esc(o.tech)+'</text>';
+    if(o.badge) g+='<text x="'+cx+'" y="'+(o.y+o.h-9)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="'+o.color+'">'+esc(o.badge)+'</text>';
+    return g+'</g>';
+  }
+  function ln(x1,y1,x2,y2,color,dashed,w,op){ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="'+(w||1.7)+'" '+(dashed?'stroke-dasharray="5,4" ':'')+'opacity="'+(op||0.8)+'" marker-end="url(#arch-ah)"/>'; }
+  function pth(d,color,dashed,w,op){ return '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+(w||1.7)+'" '+(dashed?'stroke-dasharray="5,4" ':'')+'opacity="'+(op||0.8)+'" marker-end="url(#arch-ah)"/>'; }
+  function lbl(x,y,t,color){ return '<text x="'+x+'" y="'+y+'" text-anchor="middle" font-size="9.5" fill="'+(color||'#8b949e')+'">'+esc(t)+'</text>'; }
+
+  // ── arrows (drawn first, behind boxes) ──
+  var A = '';
+  // intake fan
+  A += ln(455,84,180,138,C.teal)  + lbl(300,112,'Commercial →',C.teal);
+  A += ln(455,84,455,138,C.blue)  + lbl(500,120,'MA →',C.blue);
+  A += ln(455,84,730,138,C.green) + lbl(650,112,'Medicaid →',C.green);
+  // same platform
+  A += '<line x1="580" y1="189" x2="626" y2="189" stroke="'+C.gray+'" stroke-width="1.4" stroke-dasharray="4,3" opacity="0.7"/>' + lbl(603,183,'Same platform',C.gray);
+  // provider validation up
+  A += ln(150,300,150,242,C.amber) + lbl(150,280,'COBOL batch',C.amber);
+  A += pth('M215,300 L442,242',C.amber,true) + lbl(345,264,'REST API',C.amber);
+  // miprovider -> provider validation
+  A += ln(628,346,282,346,C.gray) + lbl(455,339,'provider feed',C.gray);
+  // mimember -> three platforms
+  A += pth('M430,300 L182,242',C.gray,true,1.3,0.6);
+  A += ln(455,300,455,242,C.gray,true,1.3,0.7) + lbl(455,288,'member feed',C.gray);
+  A += pth('M480,300 L728,242',C.gray,true,1.3,0.6);
+  // post-adjudication (REST after adjudication)
+  A += pth('M580,172 Q765,112 928,172',C.blue,true) + lbl(770,120,'REST after adjudication',C.blue);
+  A += pth('M880,240 L928,326',C.green,true) + lbl(945,300,'REST after adj.',C.green);
+  // downstream (subtle)
+  A += pth('M120,238 C40,330 40,405 118,470',C.gray,false,1.2,0.5) + lbl(60,360,'feed',C.gray);
+  A += ln(455,392,455,470,C.gray,false,1.2,0.5);
+  A += pth('M280,232 C330,300 340,410 350,470',C.gray,false,1.2,0.45);
+  A += pth('M1055,238 C1055,430 470,520 250,470',C.gray,false,1.2,0.4);
+  A += pth('M980,398 C820,520 520,520 245,472',C.gray,false,1.2,0.4);
+  A += ln(280,514,626,514,C.gray,false,1.3,0.6) + lbl(453,507,'analytics',C.gray);
+
+  // ── boxes ──
+  var B = '';
+  B += box({id:'miedi',      x:330,y:20, w:250,h:62,color:C.teal, label:'MiEDI — IBM Sterling', sub:'EDI Clearinghouse + LOB Router'});
+  B += box({id:'micps',      x:30, y:140,w:250,h:98,color:C.teal, label:'MiCPS', sub:'Commercial Claims', tech:'COBOL / JCL / DB2 / VSAM', badge:'Wave 1-5 Migration'});
+  B += box({id:'mifct-ma',   x:330,y:140,w:250,h:98,color:C.blue, label:'MiFCT', sub:'Medicare Advantage', tech:'TriZetto Facets / Oracle', badge:'MA Adjudication'});
+  B += box({id:'mifct-mc',   x:630,y:140,w:250,h:98,color:C.green,label:'MiFCT', sub:'Medicaid', tech:'TriZetto Facets / Oracle', badge:'Medicaid Adjudication'});
+  B += box({id:'provval',    x:30, y:300,w:250,h:92,color:C.amber,label:'Provider Validation', sub:'Cross-LOB shared service', tech:'MPRVVLDR0 (MiCPS) + REST (MiFCT)', badge:'⚡ Cross-LOB — Wave 2'});
+  B += box({id:'mimember',   x:330,y:300,w:250,h:92,color:C.gray, label:'MiMember', sub:'Member Enrollment', tech:'Oracle on-prem'});
+  B += box({id:'miprovider', x:630,y:300,w:250,h:92,color:C.gray, label:'MiProvider', sub:'Provider Master', tech:'SQL Server on-prem'});
+  B += box({id:'ma-postadj', x:930,y:140,w:250,h:98,color:C.lblue, label:'MA Post-Adjudication', sub:'HCC · RAF · CMS EDPS', tech:'Java Spring Boot'});
+  B += box({id:'mc-report',  x:930,y:300,w:250,h:98,color:C.lgreen,label:'Medicaid State Reporting', sub:'TPL · Last Resort · MMIS', tech:'Java Spring Boot'});
+  B += box({id:'s3',         x:30, y:470,w:250,h:88,color:C.gray, label:'AWS S3', sub:'LOB-separated paths', tech:'commercial/ · ma/ · medicaid/'});
+  B += box({id:'sqlserver',  x:330,y:470,w:250,h:88,color:C.gray, label:'SQL Server', sub:'Operational data stores'});
+  B += box({id:'snowflake',  x:630,y:470,w:250,h:88,color:C.gray, label:'Snowflake', sub:'Analytics + reporting'});
+
+  var svg = '<svg viewBox="0 0 1200 580" style="width:100%;height:auto;background:transparent" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><marker id="arch-ah" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L8,3 L0,6 Z" fill="context-stroke"/></marker></defs>'
+    + A + B + '</svg>';
+
+  var legend = '<div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:11.5px;color:var(--muted)">'
+    + '<span><svg width="12" height="12"><rect width="12" height="12" rx="3" fill="'+rgba(C.teal,0.2)+'" stroke="'+C.teal+'"/></svg> Commercial (MiCPS)</span>'
+    + '<span><svg width="12" height="12"><rect width="12" height="12" rx="3" fill="'+rgba(C.blue,0.2)+'" stroke="'+C.blue+'"/></svg> Medicare Advantage (MiFCT)</span>'
+    + '<span><svg width="12" height="12"><rect width="12" height="12" rx="3" fill="'+rgba(C.green,0.2)+'" stroke="'+C.green+'"/></svg> Medicaid (MiFCT)</span>'
+    + '<span><svg width="12" height="12"><rect width="12" height="12" rx="3" fill="'+rgba(C.amber,0.2)+'" stroke="'+C.amber+'"/></svg> Shared Services (Cross-LOB)</span>'
+    + '<span><svg width="12" height="12"><rect width="12" height="12" rx="3" fill="'+rgba(C.gray,0.2)+'" stroke="'+C.gray+'"/></svg> External / Data stores</span>'
+    + '<span><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="'+C.gray+'" stroke-width="1.5" stroke-dasharray="4,3"/></svg> REST API call</span>'
+    + '<span><svg width="26" height="8"><line x1="0" y1="4" x2="24" y2="4" stroke="'+C.gray+'" stroke-width="1.5"/></svg> Batch / file feed</span>'
+    + '<span>⚡ Cross-LOB function</span>'
+    + '</div>';
+
+  var askQ = 'Walk me through how a Medicare Advantage claim flows through the Mivan architecture from EDI submission to CMS encounter reporting';
+
+  document.getElementById('content').innerHTML =
+    '<div class="lc-page" style="max-width:1100px">'
+    + '<div class="lc-page-hdr"><div><h2>'+v.title+'</h2><p>'+v.subtitle+'</p></div></div>'
+    + '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--card-bg);overflow-x:auto">'+svg+'</div>'
+    + '<div id="arch-tip" style="display:none;margin-top:12px;padding:14px 16px;background:var(--surface,#161b22);border:1px solid var(--border);border-radius:8px"></div>'
+    + legend
+    + '<div style="margin-top:20px"><button class="lc-art-btn" id="arch-ask" data-ask="'+esc(askQ)+'">🔍 Ask Digital Brain</button></div>'
+    + '</div>';
+
+  // ── interactions ──
+  var DESC = {
+    miedi: 'MiEDI (IBM Sterling B2B) — EDI clearinghouse and LOB router. Receives 837P/I claims and routes each by member line of business: Commercial → MiCPS, Medicare Advantage / Medicaid → MiFCT.',
+    micps: 'MiCPS (Mivan Claims Processing System) — IBM z/OS mainframe processing all commercial claims. 30-year-old COBOL/JCL/DB2/VSAM system being migrated function by function to AWS. Wave 1-5 migration in progress.',
+    'mifct-ma': 'MiFCT (Mivan Facets Claims Technology) — TriZetto Facets implementation for government LOBs. Adjudicates all MA and Medicaid claims. Calls Provider Validation REST API for NPI and exclusion checks.',
+    'mifct-mc': 'MiFCT (Mivan Facets Claims Technology) — TriZetto Facets implementation for government LOBs. Adjudicates all MA and Medicaid claims. Calls Provider Validation REST API for NPI and exclusion checks.',
+    provval: 'Cross-LOB shared service. MiCPS calls COBOL MPRVVLDR0 in batch. MiFCT calls REST API POST /api/v1/provider/validate/facets. OIG exclusion check is mandatory — federal law prohibits payment to excluded providers.',
+    mimember: 'MiMember — member eligibility and enrollment system (Oracle, on-prem). Feeds member and eligibility data to both claims platforms.',
+    miprovider: 'MiProvider — provider master data management (SQL Server, on-prem). Source of the nightly PROV-MSTR provider feed.',
+    'ma-postadj': 'MaPostAdjudicationService — Java Spring Boot. Called by MiFCT after MA claim adjudication. Handles CMS EDPS encounter data submission, HCC validation, RAF score calculation. Not an adjudication engine — MiFCT adjudicates.',
+    'mc-report': 'MedicaidStateReportingService — Java Spring Boot. Called by MiFCT after Medicaid claim adjudication. Handles third party liability, payer of last resort (42 CFR 433.139), and state MMIS encounter submission. Not an adjudication engine — MiFCT adjudicates.'
+  };
+  var ASK = {
+    s3: 'How are Mivan claims feeds separated by line of business in the S3 data lake, and what consumes the commercial, MA, and Medicaid paths?',
+    sqlserver: 'What operational data do MiCPS and MiFCT write to the downstream SQL Server stores?',
+    snowflake: 'What analytics and reporting run on Snowflake from the Mivan claims data lake?'
+  };
+  var content = document.getElementById('content');
+  content.querySelectorAll('.arch-box').forEach(function(el){
+    el.addEventListener('click', function(){
+      var id = el.dataset.id;
+      if (ASK[id]) { openChatWithQ(ASK[id]); return; }
+      var tip = document.getElementById('arch-tip');
+      tip.style.display = 'block';
+      tip.innerHTML = '<p style="margin:0;font-size:13px;line-height:1.6;color:var(--text)">'+esc(DESC[id]||'')+'</p>';
+    });
+  });
+  var askBtn = document.getElementById('arch-ask');
+  if (askBtn) askBtn.addEventListener('click', function(){ openChatWithQ(askBtn.dataset.ask); });
 }
 
 // ── KNOWLEDGE GRAPH ──
@@ -7959,7 +8091,10 @@ function initKnowledgeGraph() {
     {id:'PRV-EXCL', label:'MPRVEXC0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Exclusion check — checks OIG LEIE, SAM, state lists. CRITICAL: federal law prohibits payment to excluded providers.', nav:null},
     {id:'PRV-NET', label:'MPRVNET0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Network verification — returns INN/OON status, tier assignment, fee schedule ID.', nav:null},
     {id:'PRV-CRED', label:'MPRVCRD0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Credentialing check — validates license, DEA, malpractice, board cert, CAQH status.', nav:null},
-    {id:'COM-Driver', label:'MCOMCLDR0', layer:'Commercial', color:'#1baf7a', r:16, ghost:true, desc:'Commercial Claims Driver — fully-insured, ASO, ACA, COBRA processing. Driver + 5 subprograms. PLANNED — not yet built.', nav:'l2'}
+    {id:'COM-Driver', label:'MCOMCLDR0', layer:'Commercial', color:'#1baf7a', r:16, ghost:true, desc:'Commercial Claims Driver — fully-insured, ASO, ACA, COBRA processing. Driver + 5 subprograms. PLANNED — not yet built.', nav:'l2'},
+    {id:'MiCPS', label:'MiCPS', layer:'System', color:'#2a78d6', r:18, ghost:false, desc:'Mivan Claims Processing System — z/OS mainframe (COBOL) that adjudicates commercial claims.', nav:'l3'},
+    {id:'MiMember', label:'MiMember', layer:'System', color:'#888888', r:14, ghost:false, desc:'Member eligibility and enrollment system (Oracle, on-prem). Feeds member data to the claims platforms.', nav:null},
+    {id:'MiProvider', label:'MiProvider', layer:'System', color:'#888888', r:14, ghost:false, desc:'Provider master data management (SQL Server, on-prem). Source of the PROV-MSTR provider feed.', nav:null}
   ];
 
   var edgesData = [
@@ -8007,12 +8142,32 @@ function initKnowledgeGraph() {
     {source:'L3', target:'MiFCT', type:'lateral'},
     {source:'MiFCT', target:'MA-Driver', type:'used_by'},
     {source:'MiFCT', target:'MC-Driver', type:'used_by'},
-    {source:'MiFCT', target:'PRV-Driver', type:'used_by'}
+    {source:'MiFCT', target:'PRV-Driver', type:'used_by'},
+    {source:'L3', target:'MiCPS', type:'lateral'},
+    {source:'MiCPS', target:'MICPS4471', type:'lateral'},
+    {source:'MiCPS', target:'L2a', type:'lateral'},
+    {source:'MiProvider', target:'PRV-Driver', type:'lateral'},
+    {source:'MiMember', target:'MiProvider', type:'lateral'}
   ];
 
   // Clone to prevent D3 mutation on re-init
   var nodes = nodesData.map(function(d) { return Object.assign({}, d); });
   var edges = edgesData.map(function(d) { return Object.assign({}, d); });
+
+  // ── CLUSTERS (convex-hull grouping) ──
+  var KG_CLUSTERS = [
+    {key:1, label:'Commercial LOB',  color:'#2a78d6', ids:['L2a','COM-Driver','MiCPS','MICPS4471']},
+    {key:2, label:'Government LOB',   color:'#1baf7a', ids:['L2b','L2c','MiFCT','MA-Driver','MA-HCC','MA-RAF','MA-EDPS','MC-Driver','MC-TPL','MC-LRP','MC-State']},
+    {key:3, label:'Shared Services',  color:'#888888', ids:['MiMember','MiProvider','L2d','PRV-Driver','PRV-NPI','PRV-EXCL','PRV-NET','PRV-CRED']},
+    {key:4, label:'Knowledge Layer',  color:'#8b5cf6', ids:['L1','L3','L4a','L4b','L4c','L4d','L4e','L4f','L4g','L5a','L5b','L6','L2e','MEM','Skills','Ghosts']}
+  ];
+  var KG_CL_OF = {};
+  KG_CLUSTERS.forEach(function(c) { c.ids.forEach(function(id) { KG_CL_OF[id] = c.key; }); });
+  var KG_CENTERS = {
+    1:{x:W*0.28,y:H*0.30}, 2:{x:W*0.72,y:H*0.30},
+    3:{x:W*0.28,y:H*0.72}, 4:{x:W*0.72,y:H*0.72}
+  };
+  nodes.forEach(function(n) { n.cluster = KG_CL_OF[n.id] || 4; });
 
   var svg = d3.select('#kg-canvas')
     .append('svg')
@@ -8024,9 +8179,10 @@ function initKnowledgeGraph() {
     .text('@keyframes kg-ghost-pulse{0%,100%{opacity:.4}50%{opacity:1}}.kg-ghost-circle{animation:kg-ghost-pulse 2s ease-in-out infinite}');
 
   var sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(edges).id(function(d) { return d.id; }).distance(80).strength(0.6))
-    .force('charge', d3.forceManyBody().strength(-280))
-    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('link', d3.forceLink(edges).id(function(d) { return d.id; }).distance(70).strength(0.35))
+    .force('charge', d3.forceManyBody().strength(-240))
+    .force('x', d3.forceX(function(d) { return KG_CENTERS[d.cluster].x; }).strength(0.30))
+    .force('y', d3.forceY(function(d) { return KG_CENTERS[d.cluster].y; }).strength(0.30))
     .force('collide', d3.forceCollide().radius(function(d) { return d.r + 12; }))
     .alphaDecay(0.02);
 
@@ -8044,6 +8200,43 @@ function initKnowledgeGraph() {
   function edgeOpacity(e) { return e.type==='implements'||e.type==='used_by' ? 0.40 : e.type==='lateral' ? 0.25 : 0.30; }
   function edgeWidth(e)   { return e.type==='containment' ? 1.5 : 1; }
   function edgeDash(e)    { return e.type==='links_forward'||e.type==='graduation_target' ? '4,3' : e.type==='lateral' ? '2,2' : e.type==='tracks' ? '3,3' : null; }
+
+  var hullLayer = svg.append('g').attr('class', 'kg-hulls');
+
+  function updateHulls() {
+    var groups = {};
+    nodes.forEach(function(n) {
+      var pad = n.r + 18;
+      (groups[n.cluster] = groups[n.cluster] || []).push(
+        [n.x - pad, n.y - pad], [n.x + pad, n.y - pad],
+        [n.x - pad, n.y + pad], [n.x + pad, n.y + pad]);
+    });
+    var data = KG_CLUSTERS.map(function(c) {
+      var pts = groups[c.key];
+      return { c: c, hull: (pts && pts.length >= 3) ? d3.polygonHull(pts) : null };
+    }).filter(function(d) { return d.hull; });
+
+    var paths = hullLayer.selectAll('path.kg-hull').data(data, function(d) { return d.c.key; });
+    paths.enter().append('path').attr('class', 'kg-hull')
+        .attr('fill', function(d) { return hexRgba(d.c.color, 0.06); })
+        .attr('stroke', function(d) { return d.c.color; })
+        .attr('stroke-width', 1.5).attr('stroke-opacity', 0.7)
+        .attr('stroke-linejoin', 'round').attr('pointer-events', 'none')
+      .merge(paths)
+        .attr('d', function(d) { return 'M' + d.hull.join('L') + 'Z'; });
+    paths.exit().remove();
+
+    var labels = hullLayer.selectAll('text.kg-hull-label').data(data, function(d) { return d.c.key; });
+    labels.enter().append('text').attr('class', 'kg-hull-label')
+        .attr('font-size', '11px').attr('font-weight', '700')
+        .attr('fill', function(d) { return d.c.color; })
+        .attr('pointer-events', 'none')
+      .merge(labels)
+        .attr('x', function(d) { return d3.min(d.hull, function(p) { return p[0]; }) + 6; })
+        .attr('y', function(d) { return d3.min(d.hull, function(p) { return p[1]; }) + 14; })
+        .text(function(d) { return d.c.label; });
+    labels.exit().remove();
+  }
 
   var link = svg.append('g').selectAll('line').data(edges).enter().append('line')
     .attr('stroke',         function(e) { return edgeStroke(e); })
@@ -8111,6 +8304,7 @@ function initKnowledgeGraph() {
     node.attr('transform', function(d) {
       return 'translate(' + Math.max(d.r+2, Math.min(W-d.r-2, d.x)) + ',' + Math.max(d.r+2, Math.min(H-d.r-16, d.y)) + ')';
     });
+    updateHulls();
   });
 
   document.getElementById('kg-btn-reset').onclick = function() {
