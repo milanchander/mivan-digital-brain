@@ -51,6 +51,63 @@ The authoritative knowledge base lives as markdown files under the `knowledge/` 
 
 When answering, use the Grep and Read tools to find and cite exact content from these files. Prefer grounded answers drawn from the knowledge base over general knowledge, and mention which layer a fact comes from when it helps. Be specific and technical — reference real program names, table names, and migration waves. Keep answers concise but complete, and always format them as GitHub-flavored markdown."""
 
+
+def load_knowledge_base():
+    """Pre-load core knowledge files at startup
+    so the agent does not need to read them
+    for every question."""
+    knowledge = {}
+    files_to_preload = [
+        ("l1", "knowledge/L1-enterprise/mivan-enterprise-context.md"),
+        ("l2_commercial", "knowledge/L2-domain/commercial-claims.md"),
+        ("l2_ma", "knowledge/L2-domain/medicare-advantage.md"),
+        ("l2_medicaid", "knowledge/L2-domain/medicaid-managed-care.md"),
+        ("l3", "knowledge/L3-systems/mivan-system-landscape.md"),
+        ("routing", "knowledge/routing-map.md"),
+        ("ghosts", "knowledge/ghost-nodes.md"),
+    ]
+    for key, path in files_to_preload:
+        full_path = PROJECT_ROOT / path
+        if full_path.exists():
+            content = full_path.read_text(encoding="utf-8")
+            knowledge[key] = content[:8000]
+        else:
+            knowledge[key] = f"[{path} not found]"
+    return knowledge
+
+
+KNOWLEDGE_BASE = load_knowledge_base()
+
+PRELOADED_CONTEXT = f"""
+---
+PRE-LOADED KNOWLEDGE (use this before reading files):
+
+## L1 — Enterprise Context
+{KNOWLEDGE_BASE['l1'][:3000]}
+
+## L2 — Commercial Claims
+{KNOWLEDGE_BASE['l2_commercial'][:2000]}
+
+## L2 — Medicare Advantage
+{KNOWLEDGE_BASE['l2_ma'][:2000]}
+
+## L2 — Medicaid
+{KNOWLEDGE_BASE['l2_medicaid'][:1000]}
+
+## L3 — System Landscape (summary)
+{KNOWLEDGE_BASE['l3'][:3000]}
+
+## Ghost Nodes Registry
+{KNOWLEDGE_BASE['ghosts'][:2000]}
+
+---
+INSTRUCTION: Answer from the pre-loaded knowledge above when possible. Only use file reading tools (Read/Grep/Glob) when the question requires deeper detail not covered above. This dramatically reduces response time.
+---
+"""
+
+print(f"Knowledge base pre-loaded: {len(KNOWLEDGE_BASE)} files ready")
+print(f"Context size: ~{sum(len(v) for v in KNOWLEDGE_BASE.values())} chars")
+
 app = FastAPI(title="Mivan Digital Brain Chat")
 
 # Allow the static index.html (opened via file:// or any local server) to connect.
@@ -112,7 +169,7 @@ def all_connectors_status():
 
 
 def build_options(frontend_system_prompt: str) -> ClaudeAgentOptions:
-    append = BASE_SYSTEM
+    append = BASE_SYSTEM + PRELOADED_CONTEXT
     if frontend_system_prompt:
         append += "\n\n--- Additional domain context ---\n\n" + frontend_system_prompt
     return ClaudeAgentOptions(
