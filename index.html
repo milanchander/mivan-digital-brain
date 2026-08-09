@@ -6051,7 +6051,12 @@ let history = [];
 marked.use({ gfm: true, breaks: false });
 
 // ── ACTIVE STATE ──
+let currentPageId = 'overview';
+function pageContextId() {
+  return (currentPageId || 'overview').replace(/^viz_/, '').replace(/^conn_/, '').replace(/_/g, '-');
+}
 function setActive(page) {
+  currentPageId = page;
   document.querySelectorAll('.nl, .ncl').forEach(el => el.classList.remove('active'));
   const el = document.querySelector(`[data-page="${page}"]`);
   if (!el) return;
@@ -6360,10 +6365,10 @@ async function sendMsg(text) {
   }
 
   if (sessionId === null) {
-    const pageCtx = (document.getElementById('content').innerText || '').slice(0, 3000);
-    ws.send(JSON.stringify({ message: text, system: pageCtx, session_id: null }));
+    // Backend has the knowledge base pre-loaded — send only a short page id, not full page content.
+    ws.send(JSON.stringify({ message: text, page_context: pageContextId(), system: '', session_id: null }));
   } else {
-    ws.send(JSON.stringify({ message: text, session_id: sessionId }));
+    ws.send(JSON.stringify({ message: text, page_context: pageContextId(), session_id: sessionId }));
   }
 }
 
