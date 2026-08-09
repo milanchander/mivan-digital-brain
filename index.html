@@ -383,6 +383,52 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── CONNECTORS ── */
+    .conn-statusbar { display:flex; align-items:center; gap:10px; padding:8px 14px; background:var(--surface,#161b22); border:1px solid var(--border); border-radius:8px; font-size:12px; color:var(--muted); margin-bottom:18px; }
+    .conn-livedot { width:9px; height:9px; border-radius:50%; background:#1baf7a; box-shadow:0 0 0 3px rgba(27,175,122,.18); animation:pulse-dot 1.8s ease-in-out infinite; flex-shrink:0; }
+    .conn-switch { margin-left:auto; color:var(--accent); cursor:pointer; font-weight:600; text-decoration:none; }
+    .conn-switch:hover { text-decoration:underline; }
+
+    .conn-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:26px; }
+    .conn-stat { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px 14px; }
+    .conn-stat .num { font-size:26px; font-weight:700; color:var(--text); line-height:1; }
+    .conn-stat .lbl { font-size:11px; color:var(--muted); margin-top:7px; text-transform:uppercase; letter-spacing:.4px; }
+    .conn-stat .num.red { color:#f0776f; } .conn-stat .num.amber { color:#eda100; }
+    .conn-stat .num.purple { color:#b794f6; } .conn-stat .num.green { color:#1baf7a; }
+
+    .conn-sec-title { font-size:13px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:.5px; margin:26px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+
+    .conn-card { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; transition:border-color .15s, background .15s; }
+    .conn-card.expandable { cursor:pointer; }
+    .conn-card.expandable:hover { border-color:var(--accent); background:var(--card-hover); }
+    .conn-card-hdr { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .conn-card-title { font-size:14px; font-weight:600; color:var(--text); margin:8px 0 4px; }
+    .conn-card-meta { font-size:11.5px; color:var(--muted); display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; }
+    .conn-clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
+    .conn-more { display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); line-height:1.6; }
+    .conn-card.open .conn-more { display:block; }
+    .conn-more b { color:var(--text); font-weight:600; }
+    .conn-mono { font-family:'SF Mono',Consolas,monospace; }
+
+    .cbadge2 { display:inline-block; padding:2px 9px; border-radius:11px; font-size:10px; font-weight:700; letter-spacing:.3px; white-space:nowrap; }
+    .cb-teal   { background:rgba(45,212,191,.15); color:#2dd4bf; }
+    .cb-amber  { background:rgba(237,161,0,.16);  color:#eda100; }
+    .cb-green  { background:rgba(27,175,122,.16); color:#1baf7a; }
+    .cb-blue   { background:rgba(90,162,255,.16); color:#5aa2ff; }
+    .cb-gray   { background:rgba(139,148,158,.15);color:#8b949e; }
+    .cb-red    { background:rgba(226,75,74,.16);  color:#f0776f; }
+    .cb-purple { background:rgba(139,92,246,.18); color:#b794f6; }
+    .cb-pulse  { animation:pulse-dot 1.4s ease-in-out infinite; }
+
+    .conn-pill { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10.5px; background:rgba(139,148,158,.12); color:var(--muted); margin:2px 4px 2px 0; }
+    .conn-pill.mono { font-family:'SF Mono',Consolas,monospace; }
+
+    .conn-more-btn { background:var(--accent); border:none; color:#0d1117; padding:7px 14px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-top:12px; }
+    .conn-more-btn:hover { filter:brightness(1.08); }
+
+    .conn-err { background:rgba(237,161,0,.07); border:1px solid #eda100; border-radius:10px; padding:22px 24px; color:var(--text); font-size:13.5px; line-height:1.7; white-space:pre-line; max-width:560px; }
+    .conn-err b { color:#eda100; }
+
     /* ── MARKDOWN ── */
     .md h1 {
       font-size: 24px; font-weight: 700;
@@ -930,24 +976,19 @@
       <div class="ncl" data-page="viz_ghost_node_map">Ghost Node Map</div>
     </div>
 
-    <div class="nl" data-page="lifecycle">
-      <span class="ico">🔄</span>
-      <span class="lbl">Feature Lifecycle</span>
+    <div class="ndivider"></div>
+
+    <div class="nl parent" data-page="connectors" data-exp="1">
+      <span class="ico">🔌</span>
+      <span class="lbl">Connectors</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="nc" id="nc-connectors">
+      <div class="ncl" data-page="conn_github">GitHub</div>
+      <div class="ncl" data-page="conn_servicenow">ServiceNow</div>
+      <div class="ncl" data-page="conn_confluence">Confluence</div>
     </div>
 
-    <div class="nl" data-page="training_agenda">
-      <span class="ico">📅</span>
-      <span class="lbl">Training Agenda</span>
-    </div>
-    <div class="nl" data-page="training_java">
-      <span class="ico">☕</span>
-      <span class="lbl">Java Track Agenda</span>
-    </div>
-
-    <div class="nl" data-page="training_qe">
-      <span class="ico">🧪</span>
-      <span class="lbl">QE Track Agenda</span>
-    </div>
     <div class="nl parent" data-page="onboarding" data-exp="1">
       <span class="ico">🎓</span>
       <span class="lbl">Onboarding</span>
@@ -5441,307 +5482,6 @@ management:
         include: health,info,metrics
 ```
 </script>
-<script type="text/plain" id="md-training-agenda">
-# Mivan Digital Brain -- 5-Day Training Agenda
-
----
-layer: L6
-domain: claims
-source: internal
-last_synced: 2026-08-07
----
-
-# Mivan Digital Brain — 5-Day Training Agenda
-
-Structured onboarding programme for MiCPS developers and QE engineers using the Mivan Digital Brain. By Day 5 participants can use the Digital Brain to build, test, and review production-quality COBOL and Java code without consulting James Whitfield.
-
----
-
-## Day 1 — Domain Knowledge
-
-Build foundational understanding of the claims domain before touching any code.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Claims Lifecycle | L2 | End-to-end claim journey from submission to payment; adjudication stages; denial codes |
-| 2 | Adjudication Engine | L2 | How MiCPS applies business rules; rule priority; pend queue mechanics |
-| 3 | COB and Overpayment | L2 | Coordination of Benefits logic; overpayment detection patterns; $2–4M leakage context |
-
-**Outcome:** Participant can explain what a near-duplicate claim is, why it causes overpayment, and what MOVPDUP0 does and does not catch.
-
----
-
-## Day 2 — System Architecture
-
-Understand the technology landscape before reading any source code.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | MiCPS Architecture | L3 | System landscape; mainframe + cloud topology; data flows between MiCPS, Aurora, and downstream systems |
-| 2 | CICS and Batch Processing | L3 | When CICS transactions are used vs batch JCL; job streams; batch window constraints |
-| 3 | VSAM and DB2 | L3 | VSAM file types (KSDS, ESDS, RRDS); DB2 z/OS subsystem; schema ownership; cursor patterns |
-
-**Outcome:** Participant can read a JCL job stream, identify which programs run in which order, and explain the difference between VSAM and DB2 access patterns.
-
----
-
-## Day 3 — Application Knowledge
-
-Deep-dive into the specific MiCPS modules relevant to claims integrity work.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Module 3 — Adjudication Engine | L4 | MOVPDUP0/MOVPDUP1 program structure; CLAIM_PAYMENT and NEAR_DUP_QUEUE tables; pend reason codes |
-| 2 | Module 1 — Claims Intake | L4 | Inbound claim formats; EDI 837 mapping; how claims enter MiCPS before adjudication |
-| 3 | Technical Debt — James Whitfield Risks | L4 | Key-person dependency analysis; undocumented knowledge areas; bus factor mitigations |
-
-**Outcome:** Participant understands the full MOVPAUD0 job stream, can locate any MiCPS program in the system landscape, and knows which knowledge gaps the Digital Brain was built to close.
-
----
-
-## Day 4 — Skills Activation
-
-Learn to use the Digital Brain's three COBOL development skills on real work.
-
-| # | Skill | File | Practice Exercise |
-|---|---|---|---|
-| 5 | COBOL Feature Builder | `skills/cobol-feature-builder.md` | Paste a Jira story; follow the validation and analysis steps; generate a COBOL program skeleton |
-| 6 | COBOL Test Generator | `skills/cobol-test-generator.md` | Paste MOVPDUP1.cbl; generate a ZUnit test program; compare against MOVPDUP1T.cbl |
-| 7 | COBOL Code Reviewer | `skills/cobol-code-reviewer.md` | Paste MOVPDUP1.cbl; run a full 8-dimension review; identify what would need changing before migration |
-
-**Outcome:** Participant has activated all three COBOL skills and received at least one generated program, one ZUnit test suite, and one code review report.
-
----
-
-## Day 5 — Live Code
-
-Work with real production artifacts in the Digital Brain.
-
-| # | Activity | What You Will Do |
-|---|---|---|
-| 1 | Review MOVPDUP1.cbl | Open the COBOL Code Reviewer skill; paste MOVPDUP1.cbl; receive the full 8-dimension review report including migration readiness rating |
-| 2 | Ask Digital Brain to explain every paragraph | Open the chat; ask "Explain each paragraph of MOVPDUP1 and what business rule it implements"; verify the Digital Brain can answer from the embedded source |
-| 3 | Run MOVPDUP1T ZUnit tests | Review the ZUnit test program; trace each TC-01 through TC-06 test case against the corresponding acceptance criteria in MICPS-4471; confirm all 6 test cases have passing logic |
-
-**Outcome:** Participant has verified that the Digital Brain holds complete, accurate knowledge of MOVPDUP1 and can answer detailed questions about it without James Whitfield. Participant is ready for independent development on MiCPS stories.
-
----
-
-## Prerequisites
-
-- Access to Mivan Digital Brain portal: `https://milanchander.github.io/mivan-digital-brain`
-- Claude Code installed and configured for this repository
-- Read access to `src/cobol/` and `src/java/` directories
-- No prior COBOL experience required for Days 1–3; basic COBOL familiarity helpful for Days 4–5
-
-## Facilitator Notes
-
-- Day 3 Module "Technical Debt — James Whitfield Risks" is the most sensitive session. Frame it as a knowledge resilience exercise, not a personnel discussion.
-- Day 4 exercises work best when participants use a real in-flight story from the current sprint, not the MICPS-4471 example.
-- Day 5 is intentionally open-ended — the goal is to break the Digital Brain, not to follow a script. Encourage participants to ask questions it might not know.
-
-</script>
-<script type="text/plain" id="md-training-java">
-# Mivan Digital Brain -- 5-Day Training Agenda (Java Modernization Track)
-
----
-layer: L6
-domain: claims
-source: internal
-last_synced: 2026-08-07
----
-
-# Mivan Digital Brain — 5-Day Training Agenda (Java Modernization Track)
-
-Structured onboarding programme for Java developers and architects joining the MiCPS modernization programme. By Day 5 participants can use the Digital Brain to build, test, and review Spring Boot features that run in shadow mode alongside COBOL, with confidence in business rule parity before cutover.
-
----
-
-## Day 1 — Domain Knowledge
-
-Build foundational understanding of the claims domain from the perspective of the Java modernization effort.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Claims Lifecycle | L2 | End-to-end claim journey from submission to payment; adjudication stages; denial and pend reason codes |
-| 2 | Adjudication and Pricing | L2 | How MiCPS applies adjudication rules; pricing logic; coordination of benefits; near-duplicate detection and the $2–4M overpayment exposure |
-
-**Outcome:** Participant can explain what a near-duplicate claim is, what business rules govern detection, and why identical logic must produce identical outputs in both COBOL and Java during the shadow period.
-
----
-
-## Day 2 — System Architecture
-
-Understand the modernization topology before writing a single line of Java.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Modernization Architecture | L3 | Mainframe + AWS coexistence; Aurora PostgreSQL as DB2 mirror; EKS deployment for Java services; API gateway layer |
-| 2 | Wave 1–5 Migration Sequence | L3 | Which modules migrate in which wave; dependencies between waves; cutover gates per wave |
-| 3 | Coexistence Pattern | L3 | How COBOL and Java run simultaneously; shadow mode data flow; how discrepancies are detected and escalated |
-
-**Outcome:** Participant can draw the coexistence architecture from memory, explain which systems own which data during the shadow period, and state the cutover gate condition (99.99% agreement over 30 consecutive days).
-
----
-
-## Day 3 — Application Knowledge
-
-Deep-dive into Wave 1 modules and the shadow mode validation framework.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Wave 1 Modules | L4 | Scope of Wave 1 — which MiCPS programs are targeted; `DuplicateClaimDetectionService` as the reference implementation; CLAIM_PAYMENT and NEAR_DUP_QUEUE table schemas |
-| 2 | Shadow Mode Validation | L4 | How shadow mode works technically; `ShadowModeValidator` harness; fixture file format; how to interpret the parity dashboard; what constitutes an acceptable discrepancy |
-
-**Outcome:** Participant understands the full Wave 1 scope, can read the shadow mode parity metrics, and knows what action to take when parity drops below the gate threshold.
-
----
-
-## Day 4 — Skills Activation
-
-Learn to use the Digital Brain's four Java development skills on real work, in the order a developer would encounter them in a sprint.
-
-| # | Skill | File | Practice Exercise |
-|---|---|---|---|
-| 1 | Java Feature Builder | `skills/java-feature-builder.md` | Paste a Jira story; follow the 8-step process; confirm the Step 1 analysis before generating code |
-| 3 | Java Test Generator | `skills/java-test-generator.md` | Paste `DuplicateClaimDetectionService.java` + the MICPS-4471 story; generate the full test suite; compare against the 14 existing tests |
-| 4 | Java Code Reviewer | `skills/java-code-reviewer.md` | Paste `DuplicateClaimDetectionService.java`; run the 6-dimension review; identify any gaps against the MICPS-4471 ACs |
-| 2 | COBOL to Java Migrator | `skills/cobol-to-java-migrator.md` | Paste `MOVPDUP1.cbl`; follow the analysis step; compare the generated migration to the existing `DuplicateClaimDetectionService.java` |
-
-**Outcome:** Participant has activated all four Java skills and can apply them independently to any MiCPS Wave 1–5 story.
-
----
-
-## Day 5 — Live Code
-
-Work with the running Spring Boot service and live Digital Brain knowledge.
-
-| # | Activity | What You Will Do |
-|---|---|---|
-| 1 | Run DuplicateClaimDetectionService | Start the Spring Boot app (`mvn spring-boot:run`); seed `CLM-ORIG-001` via `POST /api/v1/claims/seed`; submit a near-duplicate via `POST /api/v1/claims/evaluate`; verify the response shows `NEAR_DUP` with correct `matchType` |
-| 2 | Review 14 passing tests | Run `mvn test`; trace each of the 14 test methods to its corresponding AC in MICPS-4471; confirm all AC-1 through AC-8 are covered |
-| 3 | Try Swagger UI | Open `http://localhost:8080/swagger-ui.html`; explore the Duplicate Detection API; execute the evaluate endpoint directly from the browser |
-| 4 | Ask Digital Brain to compare MOVPDUP1 to Java service | Open the chat; ask "Compare the COBOL MOVPDUP1 business rules to the Java DuplicateClaimDetectionService — are they identical?"; verify the Digital Brain can identify any differences from the embedded source |
-
-**Outcome:** Participant has run the full Java stack, verified test coverage against the story ACs, and confirmed the Digital Brain holds accurate, comparable knowledge of both the COBOL and Java implementations. Participant is ready for independent Wave 1–5 development.
-
----
-
-## Prerequisites
-
-- Access to Mivan Digital Brain portal: `https://milanchander.github.io/mivan-digital-brain`
-- Claude Code installed and configured for this repository
-- Java 21 and Maven installed locally (`C:\Users\[user]\tools\apache-maven-3.9.10`)
-- `JAVA_HOME` set to Eclipse Adoptium JDK 21
-- Basic Java and Spring Boot familiarity (REST, JPA, Lombok)
-- No COBOL experience required
-
-## Facilitator Notes
-
-- Day 2 "Coexistence Pattern" is the conceptual pivot of the track. Spend extra time here — Java developers often underestimate how much the shadow period constrains their implementation choices.
-- Day 4 Skills Activation runs in the order 1 → 3 → 4 → 2 intentionally: Feature Builder first so participants understand the generation target, Code Reviewer before Migrator so they know what good looks like before they see a migration.
-- Day 5 Step 4 is the key moment: the Digital Brain answering the comparison question live, without James Whitfield. Let it run and let participants probe further.
-- See also: `knowledge/L6-task-intelligence/5-day-training-agenda.md` for the parallel COBOL track.
-
-</script>
-
-<script type="text/plain" id="md-qe-track">
----
-layer: L6
-domain: claims
-source: internal
-last_synced: 2026-08-07
----
-
-# Mivan Digital Brain — 5-Day Training Agenda (QE Track)
-
-Structured onboarding programme for QE engineers joining the MiCPS testing programme. By Day 5 participants can use the Digital Brain to generate comprehensive test suites for both COBOL and Java, identify coverage gaps against acceptance criteria, and produce regression tests from known production complexity areas — without requiring James Whitfield to explain the business rules.
-
----
-
-## Day 1 — Domain Knowledge
-
-Build the domain foundation QE engineers need before they can write meaningful tests.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Full Claims Lifecycle | L2 | End-to-end claim journey: submission → intake → adjudication → payment → reconciliation; which systems touch the claim at each stage; what can go wrong at each transition |
-| 2 | Denial Codes and CARC/RARC | L2 | Claim Adjustment Reason Codes (CARC) and Remittance Advice Remark Codes (RARC); MiCPS-specific pend reason codes (including `NEAR-DUP-REVIEW`); how denial codes map to business rules that need test coverage |
-
-**Outcome:** Participant can read a claim denial reason code and identify which adjudication rule it represents, which MiCPS program applies it, and what test scenario would validate the correct outcome.
-
----
-
-## Day 2 — System Architecture
-
-Understand the technical landscape so test data setup and teardown is tractable.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Batch Job Streams | L3 | How MiCPS batch jobs are structured; job dependencies and COND codes; how test data flows through a batch run; what constitutes a complete end-to-end test cycle |
-| 2 | Feed Architecture | L3 | Inbound and outbound feed formats; EDI 837 inbound claims; 835 remittance outbound; how feed failures manifest and what test coverage they need |
-
-**Outcome:** Participant can describe the full `MOVPAUD0` job stream (MOVPDUP0 → MOVPDUP1 → MOVPDEM0 → MADJPND0), explain what test data is needed at each step, and identify which feeds need regression coverage.
-
----
-
-## Day 3 — Test Landscape
-
-Identify where the highest-risk testing gaps are before picking up any skill.
-
-| # | Topic | Layer | What You Will Learn |
-|---|---|---|---|
-| 1 | Known Complexity Areas | L4 | Which MiCPS modules have the highest cyclomatic complexity; where boundary conditions are most likely to cause defects; adjudication engine edge cases that have caused production incidents |
-| 2 | Technical Debt — Highest Risk Modules | L4 | Modules with no or inadequate test coverage; programs where the only "test" is James Whitfield's memory; risk-ranked list of coverage gaps the QE programme must close |
-
-**Outcome:** Participant has a prioritised list of the top 10 untested or under-tested business rules in MiCPS, and understands which of these the Digital Brain can generate test cases for immediately.
-
----
-
-## Day 4 — Skills Activation
-
-Learn to use both test generation skills — one for Java, one for COBOL — on real code.
-
-| # | Skill | File | Practice Exercise |
-|---|---|---|---|
-| 3 | Java Test Generator | `skills/java-test-generator.md` | Paste `DuplicateClaimDetectionService.java` + the MICPS-4471 story; generate the full JUnit 5 suite; compare the output against the 14 existing tests; identify any gaps |
-| 6 | COBOL Test Generator | `skills/cobol-test-generator.md` | Paste `MOVPDUP1.cbl`; generate a ZUnit test programme; compare against `MOVPDUP1T.cbl`; verify boundary tests exist for the 10% charge tolerance and 1-day DOS threshold |
-
-**Activation order:** Run Skill 3 first. The Java test output gives QE engineers a mental model of the expected business rule coverage before they look at the COBOL equivalent. This makes Skill 6 output easier to evaluate for completeness.
-
-**Outcome:** Participant has generated both a JUnit 5 suite and a ZUnit test programme from live MiCPS source, and can articulate the coverage gaps between what was generated and what exists today.
-
----
-
-## Day 5 — Live Testing
-
-Run the actual test suites, examine the ZUnit structure, and push the Digital Brain to generate beyond what already exists.
-
-| # | Activity | What You Will Do |
-|---|---|---|
-| 1 | Run all 14 JUnit tests | Run `mvn test` in `src/java/duplicate-detection`; confirm `Tests run: 14, Failures: 0, Errors: 0`; map each test method name to its corresponding AC in MICPS-4471; identify which test covers which boundary condition |
-| 2 | Review ZUnit test structure | Open `src/cobol/MOVPDUP1T.cbl`; trace TC-01 through TC-06; verify each test case maps to an AC; check that boundary values (exactly 10%, exactly 1 day) are tested; identify any missing negative-path tests |
-| 3 | Ask Digital Brain to generate additional edge case tests | Open the chat; ask "Generate additional edge case tests for DuplicateClaimDetectionService that are not already covered by the existing 14 tests — focus on boundary values and null inputs"; evaluate the output against the analysis from Days 3 and 4 |
-
-**Outcome:** Participant has run the live test suite, evaluated its coverage against the story ACs, and used the Digital Brain to extend coverage into edge cases that the original developer did not anticipate. Participant is ready to lead QE for MiCPS Wave 1–5 stories.
-
----
-
-## Prerequisites
-
-- Access to Mivan Digital Brain portal: `https://milanchander.github.io/mivan-digital-brain`
-- Claude Code installed and configured for this repository
-- Java 21 and Maven installed locally for Day 5 Step 1
-- Familiarity with JUnit 5 concepts (not required to write tests — only to read them)
-- No COBOL experience required
-
-## Facilitator Notes
-
-- Day 3 is the most strategically important session for the QE programme. The "highest risk modules" list should be updated from the most recent production incident log before the session runs.
-- Day 4 ordering (Java before COBOL) is intentional — Java test output is more readable for engineers not familiar with ZUnit syntax, and primes them to recognise good coverage patterns before evaluating the COBOL equivalent.
-- Day 5 Step 3 is the key demonstration: the Digital Brain extending a test suite beyond what the original developer wrote. Ask participants to evaluate whether the generated edge cases would have caught known production defects.
-- See also: `knowledge/L6-task-intelligence/5-day-training-agenda.md` (COBOL developer track) and `knowledge/L6-task-intelligence/5-day-training-agenda-java-track.md` (Java developer track).
-</script>
 <!-- ── DEMO OVERLAY PANEL ── -->
 <div id="demo-panel">
   <div id="demo-hdr">
@@ -5813,9 +5553,6 @@ const KNOWLEDGE_BASE = {
   java_response_model: document.getElementById('md-java-resp-model').textContent,
   java_schema:         document.getElementById('md-java-schema').textContent,
   java_config:         document.getElementById('md-java-config').textContent,
-  training_agenda:     document.getElementById('md-training-agenda').textContent,
-  training_java:       document.getElementById('md-training-java').textContent,
-      qe_track:            document.getElementById('md-qe-track').textContent,
   'ma_programs': `
 # Medicare Advantage Program Tree
 
@@ -5911,9 +5648,6 @@ function pageKey(page) {
   if (page.startsWith('l3')) return 'l3';
   if (page.startsWith('l4')) return 'l4';
   if (page.startsWith('l5')) return 'l5';
-  if (page === 'training_agenda') return 'training_agenda';
-  if (page === 'training_java') return 'training_java';
-    if (page === 'training_qe')   return 'training_qe';
   if (KNOWLEDGE_BASE[page] !== undefined) return page;
   return null;
 }
@@ -5944,7 +5678,6 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
   el.addEventListener('click', () => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
-    if (page === 'lifecycle') { showLifecycle(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -5968,6 +5701,7 @@ document.querySelectorAll('.ncl[data-page]').forEach(el => {
       return;
     }
     if (pg.startsWith('viz_')) { showVisualization(pg); return; }
+    if (pg.startsWith('conn_')) { showConnector(pg.slice(5)); return; }
     loadPage(pg, el.dataset.url, el.dataset.sec, el.textContent.trim());
   });
 });
@@ -6252,6 +5986,371 @@ function openLiveDev() {
   }
 }
 
+// ── CONNECTORS ──
+function askBrain(q) { openChat(); sendMsg(q); }
+
+function connEsc(s) {
+  return (s == null ? '' : String(s)).replace(/[&<>"]/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+function connFmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return isNaN(d) ? iso : d.toISOString().slice(0, 10);
+}
+
+function connRelTime(iso) {
+  const then = new Date(iso).getTime();
+  if (isNaN(then)) return '';
+  const s = Math.floor((Date.now() - then) / 1000);
+  const m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  if (d > 0) return d + ' day' + (d > 1 ? 's' : '') + ' ago';
+  if (h > 0) return h + ' hour' + (h > 1 ? 's' : '') + ' ago';
+  if (m > 0) return m + ' minute' + (m > 1 ? 's' : '') + ' ago';
+  return 'just now';
+}
+
+async function connGet(path) {
+  const r = await fetch(BACKEND_HTTP_URL + path);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function connBadge(text, cls) {
+  return '<span class="cbadge2 ' + cls + '">' + connEsc(text) + '</span>';
+}
+
+function connStatCard(num, label, numCls) {
+  return '<div class="conn-stat"><div class="num ' + (numCls || '') + '">' +
+    connEsc(num) + '</div><div class="lbl">' + connEsc(label) + '</div></div>';
+}
+
+function connHdr(title, subtitle) {
+  return '<div class="lc-page-hdr"><div><h2>' + connEsc(title) +
+    '</h2><p>' + connEsc(subtitle) + '</p></div></div>';
+}
+
+function connStatusBar(displayName) {
+  const q = 'How do I configure the ' + displayName + ' connector to connect to real ' +
+    displayName + ' credentials instead of mock data?';
+  return '<div class="conn-statusbar">' +
+    '<span class="conn-livedot"></span>' +
+    '<span style="font-weight:600;color:var(--text)">Mock Connected</span>' +
+    connBadge('mode: mock', 'cb-gray') +
+    '<a class="conn-switch" data-ask="' + connEsc(q) + '">Switch to live →</a>' +
+    '</div>';
+}
+
+function connErrCard() {
+  return '<div class="conn-err"><b>⚠ Cannot reach the Digital Brain backend.</b>\n\n' +
+    'The connector data requires the backend server to be running locally.\n\n' +
+    'To start the backend:\n' +
+    '1. Open a terminal\n' +
+    '2. cd mivan-digital-brain/backend\n' +
+    '3. Run: .\\start.ps1\n\n' +
+    'Then refresh this page.</div>';
+}
+
+function connAskBtn(q) {
+  return '<div style="margin-top:26px"><button class="lc-art-btn" data-ask="' +
+    connEsc(q) + '">🔍 Ask Digital Brain</button></div>';
+}
+
+// Attach expand + chat handlers after HTML is injected.
+function connWire(root) {
+  root.querySelectorAll('.conn-card.expandable').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('open'));
+  });
+  root.querySelectorAll('[data-ask]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); askBrain(el.dataset.ask); });
+  });
+}
+
+const CONN_META = {
+  github:     { short: 'GitHub',     render: connRenderGithub },
+  servicenow: { short: 'ServiceNow', render: connRenderServiceNow },
+  confluence: { short: 'Confluence', render: connRenderConfluence }
+};
+
+function showConnector(which) {
+  const meta = CONN_META[which];
+  if (!meta) return;
+  setActive('conn_' + which);
+  setBc('Connectors — ' + meta.short);
+  document.getElementById('cwrap').scrollTop = 0;
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading ' +
+    meta.short + ' data…</div>';
+  meta.render(content);
+}
+
+// ── GITHUB PANEL ──
+const GH_ASK = 'Summarize the current state of development in the Mivan GitHub repos. ' +
+  'What PRs are awaiting review and what ghost nodes are being tracked as issues?';
+
+function connPrStatusBadge(s) {
+  const map = { awaiting_review: ['cb-amber', 'awaiting review'], approved: ['cb-green', 'approved'],
+    in_review: ['cb-blue', 'in review'], draft: ['cb-gray', 'draft'] };
+  const m = map[s] || ['cb-gray', s];
+  return connBadge(m[1], m[0]);
+}
+
+function connLabelPills(labels) {
+  return (labels || []).map(l =>
+    l === 'ghost-node' ? connBadge('ghost-node', 'cb-purple')
+                       : '<span class="conn-pill">' + connEsc(l) + '</span>').join('');
+}
+
+function connPrCard(pr) {
+  let h = '<div class="conn-card expandable">';
+  h += '<div class="conn-card-hdr">' + connBadge(pr.id, 'cb-teal') + connPrStatusBadge(pr.status) + '</div>';
+  h += '<div class="conn-card-title">' + connEsc(pr.title) + '</div>';
+  h += '<div class="conn-card-meta"><span>📦 ' + connEsc(pr.repo) + '</span>' +
+    '<span>👤 ' + connEsc(pr.author) + ' → ' + connEsc(pr.reviewer) + '</span>' +
+    '<span>📝 ' + connEsc(pr.files_changed) + ' files · <span style="color:#1baf7a">+' +
+    connEsc(pr.additions) + '</span> / <span style="color:#f0776f">-' + connEsc(pr.deletions) + '</span></span></div>';
+  h += '<div style="margin-top:8px">' + connLabelPills(pr.labels);
+  if (pr.linked_story) h += connBadge('🔗 ' + pr.linked_story, 'cb-blue');
+  h += '</div>';
+  h += '<div class="conn-clamp">' + connEsc(pr.description) + '</div>';
+  h += '<div class="conn-more"><b>Description</b><br>' + connEsc(pr.description) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function connIssueCard(i) {
+  const pr = { critical: 'cb-red', high: 'cb-amber' }[i.priority] || 'cb-gray';
+  let h = '<div class="conn-card">';
+  h += '<div class="conn-card-hdr">' + connBadge(i.id, 'cb-gray') + connBadge(i.priority, pr) + '</div>';
+  h += '<div class="conn-card-title">' + connEsc(i.title) + '</div>';
+  h += '<div style="margin-top:6px">' + connLabelPills(i.labels) + '</div>';
+  h += '<div class="conn-clamp" style="-webkit-line-clamp:3">' + connEsc(i.description) + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function connCommitCard(c) {
+  return '<div class="conn-card"><div class="conn-card-hdr">' +
+    '<span class="conn-pill mono">' + connEsc(c.id) + '</span>' +
+    '<span class="cbadge2 cb-gray">' + connEsc(c.repo) + '</span></div>' +
+    '<div class="conn-card-title" style="font-weight:500">' + connEsc(c.message) + '</div>' +
+    '<div class="conn-card-meta"><span>👤 ' + connEsc(c.author) + '</span>' +
+    '<span>🕐 ' + connEsc(connRelTime(c.timestamp)) + '</span></div></div>';
+}
+
+async function connRenderGithub(content) {
+  try {
+    const [summary, prs, issues, commits] = await Promise.all([
+      connGet('/connectors/github/summary'),
+      connGet('/connectors/github/pull-requests'),
+      connGet('/connectors/github/issues'),
+      connGet('/connectors/github/commits')
+    ]);
+    let h = '<div class="lc-page">';
+    h += connHdr('GitHub — Mivan Health Enterprise', 'mivan-health GitHub organization');
+    h += connStatusBar('GitHub');
+    h += '<div class="conn-stats">' +
+      connStatCard(summary.total_repos, 'Total Repos') +
+      connStatCard(summary.open_prs, 'Open PRs') +
+      connStatCard(summary.awaiting_review, 'Awaiting Review', 'amber') +
+      connStatCard(summary.ghost_node_issues, 'Ghost Node Issues', 'purple') + '</div>';
+    h += '<div class="conn-sec-title">Pull Requests (' + prs.total + ')</div>';
+    h += prs.pull_requests.map(connPrCard).join('');
+    h += '<div class="conn-sec-title">Open Issues (' + issues.total + ')</div>';
+    h += issues.issues.map(connIssueCard).join('');
+    h += '<div class="conn-sec-title">Recent Commits (' + commits.total + ')</div>';
+    h += commits.commits.map(connCommitCard).join('');
+    h += connAskBtn(GH_ASK);
+    h += '</div>';
+    content.innerHTML = h;
+    connWire(content);
+  } catch (e) {
+    content.innerHTML = '<div class="lc-page">' + connErrCard() + '</div>';
+  }
+}
+
+// ── SERVICENOW PANEL ──
+const SN_ASK = 'What incidents in ServiceNow have not had their knowledge extracted to the ' +
+  'Digital Brain? Which ghost nodes do they relate to and what should be documented?';
+
+function connIncStatusBadge(s) {
+  const map = { resolved: ['cb-green', 'resolved'], open: ['cb-red', 'open'] };
+  const m = map[s] || ['cb-gray', s];
+  return connBadge(m[1], m[0]);
+}
+
+function connIncPriorityBadge(p) {
+  const cls = { P1: 'cb-red', P2: 'cb-amber', P3: 'cb-blue' }[p] || 'cb-gray';
+  return connBadge(p, cls);
+}
+
+function connProgramPills(progs) {
+  return (progs || []).map(p => '<span class="conn-pill">' + connEsc(p) + '</span>').join('');
+}
+
+function connIncidentCard(inc) {
+  const ke = inc.knowledge_extracted
+    ? connBadge('✓ In Digital Brain', 'cb-green')
+    : connBadge('⚠ Knowledge not extracted', 'cb-amber');
+  const extractQ = 'Help me extract knowledge from incident ' + inc.number +
+    ' into the Digital Brain. The incident involved ' + inc.affected_component +
+    '. Draft a knowledge entry for the L6 task intelligence layer based on: root cause: ' +
+    (inc.root_cause || '') + ', resolution: ' + (inc.resolution || '') +
+    ', programs: ' + (inc.programs_involved || []).join(', ');
+  let h = '<div class="conn-card expandable">';
+  h += '<div class="conn-card-hdr"><span class="conn-mono" style="font-size:12px;color:var(--muted)">' +
+    connEsc(inc.number) + '</span>' + connIncPriorityBadge(inc.priority) +
+    connIncStatusBadge(inc.status) + ke + '</div>';
+  h += '<div class="conn-card-title">' + connEsc(inc.title) + '</div>';
+  h += '<div style="margin-top:6px">' + connBadge(inc.affected_component, 'cb-teal') + '</div>';
+  h += '<div class="conn-card-meta"><span>🕐 created ' + connFmtDate(inc.created) + '</span>' +
+    '<span>✓ resolved ' + connFmtDate(inc.resolved) + '</span>' +
+    '<span>⏱ ' + connEsc(inc.resolution_time_minutes) + ' min</span></div>';
+  h += '<div style="margin-top:8px">' + connProgramPills(inc.programs_involved) + '</div>';
+  h += '<div class="conn-clamp">' + connEsc(inc.root_cause) + '</div>';
+  h += '<div class="conn-more"><b>Root cause</b><br>' + connEsc(inc.root_cause) +
+    '<br><br><b>Resolution</b><br>' + connEsc(inc.resolution);
+  if (inc.related_ghost_node)
+    h += '<br><br><b>Related ghost node:</b> ' + connBadge(inc.related_ghost_node, 'cb-purple');
+  h += '<br><button class="conn-more-btn" data-ask="' + connEsc(extractQ) +
+    '">Extract to Digital Brain →</button></div>';
+  h += '</div>';
+  return h;
+}
+
+function connProblemCard(p) {
+  let h = '<div class="conn-card"><div class="conn-card-hdr">' +
+    connBadge(p.id, 'cb-gray') + connBadge(p.status, 'cb-amber') + '</div>';
+  h += '<div class="conn-card-title">' + connEsc(p.title) + '</div>';
+  h += '<div class="conn-card-meta"><span>🔗 ' + (p.related_incidents || []).length +
+    ' related incidents</span></div>';
+  if (p.related_ghost_node)
+    h += '<div style="margin-top:6px">' + connBadge(p.related_ghost_node, 'cb-purple') + '</div>';
+  h += '<div class="conn-clamp">' + connEsc(p.hypothesis) + '</div></div>';
+  return h;
+}
+
+function connChangeCard(c) {
+  const st = { scheduled: 'cb-amber', completed: 'cb-green' }[c.status] || 'cb-gray';
+  let h = '<div class="conn-card"><div class="conn-card-hdr">' +
+    connBadge(c.id, 'cb-gray') + connBadge(c.status, st);
+  if (c.priority) h += connBadge('risk: ' + (c.risk ? c.risk.split(' ')[0] : c.priority), 'cb-amber');
+  h += '</div>';
+  h += '<div class="conn-card-title">' + connEsc(c.title) + '</div>';
+  h += '<div class="conn-card-meta"><span>📅 ' + connFmtDate(c.scheduled_date) + '</span></div>';
+  h += '<div style="margin-top:6px">' + connProgramPills(c.programs_involved) + '</div></div>';
+  return h;
+}
+
+async function connRenderServiceNow(content) {
+  try {
+    const [summary, incidents, problems, changes] = await Promise.all([
+      connGet('/connectors/servicenow/summary'),
+      connGet('/connectors/servicenow/incidents'),
+      connGet('/connectors/servicenow/problems'),
+      connGet('/connectors/servicenow/change-requests')
+    ]);
+    let h = '<div class="lc-page">';
+    h += connHdr('ServiceNow — Mivan Incident Management', 'mivan.service-now.com');
+    h += connStatusBar('ServiceNow');
+    h += '<div class="conn-stats">' +
+      connStatCard(summary.total_incidents, 'Total Incidents') +
+      connStatCard(summary.p1_incidents, 'P1 Incidents', summary.p1_incidents > 0 ? 'red' : '') +
+      connStatCard(summary.knowledge_not_extracted, 'Knowledge Not Extracted', 'amber') +
+      connStatCard(summary.scheduled_changes, 'Scheduled Changes') + '</div>';
+    h += '<div class="conn-sec-title">Incidents (' + incidents.total + ')</div>';
+    h += incidents.incidents.map(connIncidentCard).join('');
+    h += '<div class="conn-sec-title">Problem Records (' + problems.total + ')</div>';
+    h += problems.problems.map(connProblemCard).join('');
+    h += '<div class="conn-sec-title">Change Requests (' + changes.total + ')</div>';
+    h += changes.change_requests.map(connChangeCard).join('');
+    h += connAskBtn(SN_ASK);
+    h += '</div>';
+    content.innerHTML = h;
+    connWire(content);
+  } catch (e) {
+    content.innerHTML = '<div class="lc-page">' + connErrCard() + '</div>';
+  }
+}
+
+// ── CONFLUENCE PANEL ──
+const CF_ASK = 'Which Confluence pages are most critically stale and linked to ghost nodes in the ' +
+  'Digital Brain? What knowledge should be extracted and updated first?';
+
+function connStalenessBadge(flag) {
+  const map = { CRITICAL: ['cb-red cb-pulse', 'CRITICAL'], HIGH: ['cb-amber', 'HIGH'],
+    MEDIUM: ['cb-gray', 'MEDIUM'], CURRENT: ['cb-green', 'CURRENT'] };
+  const m = map[flag] || ['cb-gray', flag];
+  return connBadge(m[1], m[0]);
+}
+
+function connSpaceBadge(space) {
+  const cls = { MICPSOPS: 'cb-teal', MICPSDEV: 'cb-blue', TRANSFORM: 'cb-green', COMPLIANCE: 'cb-amber' }[space] || 'cb-gray';
+  return connBadge(space, cls);
+}
+
+function connPageCard(p) {
+  const updateQ = "The Confluence page '" + p.title + "' in space " + p.space + ' is ' +
+    p.staleness_days + ' days old and linked to ghost node ' + (p.linked_ghost_node || 'none') +
+    '. Help me draft an updated knowledge entry for the Digital Brain ' + p.digital_brain_layer +
+    ' layer based on this page summary: ' + (p.content_summary || '');
+  let h = '<div class="conn-card expandable">';
+  h += '<div class="conn-card-hdr">' + connSpaceBadge(p.space) + connStalenessBadge(p.staleness_flag) +
+    connBadge(p.digital_brain_layer, 'cb-teal');
+  if (p.needs_update) h += connBadge('⚠ Needs update', 'cb-amber');
+  h += '</div>';
+  h += '<div class="conn-card-title">' + connEsc(p.title) + '</div>';
+  h += '<div class="conn-card-meta"><span>✏️ ' + connFmtDate(p.last_updated) + ' by ' +
+    connEsc(p.last_updated_by) + '</span><span>⏳ ' + connEsc(p.staleness_days) + ' days ago</span></div>';
+  if (p.linked_ghost_node)
+    h += '<div style="margin-top:6px">' + connBadge('👻 ' + p.linked_ghost_node, 'cb-purple') + '</div>';
+  h += '<div class="conn-clamp">' + connEsc(p.content_summary) + '</div>';
+  h += '<div class="conn-more"><b>Content summary</b><br>' + connEsc(p.content_summary);
+  h += '<br><button class="conn-more-btn" data-ask="' + connEsc(updateQ) +
+    '">Update Digital Brain →</button></div>';
+  h += '</div>';
+  return h;
+}
+
+function connSpaceCard(s) {
+  return '<div class="conn-card"><div class="conn-card-hdr">' +
+    connBadge(s.key, 'cb-teal') + '</div>' +
+    '<div class="conn-card-title">' + connEsc(s.name) + '</div>' +
+    '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">' + connEsc(s.description) + '</div>' +
+    '<div class="conn-card-meta"><span>📄 ' + connEsc(s.page_count) + ' pages</span>' +
+    '<span>✏️ ' + connFmtDate(s.last_updated) + '</span></div></div>';
+}
+
+async function connRenderConfluence(content) {
+  try {
+    const [summary, pages, spaces] = await Promise.all([
+      connGet('/connectors/confluence/summary'),
+      connGet('/connectors/confluence/pages'),
+      connGet('/connectors/confluence/spaces')
+    ]);
+    const sorted = (pages.pages || []).slice().sort((a, b) => b.staleness_days - a.staleness_days);
+    let h = '<div class="lc-page">';
+    h += connHdr('Confluence — Mivan Knowledge Base', 'mivan.atlassian.net/wiki');
+    h += connStatusBar('Confluence');
+    h += '<div class="conn-stats">' +
+      connStatCard(summary.total_pages_indexed, 'Total Pages Indexed') +
+      connStatCard(summary.stale_critical, 'Stale Critical', 'red') +
+      connStatCard(summary.stale_high, 'Stale High', 'amber') +
+      connStatCard(summary.linked_to_ghost_nodes, 'Linked to Ghost Nodes', 'purple') + '</div>';
+    h += '<div class="conn-sec-title">Pages (' + sorted.length + ') — most stale first</div>';
+    h += sorted.map(connPageCard).join('');
+    h += '<div class="conn-sec-title">Spaces (' + spaces.total + ')</div>';
+    h += spaces.spaces.map(connSpaceCard).join('');
+    h += connAskBtn(CF_ASK);
+    h += '</div>';
+    content.innerHTML = h;
+    connWire(content);
+  } catch (e) {
+    content.innerHTML = '<div class="lc-page">' + connErrCard() + '</div>';
+  }
+}
+
 // ── DEMO MODE ──
 const DEMO_STEPS = [
   {
@@ -6350,56 +6449,6 @@ function openChatWithQ(q) {
   setTimeout(function() { var el = document.getElementById('chat-in'); if (el) el.value = q; }, 120);
 }
 
-const LC_STAGES = [
-  {n:1, title:'Business Request', role:'SIU Analyst / Finance', badge:null,
-   trad:'Manual analysis, spreadsheet, email to IT requesting enhancement.',
-   ai:'Same request &#8212; but Digital Brain already has context on MOVPDUP0 and the $2&#8211;4M annual leakage gap.',
-   brain:'When BA asks "what does MOVPDUP0 do?" &#8212; instant answer with program detail, limitation, and financial impact.',
-   art:'View MICPS-4471 Story',
-   artFn:"openLiveDev();loadPage('micps4471','','','MICPS-4471 Story');"},
-  {n:2, title:'Story Enrichment', role:'Business Analyst + Tech Lead', badge:'2&#8211;3 weeks &#8594; 2&#8211;3 hours',
-   trad:'Multiple meetings with James Whitfield to understand the system; 2&#8211;3 weeks to write acceptance criteria.',
-   ai:'BA asks Digital Brain for context on MOVPDUP0, CLAIM_PAYMENT table, and existing pend queue logic; acceptance criteria written in hours, not weeks.',
-   brain:'Provides MOVPDUP0 program detail, DB2 table schemas, pend queue business rules, and existing denial codes &#8212; without requiring James Whitfield.',
-   art:'View MICPS-4471 Story',
-   artFn:"openLiveDev();loadPage('micps4471','','','MICPS-4471 Story');"},
-  {n:3, title:'COBOL Development (MOVPDUP1)', role:'COBOL Developer', badge:'4&#8211;6 weeks &#8594; 3&#8211;4 days',
-   trad:'Developer pairs with James Whitfield for weeks to understand CLAIM_PAYMENT schema, VSAM layouts, JCL job stream, and existing program patterns.',
-   ai:'Developer asks Digital Brain for context &#8212; gets CLAIM_PAYMENT schema, MOVPDUP0 structure, JCL conventions instantly; AI generates MOVPDUP1 first draft; developer refines.',
-   brain:'Provides full MiCPS context, generates production-quality COBOL, explains every paragraph, suggests ZUnit test cases.',
-   art:'View MOVPDUP1 Source',
-   artFn:"openLiveDev();loadPage('movpdup1_cobol','','','COBOL \u2014 MOVPDUP1');"},
-  {n:4, title:'Java Development (Parallel)', role:'Java Developer', badge:'Sequential &#8594; Parallel',
-   trad:'Would not happen in parallel &#8212; mainframe change built first; Java replacement would wait for Wave 3.',
-   ai:'Java developer picks up same story; Digital Brain provides same business context in Java/Spring Boot terms; DuplicateClaimDetectionService built in parallel.',
-   brain:'Translates MiCPS COBOL context into Java patterns; ensures business rule parity (charge tolerance, DOS drift, modifier precedence) between both implementations.',
-   art:'View Java Service',
-   artFn:"openLiveDev();loadPage('java_service','','','Java \u2014 DuplicateClaimDetectionService');"},
-  {n:5, title:'Testing', role:'QE Engineer', badge:'2&#8211;3 weeks &#8594; 2&#8211;3 days',
-   trad:'QE writes test cases from scratch; needs to understand COBOL logic manually; regression suite takes weeks to build.',
-   ai:'Digital Brain generates ZUnit test cases for COBOL and JUnit tests for Java from the acceptance criteria; QE validates and executes; 13 tests passing on Day 1.',
-   brain:'Generates test cases directly from MICPS-4471 ACs; covers all 6 COBOL scenarios (TC-01&#8211;TC-06); suggests edge cases the BA missed.',
-   art:'View Test Suite (13/0)',
-   artFn:"openLiveDev();loadPage('java_tests','','','Java Test Suite');"},
-  {n:6, title:'Code Review', role:'Tech Lead / James Whitfield', badge:'1&#8211;2 weeks &#8594; 1&#8211;2 days',
-   trad:'James Whitfield manually reviews every line; his calendar is the critical path; bottleneck.',
-   ai:'Digital Brain pre-reviews the code; explains every paragraph to the tech lead; James reviews a Digital Brain summary rather than reading raw COBOL.',
-   brain:'Explains MOVPDUP1 paragraph by paragraph; flags complexity areas; confirms business rule alignment with MICPS-4471 acceptance criteria.',
-   art:'Ask Digital Brain to Review',
-   artFn:"openChatWithQ('Review MOVPDUP1 against the MICPS-4471 acceptance criteria');"},
-  {n:7, title:'Shadow Mode Validation', role:'Tech Lead + QE', badge:'New capability',
-   trad:'Not done &#8212; no parallel build exists to validate against. Ship and pray.',
-   ai:'Java service runs in shadow mode alongside COBOL; same inputs, outputs compared; discrepancies investigated; 99.99% agreement gate before cutover.',
-   brain:'Documents shadow mode design; explains discrepancies; confirms both implementations meet the agreement gate before cutover decision.',
-   art:'View Parallel Build README',
-   artFn:"openLiveDev();loadPage('parallel_readme','','','Parallel Build README');"},
-  {n:8, title:'Deploy to TEST', role:'Release Manager + Operations', badge:'Java: 6&#8211;9 mo &#8594; days',
-   trad:'6&#8211;9 month MiCPS release cycle; change management; batch window scheduling; full regression testing.',
-   ai:'COBOL change follows standard Endevor promotion path; Java service deploys via GitHub Actions to EKS; Digital Brain documents the deployment runbook.',
-   brain:'Generates deployment runbook; explains batch job stream changes; documents rollback procedure; answers ops questions at 2 AM without waking James Whitfield.',
-   art:'View L3 System Landscape',
-   artFn:"loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md','','L3 \u2014 System Landscape');"}
-];
 
 
     // ─── ONBOARDING ───────────────────────────────────────────────────────────────
@@ -7206,50 +7255,6 @@ const LC_STAGES = [
     }
 
 
-    function showLifecycle() {
-  setActive('lifecycle');
-  setBc('Feature Lifecycle');
-  document.getElementById('cwrap').scrollTop = 0;
-  var h = '<div class="lc-page">';
-  h += '<div class="lc-page-hdr"><div>';
-  h += '<h2>Feature Lifecycle &#8212; MICPS-4471</h2>';
-  h += '<p>How AI-native development transformed a 4&#8211;6 month SDLC into 3&#8211;4 weeks</p></div>';
-  h += '<button class="lc-run-btn" id="lc-run-btn" onclick="runLcDemo()">&#9654; Run Full Demo</button></div>';
-  h += '<div class="lc-timeline">';
-  LC_STAGES.forEach(function(s) {
-    var isNew = s.badge && (s.badge.indexOf('Sequential') >= 0 || s.badge.indexOf('New') >= 0);
-    var badge = s.badge ? '<span class="lc-badge' + (isNew ? ' lc-badge-new' : '') + '">' + s.badge + '</span>' : '';
-    var num = s.n < 10 ? '0' + s.n : '' + s.n;
-    h += '<div class="lc-card" id="lc-card-' + s.n + '">';
-    h += '<div class="lc-dot"></div>';
-    h += '<div class="lc-card-hdr" onclick="toggleLcCard(' + s.n + ')">';
-    h += '<div class="lc-num">' + num + '</div>';
-    h += '<div class="lc-title-wrap"><div class="lc-title">' + s.title + '</div>';
-    h += '<div class="lc-role">' + s.role + '</div></div>';
-    h += badge;
-    h += '<div class="lc-chev">&#9654;</div></div>';
-    h += '<div class="lc-card-body">';
-    h += '<div class="lc-compare">';
-    h += '<div class="lc-trad"><div class="lc-col-lbl">Traditional</div>' + s.trad + '</div>';
-    h += '<div class="lc-ai"><div class="lc-col-lbl">AI-Native &#10003;</div>' + s.ai + '</div>';
-    h += '</div>';
-    h += '<div class="lc-brain"><strong>&#129504; DIGITAL BRAIN\'S ROLE</strong>' + s.brain + '</div>';
-    h += '<button class="lc-art-btn" onclick="' + s.artFn + '">' + s.art + ' &#8594;</button>';
-    h += '</div></div>';
-  });
-  h += '</div>';
-  h += '<div class="lc-summary"><h4>AI-Native Impact Summary</h4><div class="lc-sum-grid">';
-  [['8','Total Stages'],['6','Roles Involved'],['4&#8211;6 mo','Traditional Timeline'],['3&#8211;4 wk','AI-Native Timeline'],
-   ['0','Whitfield Consults'],['13','Tests by AI'],['~800','Lines of Code'],['$2&#8211;4M','Annual Recovery']
-  ].forEach(function(x){ h += '<div class="lc-stat-box"><div class="lc-stat-val">' + x[0] + '</div><div class="lc-stat-lbl">' + x[1] + '</div></div>'; });
-  h += '</div></div></div>';
-  document.getElementById('content').innerHTML = h;
-}
-
-function toggleLcCard(n) {
-  var card = document.getElementById('lc-card-' + n);
-  if (card) card.classList.toggle('lc-expanded');
-}
 
 // ── VISUALIZATIONS ──
 // ── VISUALIZATION PANELS ──
@@ -7986,38 +7991,6 @@ function showGhostNodeMap() {
   setTimeout(function(){ var b=document.getElementById('gnm-progress-bar'); if(b) b.style.width=GNM_PCT+'%'; }, 100);
 }
 
-var _lcTimer = null;
-function runLcDemo() {
-  var btn = document.getElementById('lc-run-btn');
-  if (_lcTimer) {
-    clearTimeout(_lcTimer); _lcTimer = null;
-    btn.innerHTML = '&#9654; Run Full Demo'; btn.disabled = false;
-    return;
-  }
-  LC_STAGES.forEach(function(s) {
-    var c = document.getElementById('lc-card-' + s.n);
-    if (c) c.classList.remove('lc-expanded','lc-active');
-  });
-  btn.innerHTML = '&#9632; Stop Demo';
-  var idx = 0;
-  function next() {
-    if (idx >= LC_STAGES.length) {
-      btn.innerHTML = '&#9654; Run Full Demo'; _lcTimer = null; return;
-    }
-    if (idx > 0) {
-      var prev = document.getElementById('lc-card-' + LC_STAGES[idx-1].n);
-      if (prev) prev.classList.remove('lc-active');
-    }
-    var card = document.getElementById('lc-card-' + LC_STAGES[idx].n);
-    if (card) {
-      card.classList.add('lc-expanded','lc-active');
-      card.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    }
-    idx++;
-    _lcTimer = setTimeout(next, 3200);
-  }
-  next();
-}
 showOverview();
 </script>
 </body>
