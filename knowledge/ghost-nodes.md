@@ -43,7 +43,7 @@ fidelity: PARTIAL
 | MEDICARE-ADVANTAGE-DOMAIN | L2 | MA plan structure, encounter data vs claims, HCC coding, RAF scores, RADV audits, MA adjudication differences | TBD | High | COMPLETE |
 | MEDICAID-DOMAIN | L2 | Medicaid managed care structure, capitation, state variation, LTSS, encounter data submission | TBD | High | COMPLETE |
 | PROVIDER-DATA-LIFECYCLE | L2 | Full provider enrollment and credentialing lifecycle — CAQH, NPI, network management, sanctions, termination | TBD | High | COMPLETE |
-| UTILIZATION-MANAGEMENT | L2 | Prior authorization workflow, concurrent review, retrospective review, UM criteria sets | TBD | High | GHOST |
+| UTILIZATION-MANAGEMENT | L2 | Prior authorization workflow, concurrent review, retrospective review, UM criteria sets. SME-interview DRAFT captured at knowledge/MEM/contributions/UTILIZATION-MANAGEMENT-2026-08-09.md — awaiting graduation to L2 (validate §1–7 specifics, add bidirectional links) | UM clinical staff | High | IN-FLIGHT |
 | L6-TASK-INTELLIGENCE | L6 | Defect patterns, incident history, sprint velocity baselines, QE coverage gaps — requires real Jira and ServiceNow data | QE team | High | GHOST |
 | NCCI-TABLE-MANAGEMENT | L4 | How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented | Senior edit analyst | High | GHOST |
 | BATCH-DEPENDENCY-COMPLETE | L3 | Complete batch job dependency chain — full map exists only in CA7 scheduler; no human-readable documentation | Operations team | High | GHOST |
