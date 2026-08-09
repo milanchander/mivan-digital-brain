@@ -429,6 +429,69 @@
     .conn-err { background:rgba(237,161,0,.07); border:1px solid #eda100; border-radius:10px; padding:22px 24px; color:var(--text); font-size:13.5px; line-height:1.7; white-space:pre-line; max-width:560px; }
     .conn-err b { color:#eda100; }
 
+    /* ── README ── */
+    .rd-hero { text-align:center; padding:14px 0 26px; }
+    .rd-logo { width:64px; height:64px; border-radius:50%; margin:0 auto 16px; background:linear-gradient(135deg,var(--accent),var(--accent-dark)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:#0d1117; }
+    .rd-hero h1 { font-size:30px; font-weight:800; color:var(--text); margin-bottom:8px; }
+    .rd-hero p { font-size:14px; color:var(--muted); margin-bottom:18px; }
+    .rd-pills { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .rd-pill { background:var(--active-bg); border:1px solid rgba(45,212,191,.3); color:var(--accent); border-radius:20px; padding:6px 16px; font-size:12px; font-weight:600; }
+    .rd-divider { height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); border:none; margin:26px 0; opacity:.6; }
+
+    .rd-sec { margin:34px 0; }
+    .rd-sec h2 { font-size:21px; font-weight:700; color:var(--text); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+    .rd-sec p { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:12px; }
+    .rd-sub { font-size:13px; color:var(--muted); margin-bottom:16px; }
+
+    .rd-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .rd-info { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+    .rd-info h4 { font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--accent); margin-bottom:12px; }
+    .rd-info dl { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; font-size:13px; }
+    .rd-info dt { color:var(--muted); white-space:nowrap; }
+    .rd-info dd { color:var(--text); }
+
+    .rd-note { background:rgba(237,161,0,.08); border:1px solid #eda100; border-radius:10px; padding:16px 20px; color:var(--text); font-size:13px; line-height:1.65; margin-top:16px; }
+    .rd-note b { color:#eda100; }
+
+    .rd-cards3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:8px; }
+    .rd-card { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+    .rd-card h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .rd-card .tag { display:inline-block; font-size:10.5px; font-weight:700; color:var(--accent); background:var(--active-bg); border-radius:6px; padding:2px 8px; margin-bottom:8px; }
+    .rd-card p { font-size:12.5px; color:var(--muted); line-height:1.6; margin:0; }
+    .rd-livecard { background:var(--card-bg); border:1px solid var(--accent); border-radius:10px; padding:16px 20px; margin-top:14px; }
+    .rd-livecard h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .rd-livecard p { font-size:12.5px; color:var(--muted); margin:2px 0; }
+
+    .rd-flow { display:flex; flex-direction:column; align-items:center; gap:0; margin:8px 0 20px; }
+    .rd-flow-step { background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:11px 18px; font-size:13px; color:var(--text); text-align:center; max-width:460px; width:100%; }
+    .rd-flow-step small { display:block; color:var(--muted); font-size:11.5px; margin-top:3px; }
+    .rd-flow-arrow { color:var(--accent); font-size:16px; line-height:1.6; }
+
+    .rd-featgrid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .rd-feat { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+    .rd-feat .ico { font-size:20px; margin-bottom:8px; }
+    .rd-feat h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:6px; }
+    .rd-feat p { font-size:12.5px; color:var(--muted); line-height:1.6; margin:0; }
+
+    .rd-step { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px 20px; margin-bottom:12px; display:flex; gap:14px; }
+    .rd-step-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#0d1117; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    .rd-step-body { flex:1; min-width:0; }
+    .rd-step-body h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .rd-step-body p { font-size:13px; color:var(--muted); margin:6px 0; }
+
+    .rd-code { position:relative; background:#0a0d12; border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin:8px 0; }
+    .rd-code pre { font-family:'SF Mono',Consolas,monospace; font-size:12.5px; color:#c9d1d9; white-space:pre-wrap; word-break:break-word; margin:0; }
+    .rd-copy { position:absolute; top:8px; right:8px; background:var(--panel-bg); border:1px solid var(--border); color:var(--muted); font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:5px; cursor:pointer; }
+    .rd-copy:hover { color:var(--accent); border-color:var(--accent); }
+
+    .rd-qpill { display:inline-block; background:var(--active-bg); border:1px solid rgba(45,212,191,.25); color:var(--accent); border-radius:8px; padding:9px 14px; font-size:13px; cursor:pointer; margin:4px 6px 4px 0; transition:background .15s,border-color .15s; }
+    .rd-qpill:hover { background:rgba(45,212,191,.18); border-color:var(--accent); }
+
+    .rd-footer { margin-top:40px; padding-top:20px; border-top:1px solid var(--border); text-align:center; color:var(--muted); font-size:12px; line-height:1.9; }
+    .rd-footer b { color:var(--text); }
+
+    @media (max-width:720px) { .rd-grid2,.rd-cards3,.rd-featgrid { grid-template-columns:1fr; } }
+
     /* ── MARKDOWN ── */
     .md h1 {
       font-size: 24px; font-weight: 700;
@@ -889,6 +952,11 @@
   </div>
 
   <nav id="nav">
+
+    <div class="nl" data-page="readme">
+      <span class="ico">📖</span>
+      <span class="lbl">README</span>
+    </div>
 
     <div class="nl active" data-page="overview">
       <span class="ico">⌂</span>
@@ -5678,6 +5746,7 @@ document.querySelectorAll('.nl[data-page]').forEach(el => {
   el.addEventListener('click', () => {
     const page = el.dataset.page;
     if (page === 'overview') { showOverview(); return; }
+    if (page === 'readme') { showReadme(); return; }
     const url = el.dataset.url;
     const label = el.querySelector('.lbl').textContent.trim();
     const nc = el.nextElementSibling;
@@ -6447,6 +6516,201 @@ document.getElementById('demo-close-btn').addEventListener('click', () => {
 function openChatWithQ(q) {
   openChat();
   setTimeout(function() { var el = document.getElementById('chat-in'); if (el) el.value = q; }, 120);
+}
+
+// ── README PANEL ──
+function rdCopy(btn) {
+  var pre = btn.parentElement.querySelector('pre');
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.innerText).then(function() {
+    var t = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    setTimeout(function() { btn.textContent = t; }, 1400);
+  });
+}
+
+function rdCode(code) {
+  return '<div class="rd-code"><button class="rd-copy" onclick="rdCopy(this)">Copy</button><pre>' +
+    connEsc(code) + '</pre></div>';
+}
+
+function rdQPill(q) {
+  return '<span class="rd-qpill" onclick="openChatWithQ(\'' +
+    q.replace(/'/g, '&#39;') + '\')">' + connEsc(q) + '</span>';
+}
+
+function showReadme() {
+  setActive('readme');
+  setBc('README');
+  document.getElementById('cwrap').scrollTop = 0;
+  var h = '<div class="lc-page">';
+
+  // 1 — HERO
+  h += '<div class="rd-hero"><div class="rd-logo">MH</div>' +
+    '<h1>Mivan Digital Brain</h1>' +
+    '<p>AI-native knowledge layer for MiCPS Claims Processing</p>' +
+    '<div class="rd-pills">' +
+    '<span class="rd-pill">L1–L6 Knowledge Layers</span>' +
+    '<span class="rd-pill">7 AI-Native Skills</span>' +
+    '<span class="rd-pill">3 Program Trees</span>' +
+    '</div></div><hr class="rd-divider">';
+
+  // 2 — WHAT IS THIS
+  h += '<div class="rd-sec"><h2>What Is the Digital Brain?</h2>' +
+    '<p>The Mivan Digital Brain is an AI-native knowledge portal built to demonstrate how a health payer technology engagement can be transformed through structured knowledge management and AI-native development practices.</p>' +
+    '<p>It is not a document repository with search on top. It is a context selection system — built on the CKF (Context Knowledge Framework) approach — that loads only the knowledge relevant to your question, not the entire knowledge base.</p>' +
+    '<p>Built in a single session as a proof of concept, it demonstrates what Accenture can deliver for Cigna PCT and other health payer engagements when the Digital Brain framework is applied to a real client environment.</p></div>';
+
+  // 3 — MIVAN HEALTH PLAN
+  h += '<div class="rd-sec"><h2>About Mivan Health Plan</h2><div class="rd-grid2">' +
+    '<div class="rd-info"><h4>Plan Facts</h4><dl>' +
+    '<dt>Type</dt><dd>National Health Plan</dd>' +
+    '<dt>Members</dt><dd>150 million commercial</dd>' +
+    '<dt>Lines of Business</dt><dd>Commercial, Medicare Advantage, Medicaid</dd>' +
+    '<dt>Core Platform</dt><dd>MiCPS — homegrown mainframe</dd>' +
+    '<dt>Technology</dt><dd>COBOL, JCL, CICS, VSAM, DB2</dd>' +
+    '<dt>Throughput</dt><dd>4 million claims per day</dd>' +
+    '</dl></div>' +
+    '<div class="rd-info"><h4>Transformation</h4><dl>' +
+    '<dt>Program</dt><dd>5-year cloud-native migration</dd>' +
+    '<dt>Pattern</dt><dd>Strangler fig — function by function</dd>' +
+    '<dt>Target</dt><dd>Java 21, Spring Boot, AWS EKS</dd>' +
+    '<dt>Current Wave</dt><dd>Wave 1 in-flight</dd>' +
+    '<dt>Key Risk</dt><dd>12 senior engineers retiring 2026–2027</dd>' +
+    '<dt>Solution</dt><dd>Digital Brain knowledge capture</dd>' +
+    '</dl></div></div>' +
+    '<div class="rd-note"><b>Note:</b> Mivan Health Plan is a fictional health plan created to demonstrate the Digital Brain framework. All data, programs, and scenarios are illustrative. This framework is designed to be rapidly configured for real client environments including Cigna PCT.</div></div>';
+
+  // 4 — WHAT IS IN HERE
+  h += '<div class="rd-sec"><h2>What Is In the Digital Brain?</h2>';
+  h += '<div class="md"><table><thead><tr><th>Layer</th><th>Content</th><th>Files</th><th>Fidelity</th></tr></thead><tbody>' +
+    '<tr><td>L1 Enterprise</td><td>Mivan org structure, transformation mandate, stakeholders</td><td>1</td><td>HIGH</td></tr>' +
+    '<tr><td>L2 Domain</td><td>Claims lifecycle, Medicare Advantage, Medicaid, Provider Data, Health Primer</td><td>6</td><td>HIGH/DRAFT</td></tr>' +
+    '<tr><td>L3 Systems</td><td>MiCPS architecture, CICS, VSAM, DB2, batch feeds, modernization roadmap</td><td>1</td><td>HIGH</td></tr>' +
+    '<tr><td>L4 Application</td><td>7 MiCPS modules — programs, tables, VSAM files, complexity areas</td><td>1</td><td>PARTIAL</td></tr>' +
+    '<tr><td>L5 Business Rules</td><td>Claims editing, adjudication, COB, overpayment rules, CKF routing map</td><td>2</td><td>PARTIAL</td></tr>' +
+    '<tr><td>L6 Task Intelligence</td><td>Defect patterns, incident history — GHOST — not yet built</td><td>0</td><td>GHOST</td></tr>' +
+    '<tr><td>MEM Memory</td><td>Architecture decisions, SME session notes, deployment plans</td><td>5</td><td>DRAFT</td></tr>' +
+    '</tbody></table></div>';
+  h += '<div class="rd-cards3">' +
+    '<div class="rd-card"><span class="tag">Medicare Advantage</span><h4>MAENCDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>HCC validation, RAF calculation, EDPS submission</p></div>' +
+    '<div class="rd-card"><span class="tag">Medicaid</span><h4>MMCOCLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>TPL identification, payer of last resort, state MMIS</p></div>' +
+    '<div class="rd-card"><span class="tag">Provider Validation</span><h4>MPRVVLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>NPI lookup, credentialing, OIG exclusion, network verify</p></div>' +
+    '</div>';
+  h += '<div class="rd-livecard"><h4>MICPS-4471 — Near Duplicate Claim Detection</h4>' +
+    '<p>MOVPDUP1 COBOL + DuplicateClaimDetectionService Java</p>' +
+    '<p>13 JUnit tests passing — Swagger UI available at localhost:8080</p></div></div>';
+
+  // 5 — HOW THE CHAT WORKS
+  var flow = [
+    ['Question asked', ''],
+    ['Agent classifies question type', 'onboarding / how it works / impact / operational'],
+    ['Routing map selects relevant files', 'loads only what answers the question'],
+    ['Agent reads L1-L6 files using Grep and Read tools', ''],
+    ['Answer synthesized from actual knowledge content', ''],
+    ['Response streamed back to portal', '']
+  ];
+  h += '<div class="rd-sec"><h2>How the AI Chat Works</h2>' +
+    '<p>The chat button (bottom right) connects to a local Python backend that runs a Claude agent. Unlike a simple chatbot, this agent actively reads the knowledge layer files when answering questions.</p>' +
+    '<div class="rd-flow">';
+  flow.forEach(function(step, i) {
+    h += '<div class="rd-flow-step">' + connEsc(step[0]) +
+      (step[1] ? '<small>' + connEsc(step[1]) + '</small>' : '') + '</div>';
+    if (i < flow.length - 1) h += '<div class="rd-flow-arrow">↓</div>';
+  });
+  h += '</div>' +
+    '<p>The "🔍 Searching knowledge layer..." indicator you see during chat shows the agent actively reading files — not generating from training data alone.</p>' +
+    '<p style="font-weight:600;color:var(--text);margin-top:16px">Suggested questions to try:</p><div>' +
+    rdQPill('I am a new Java developer. Where do I start?') +
+    rdQPill('What is the blast radius if I change ACCUM-FILE?') +
+    rdQPill('What are the highest tribal knowledge risks in MiCPS?') +
+    rdQPill('Walk me through how MICPS-4471 was built') +
+    '</div></div>';
+
+  // 6 — HOW TO USE THIS PORTAL
+  var feats = [
+    ['🗄️', 'Knowledge Layers (L1–L5)', 'Browse structured knowledge from enterprise context down to program-level detail. Each layer builds on the one above.'],
+    ['📈', 'Visualizations', 'Three interactive diagrams — Knowledge Graph shows the full node network, Blast Radius shows downstream impact of any change, Ghost Node Map tracks knowledge gaps.'],
+    ['💻', 'Live Development', 'MICPS-4471 parallel build — the same feature implemented in both COBOL and Java. Shows AI-native SDLC in action.'],
+    ['✅', 'Onboarding', 'Role-based learning tracks. Select your role and get a structured 5-day path to being productive on MiCPS.'],
+    ['🔌', 'Connectors', 'Mock connections to GitHub, ServiceNow, and Confluence showing how the Digital Brain will stay current when connected to live systems.'],
+    ['💬', 'AI Chat', 'Ask anything about MiCPS, the modernization program, or the Digital Brain itself. The agent reads the knowledge layer to answer.']
+  ];
+  h += '<div class="rd-sec"><h2>How to Use This Portal</h2><div class="rd-featgrid">';
+  feats.forEach(function(f) {
+    h += '<div class="rd-feat"><div class="ico">' + f[0] + '</div><h4>' + connEsc(f[1]) +
+      '</h4><p>' + connEsc(f[2]) + '</p></div>';
+  });
+  h += '</div></div>';
+
+  // 7 — RUNNING LOCALLY
+  h += '<div class="rd-sec"><h2>Running the Full Portal Locally</h2>' +
+    '<p class="rd-sub">The chat and connectors require the backend to be running on your machine.</p>';
+  h += rdStep('1', 'Prerequisites', '<p>Install Claude Code:</p>' +
+    rdCode('npm install -g @anthropic-ai/claude-code\nclaude   (sign in with your Anthropic account)'));
+  h += rdStep('2', 'Clone the repo',
+    rdCode('git clone https://github.com/milanchander/mivan-digital-brain.git\ncd mivan-digital-brain'));
+  h += rdStep('3', 'Start the backend',
+    rdCode('cd backend\n.\\start.ps1') +
+    '<p>Wait for: "Uvicorn running on http://0.0.0.0:8000"</p>');
+  h += rdStep('4', 'Serve the portal', '<p>Open a second terminal:</p>' +
+    rdCode('cd mivan-digital-brain\npython -m http.server 3000'));
+  h += rdStep('5', 'Open in browser',
+    rdCode('http://localhost:3000') +
+    '<p>The chat green dot confirms backend is connected.</p>');
+  h += rdStep('6', 'Test the chat', '<p>Click the chat button and ask:</p>' +
+    rdCode('What does MADJDRV0 do and what programs does it call?'));
+  h += '</div>';
+
+  // 8 — SHARING WITH YOUR TEAM
+  h += '<div class="rd-sec"><h2>Sharing With Your Team</h2>';
+  h += '<div class="rd-card" style="margin-bottom:12px"><span class="tag">LIVE NOW</span>' +
+    '<h4>Option 1 — GitHub Pages (knowledge only)</h4>' +
+    '<p style="color:var(--text)">The portal is live at:</p>' +
+    rdCode('https://milanchander.github.io/mivan-digital-brain') +
+    '<p>Anyone can browse knowledge layers and visualizations. Chat requires backend. No setup needed.</p></div>';
+  h += '<div class="rd-card" style="margin-bottom:12px"><span class="tag">QUICK SETUP</span>' +
+    '<h4>Option 2 — ngrok (chat enabled, temporary)</h4>' +
+    '<p>Share the full portal including chat with your team today using ngrok.</p>' +
+    '<p style="color:var(--text)">Steps:</p>' +
+    '<p>1. Start the backend (Step 3 above)</p>' +
+    '<p>2. Install ngrok:</p>' + rdCode('winget install ngrok') +
+    '<p>3. Start the tunnel:</p>' + rdCode('ngrok http 8000') +
+    '<p>4. Copy the ngrok URL (e.g. https://abc123.ngrok.io)</p>' +
+    '<p>5. In Claude Code run: Update index.html BACKEND_HTTP_URL and BACKEND_WS_URL to use the ngrok URL</p>' +
+    '<p>6. Push to GitHub — team uses GitHub Pages URL with your ngrok tunnel as the backend</p>' +
+    '<p style="color:var(--muted)">Works while your laptop is on.</p></div>';
+  h += '<div class="rd-card"><span class="tag">PLANNED</span>' +
+    '<h4>Option 3 — AWS Deployment (permanent)</h4>' +
+    '<p>Deploy backend to AWS ECS Fargate for a permanent public URL. Requires AWS access (request filed). This is the production path. See docs/technical-architecture.md for details.</p></div></div>';
+
+  // 9 — CONTRIBUTING
+  var contribs = [
+    ['Add Knowledge', 'Edit markdown files in knowledge/L1-L6. Follow the frontmatter schema. Commit and push — portal updates automatically.'],
+    ['Register a Ghost Node', 'Open chat and say: "Help me register a new ghost node". Or edit knowledge/ghost-nodes.md directly.'],
+    ['Use the Skills', 'Open Claude Code in this project. Paste a Jira story and say "implement this story". The Java Feature Builder skill activates.'],
+    ['Report Issues', 'Open a GitHub issue on the repo. Tag with the relevant layer or program name.']
+  ];
+  h += '<div class="rd-sec"><h2>How to Contribute</h2><div class="rd-featgrid">';
+  contribs.forEach(function(c) {
+    h += '<div class="rd-feat"><h4>' + connEsc(c[0]) + '</h4><p>' + connEsc(c[1]) + '</p></div>';
+  });
+  h += '</div></div>';
+
+  // 10 — FOOTER
+  h += '<div class="rd-footer">' +
+    '<b>Built by Accenture Health Technology Practice</b><br>' +
+    'Framework: Accenture Digital Brain — configured for Mivan Health Plan<br>' +
+    'Repository: github.com/milanchander/mivan-digital-brain<br>' +
+    'Last updated: 2026-08-08 · Version: 1.0.0 — Proof of Concept</div>';
+
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+}
+
+function rdStep(num, title, bodyHtml) {
+  return '<div class="rd-step"><div class="rd-step-num">' + num + '</div>' +
+    '<div class="rd-step-body"><h4>' + connEsc(title) + '</h4>' + bodyHtml + '</div></div>';
 }
 
 
