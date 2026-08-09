@@ -6902,10 +6902,9 @@ function openChatWithQ(q) {
 }
 
 // ── CONTRIBUTE (Knowledge Contribution Framework) ──
+// Note: UTILIZATION-MANAGEMENT graduated to L2 (knowledge/L2-domain/utilization-management.md) —
+// removed from the open-gaps list. Its interview question set is retained below for future top-ups.
 var CTR_P1 = [
-  {id:"UTILIZATION-MANAGEMENT", layer:"L2", priority:"high", title:"Utilization Management",
-   description:"Prior authorization workflows, concurrent review, UM criteria sets (InterQual/MCG), retrospective review process",
-   estimated_time:"30-45 minutes", best_contributor:"UM clinical staff, medical directors", interview_available:true},
   {id:"STATE-SPECIFIC-CLAIM-RULES", layer:"L5", priority:"medium", title:"State-Specific Claim Rules",
    description:"Prompt pay laws, timely filing by state, state mandate requirements, recoupment look-back limits",
    estimated_time:"45-60 minutes", best_contributor:"Compliance team, state operations", interview_available:true},
@@ -9382,7 +9381,7 @@ var ghostData = [
   {id:'FACETS-LOB-ROUTING-TABLE',  layer:'L3', severity:'high',     owner:'MiEDI operations team', status:'ghost', blocks:'',              desc:'MiEDI LOB routing table contents and maintenance — member→COM/MA/MC mapping, effective-date handling, queue names'},
   {id:'MIFCT-POSTADJ-INTEGRATION', layer:'L3', severity:'high',     owner:'Integration team', status:'ghost',    blocks:'',              desc:'MiFCT → post-adjudication service REST contract — schemas, retry/error handling, SLA'},
   {id:'MIFCT-MODERNIZATION',       layer:'L3', severity:'medium',   owner:'Transformation program office', status:'ghost', blocks:'',       desc:'MiFCT (Facets) modernization — AWS deployment; separate from MiCPS Wave 1–5, not yet scoped'},
-  {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'UM clinical staff', status:'in-flight', blocks:'',              desc:'Prior authorization workflow, concurrent review, UM criteria sets — SME draft in MEM (contributions/UTILIZATION-MANAGEMENT-2026-08-09.md), awaiting graduation to L2'},
+  {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'UM clinical staff', status:'complete', blocks:'',              desc:'Prior authorization, concurrent & retrospective review, UM criteria — graduated to knowledge/L2-domain/utilization-management.md (DRAFT; §1–7 specifics need SME validation)'},
   {id:'L6-TASK-INTELLIGENCE',      layer:'L6', severity:'high',     owner:'QE team',         status:'ghost',    blocks:'',                 desc:'Defect patterns, incident history, sprint velocity — requires real Jira and ServiceNow data'},
   {id:'NCCI-TABLE-MANAGEMENT',     layer:'L4', severity:'high',     owner:'Senior edit analyst', status:'ghost', blocks:'',               desc:'How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented'},
   {id:'BATCH-DEPENDENCY-COMPLETE', layer:'L3', severity:'high',     owner:'Operations team', status:'ghost',    blocks:'',                 desc:'Complete batch job dependency chain — full map exists only in CA7 scheduler'},

@@ -276,11 +276,11 @@ Current implementation status:
 | Layer | Files Built | Ghost Nodes | Fidelity |
 |---|---|---|---|
 | L1 | 1 | 0 | HIGH |
-| L2 | 5 | 1 (UM) | HIGH/DRAFT |
+| L2 | 6 | 0 | HIGH/DRAFT |
 | L3 | 1 | 4 (batch detail, intraday, member-portal, mipay) | HIGH |
 | L4 | 1 | 8 (adjud rules, ACCUM, DRG, COB, AUTH, FEE-SCHED, NCCI, adjustment) | PARTIAL |
 | L5 | 1 | 1 (state rules) | PARTIAL |
 | L6 | 0 | 2 (task intelligence, defect patterns) | GHOST |
 | MEM | 3 | 0 | DRAFT |
 
-L2 files built: commercial-claims, health-primer, medicare-advantage, medicaid-managed-care, provider-data-lifecycle.
+L2 files built: commercial-claims, health-primer, medicare-advantage, medicaid-managed-care, provider-data-lifecycle, utilization-management.

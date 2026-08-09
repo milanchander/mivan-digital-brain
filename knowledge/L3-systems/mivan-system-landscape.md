@@ -22,6 +22,7 @@ links_back:
   - L2-domain/medicaid-managed-care.md
   - L2-domain/provider-data-lifecycle.md
   - L2-domain/health-primer.md
+  - L2-domain/utilization-management.md
 links_forward:
   - L4-application/micps-application-knowledge.md
   - knowledge/L2-domain/medicare-advantage.md

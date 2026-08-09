@@ -14,6 +14,7 @@ links_forward:
   - knowledge/L2-domain/medicaid-managed-care.md
   - knowledge/L2-domain/provider-data-lifecycle.md
   - knowledge/L2-domain/health-primer.md
+  - knowledge/L2-domain/utilization-management.md
   - knowledge/L3-systems/mivan-system-landscape.md
 ---
 

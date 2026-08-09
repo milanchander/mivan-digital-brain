@@ -21,6 +21,7 @@ links_back:
   - L2-domain/commercial-claims.md
   - L2-domain/medicare-advantage.md
   - L2-domain/medicaid-managed-care.md
+  - L2-domain/utilization-management.md
   - L4-application/micps-application-knowledge.md
 links_forward: []
 ghost_nodes:
