@@ -1,0 +1,153 @@
+{
+  "spaces": [
+    {
+      "key": "MICPSOPS",
+      "name": "MiCPS Operations",
+      "description": "Operational runbooks, batch schedules, incident procedures for MiCPS mainframe",
+      "page_count": 47,
+      "last_updated": "2026-08-03T10:20:00Z"
+    },
+    {
+      "key": "MICPSDEV",
+      "name": "MiCPS Development",
+      "description": "Architecture, design docs, coding standards for MiCPS development team",
+      "page_count": 83,
+      "last_updated": "2026-08-07T14:00:00Z"
+    },
+    {
+      "key": "TRANSFORM",
+      "name": "Transformation Program",
+      "description": "Cloud-native migration documentation, wave planning, shadow mode guides",
+      "page_count": 62,
+      "last_updated": "2026-08-08T09:00:00Z"
+    },
+    {
+      "key": "COMPLIANCE",
+      "name": "Compliance and Regulatory",
+      "description": "HIPAA, CMS, state regulatory requirements and compliance procedures",
+      "page_count": 34,
+      "last_updated": "2026-07-15T11:00:00Z"
+    }
+  ],
+  "pages": [
+    {
+      "id": "CONF-1234",
+      "space": "MICPSOPS",
+      "title": "ACCUM-FILE Operations Runbook",
+      "last_updated": "2023-03-15T14:00:00Z",
+      "last_updated_by": "james.whitfield",
+      "staleness_days": 1242,
+      "staleness_flag": "CRITICAL",
+      "description": "Operational procedures for ACCUM-FILE VSAM maintenance, annual reset, and recovery from corruption.",
+      "linked_programs": ["MACCUML0", "MACCUPD0", "MACCURS0"],
+      "linked_ghost_node": "ACCUM-FILE-LAYOUT",
+      "content_summary": "Last updated 3 years ago. Contains annual reset procedures and basic corruption recovery steps. Missing: family vs individual accumulator layout, CICS/batch concurrency procedures, packed decimal field definitions.",
+      "digital_brain_layer": "L3",
+      "needs_update": true,
+      "tags": ["accum-file", "vsam", "operations", "stale"]
+    },
+    {
+      "id": "CONF-1456",
+      "space": "MICPSOPS",
+      "title": "ADJUD-MAIN Batch Operations Guide",
+      "last_updated": "2025-02-20T10:00:00Z",
+      "last_updated_by": "ops.team",
+      "staleness_days": 534,
+      "staleness_flag": "HIGH",
+      "description": "Batch operations guide for ADJUD-MAIN job stream including restart procedures and common ABEND resolution.",
+      "linked_programs": ["MADJDRV0", "MADJSUSP", "MADJPND0"],
+      "linked_ghost_node": "ADJUD-BUSINESS-RULES-SPEC",
+      "content_summary": "18 months old. Contains basic restart procedures and ABEND codes. Missing: MROUTNG0 routing logic documentation, coverage determination rules, pend queue SLA procedures.",
+      "digital_brain_layer": "L4",
+      "needs_update": true,
+      "tags": ["adjud-main", "batch", "operations", "stale"]
+    },
+    {
+      "id": "CONF-1678",
+      "space": "MICPSDEV",
+      "title": "Provider Validation Architecture",
+      "last_updated": "2026-02-10T15:30:00Z",
+      "last_updated_by": "architecture.team",
+      "staleness_days": 179,
+      "staleness_flag": "MEDIUM",
+      "description": "Architecture documentation for provider validation at claim intake including PROV-MSTR VSAM design.",
+      "linked_programs": ["MPRVVLDR0", "MPRVNPI0", "MPRVEXC0"],
+      "linked_ghost_node": null,
+      "content_summary": "6 months old. Covers PROV-MSTR VSAM structure and validation sequence. Needs update with Wave 2 Provider Data Service architecture and OIG monthly refresh automation.",
+      "digital_brain_layer": "L3",
+      "needs_update": true,
+      "tags": ["provider", "architecture", "prov-mstr", "wave-2"]
+    },
+    {
+      "id": "CONF-1890",
+      "space": "TRANSFORM",
+      "title": "MA Encounter Data Submission — EDPS Guide",
+      "last_updated": "2026-08-07T16:00:00Z",
+      "last_updated_by": "ma.team",
+      "staleness_days": 1,
+      "staleness_flag": "CURRENT",
+      "description": "New page — CMS EDPS encounter data submission guide for MA program. Covers MAENCDR0 program tree, HCC validation, RAF calculation, and submission schedule.",
+      "linked_programs": ["MAENCDR0", "MAHCCVL0", "MARAFCL0", "MAEDPSUB0"],
+      "linked_ghost_node": null,
+      "content_summary": "Brand new page created this week. Comprehensive guide to MA encounter processing. Current and accurate.",
+      "digital_brain_layer": "L2",
+      "needs_update": false,
+      "tags": ["ma-encounter", "edps", "hcc", "raf", "current"]
+    },
+    {
+      "id": "CONF-2012",
+      "space": "MICPSDEV",
+      "title": "COB Engine — Payer Agreement Configuration Guide",
+      "last_updated": "2024-01-10T09:00:00Z",
+      "last_updated_by": "james.whitfield",
+      "staleness_days": 941,
+      "staleness_flag": "CRITICAL",
+      "description": "Guide to configuring COB payer agreements in PAYER_COB_AGREE DB2 table and MCOBPYR0 hardcoded fallthrough logic.",
+      "linked_programs": ["MCOBPYR0", "MCOBDR00"],
+      "linked_ghost_node": "COB-PAYER-AGREEMENTS",
+      "content_summary": "Over 2 years old. Partially documents payer agreement configuration. Does not cover the 40 hardcoded payers in COBOL EVALUATE. Incident INC0042512 shows this gap caused a $47K overpayment.",
+      "digital_brain_layer": "L4",
+      "needs_update": true,
+      "tags": ["cob", "payer-agreements", "stale", "ghost-node"]
+    },
+    {
+      "id": "CONF-2134",
+      "space": "COMPLIANCE",
+      "title": "OIG Exclusion List — Monthly Refresh Procedure",
+      "last_updated": "2026-08-01T08:00:00Z",
+      "last_updated_by": "compliance.team",
+      "staleness_days": 7,
+      "staleness_flag": "CURRENT",
+      "description": "Monthly procedure for refreshing OIG LEIE exclusion data in MiCPS. Covers MPRVEXC0 table update and validation steps.",
+      "linked_programs": ["MPRVEXC0", "MPRVVLDR0"],
+      "linked_ghost_node": null,
+      "content_summary": "Current. Updated monthly. Covers OIG LEIE refresh, SAM check, and state exclusion list updates.",
+      "digital_brain_layer": "L5",
+      "needs_update": false,
+      "tags": ["oig", "exclusion", "compliance", "monthly", "current"]
+    }
+  ],
+  "recently_updated": [
+    {
+      "id": "CONF-1890",
+      "title": "MA Encounter Data Submission — EDPS Guide",
+      "space": "TRANSFORM",
+      "updated": "2026-08-07T16:00:00Z",
+      "updated_by": "ma.team"
+    },
+    {
+      "id": "CONF-2134",
+      "title": "OIG Exclusion List — Monthly Refresh Procedure",
+      "space": "COMPLIANCE",
+      "updated": "2026-08-01T08:00:00Z",
+      "updated_by": "compliance.team"
+    },
+    {
+      "id": "CONF-1456",
+      "title": "ADJUD-MAIN Batch Operations Guide",
+      "space": "MICPSOPS",
+      "updated": "2025-02-20T10:00:00Z",
+      "updated_by": "ops.team"
+    }
+  ]
+}

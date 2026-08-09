@@ -27,6 +27,10 @@ from claude_agent_sdk import (
 )
 from claude_agent_sdk.types import StreamEvent
 
+from connectors.github_connector import router as github_router
+from connectors.servicenow_connector import router as servicenow_router
+from connectors.confluence_connector import router as confluence_router
+
 # Project root = parent of this backend/ directory. The agent runs here so its
 # Read/Grep/Glob tools can reach the knowledge/ folder.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -61,6 +65,50 @@ app.add_middleware(
 @app.get("/health")
 async def health():
     return {"status": "ok", "project_root": str(PROJECT_ROOT), "model": MODEL}
+
+
+# ── MCP connectors (mock mode) ──
+app.include_router(github_router)
+app.include_router(servicenow_router)
+app.include_router(confluence_router)
+
+
+@app.get("/connectors/status")
+def all_connectors_status():
+    return {
+        "connectors": [
+            {
+                "name": "GitHub",
+                "status": "connected",
+                "mode": "mock",
+                "endpoint": "/connectors/github",
+                "description": "Mivan Health GitHub Enterprise — repos, PRs, commits, issues"
+            },
+            {
+                "name": "ServiceNow",
+                "status": "connected",
+                "mode": "mock",
+                "endpoint": "/connectors/servicenow",
+                "description": "Mivan ServiceNow — incidents, change requests, problem records"
+            },
+            {
+                "name": "Confluence",
+                "status": "connected",
+                "mode": "mock",
+                "endpoint": "/connectors/confluence",
+                "description": "Mivan Confluence — runbooks, architecture docs, operational guides"
+            },
+            {
+                "name": "Jira",
+                "status": "not_configured",
+                "mode": None,
+                "endpoint": None,
+                "description": "Mivan Jira — stories, defects, sprint data. Credentials required."
+            }
+        ],
+        "mock_mode": True,
+        "note": "Running in mock mode. Set MOCK_MODE=false and configure credentials for live data."
+    }
 
 
 def build_options(frontend_system_prompt: str) -> ClaudeAgentOptions:
@@ -134,8 +182,9 @@ async def chat(ws: WebSocket):
         await send({"type": "status", "message": "Connected to the Digital Brain."})
 
         # First message — optionally prefix the current page context.
+        # Accept both old ("page_context") and new ("system") field names.
         first = body.get("message", "")
-        page_ctx = (body.get("page_context") or "").strip()
+        page_ctx = (body.get("system") or body.get("page_context") or "").strip()
         if page_ctx:
             first = (
                 "The user is currently viewing this page in the portal:\n\n"
@@ -147,14 +196,18 @@ async def chat(ws: WebSocket):
         await stream_turn(client, send)
 
         # Follow-up loop on the same connection / conversation.
+        # Accepts {message, session_id} (new) or {type:"follow_up", message} (legacy).
         while True:
             raw = await asyncio.wait_for(ws.receive_text(), timeout=900)
             msg = json.loads(raw)
-            if msg.get("type") == "follow_up" and msg.get("message"):
-                await client.query(msg["message"])
-                await stream_turn(client, send)
-            elif msg.get("type") == "close":
+            if msg.get("type") == "close":
                 break
+            follow_text = msg.get("message") if (
+                msg.get("type") == "follow_up" or msg.get("session_id") is not None
+            ) else None
+            if follow_text:
+                await client.query(follow_text)
+                await stream_turn(client, send)
     except asyncio.TimeoutError:
         try:
             await send({"type": "error", "message": "Session timed out due to inactivity."})

@@ -1,0 +1,199 @@
+{
+  "repos": [
+    {
+      "id": "micps-cobol",
+      "name": "micps-cobol",
+      "full_name": "mivan-health/micps-cobol",
+      "description": "MiCPS mainframe COBOL source — claims processing system",
+      "language": "COBOL",
+      "default_branch": "main",
+      "last_updated": "2026-08-07T14:32:00Z",
+      "open_prs": 3,
+      "open_issues": 12
+    },
+    {
+      "id": "micps-modernization",
+      "name": "micps-modernization",
+      "full_name": "mivan-health/micps-modernization",
+      "description": "MiCPS cloud-native Java replacement — Spring Boot microservices",
+      "language": "Java",
+      "default_branch": "main",
+      "last_updated": "2026-08-08T09:15:00Z",
+      "open_prs": 5,
+      "open_issues": 8
+    },
+    {
+      "id": "mivan-provider-service",
+      "name": "mivan-provider-service",
+      "full_name": "mivan-health/mivan-provider-service",
+      "description": "Provider Data Service — Wave 2 cloud-native replacement for PROV-MSTR VSAM",
+      "language": "Java",
+      "default_branch": "main",
+      "last_updated": "2026-08-06T11:20:00Z",
+      "open_prs": 2,
+      "open_issues": 4
+    },
+    {
+      "id": "mivan-ma-encounter",
+      "name": "mivan-ma-encounter",
+      "full_name": "mivan-health/mivan-ma-encounter",
+      "description": "MA Encounter Data Processing — MAENCDR0 Java equivalent",
+      "language": "Java",
+      "default_branch": "main",
+      "last_updated": "2026-08-05T16:45:00Z",
+      "open_prs": 1,
+      "open_issues": 2
+    }
+  ],
+  "pull_requests": [
+    {
+      "id": "PR-4471",
+      "repo": "micps-cobol",
+      "title": "MICPS-4471 — Near-duplicate claim detection (MOVPDUP1)",
+      "author": "ezhil.murugan",
+      "reviewer": "james.whitfield",
+      "status": "awaiting_review",
+      "created": "2026-08-07T10:00:00Z",
+      "branch": "feature/MICPS-4471-near-dup-detection",
+      "files_changed": 7,
+      "additions": 342,
+      "deletions": 0,
+      "description": "Implements near-duplicate claim detection per MICPS-4471 acceptance criteria. New program MOVPDUP1 detects DATE_DRIFT, AMT_VAR, and MODIFIER near-duplicates. ZUnit tests cover all 4 ACs.",
+      "labels": ["overpayment", "duplicate-detection", "mainframe"],
+      "linked_story": "MICPS-4471"
+    },
+    {
+      "id": "PR-4472",
+      "repo": "micps-modernization",
+      "title": "MICPS-4471 — DuplicateClaimDetectionService Java parallel build",
+      "author": "ezhil.murugan",
+      "reviewer": "rajeev.kaul",
+      "status": "approved",
+      "created": "2026-08-07T10:30:00Z",
+      "branch": "feature/MICPS-4471-java-parallel",
+      "files_changed": 12,
+      "additions": 687,
+      "deletions": 0,
+      "description": "Java Spring Boot parallel build for MICPS-4471. DuplicateClaimDetectionService implements identical logic to MOVPDUP1. 13 JUnit tests passing. Shadow mode validation ready.",
+      "labels": ["wave-1", "parallel-build", "shadow-mode"],
+      "linked_story": "MICPS-4471"
+    },
+    {
+      "id": "PR-4480",
+      "repo": "micps-modernization",
+      "title": "WAVE-2 — EncounterDataOrchestrator shadow mode wiring",
+      "author": "dev.team",
+      "reviewer": "ezhil.murugan",
+      "status": "in_review",
+      "created": "2026-08-06T14:00:00Z",
+      "branch": "feature/wave2-encounter-shadow",
+      "files_changed": 8,
+      "additions": 445,
+      "deletions": 12,
+      "description": "Wires EncounterDataOrchestrator into shadow mode alongside MAENCDR0. Comparison output logged to S3 for validation before cutover.",
+      "labels": ["wave-2", "ma-encounter", "shadow-mode"],
+      "linked_story": "WAVE-2-MA-ENCOUNTER"
+    },
+    {
+      "id": "PR-4481",
+      "repo": "mivan-provider-service",
+      "title": "PROVIDER — Monthly OIG exclusion list refresh automation",
+      "author": "dev.team",
+      "reviewer": "compliance.team",
+      "status": "awaiting_review",
+      "created": "2026-08-08T08:00:00Z",
+      "branch": "feature/oig-monthly-refresh",
+      "files_changed": 3,
+      "additions": 128,
+      "deletions": 45,
+      "description": "Automates monthly OIG LEIE exclusion list refresh. Replaces manual MPRVEXC0 table update with scheduled Lambda trigger. Critical compliance requirement.",
+      "labels": ["provider", "compliance", "oig-exclusion"],
+      "linked_story": "PROV-EXCL-AUTO"
+    },
+    {
+      "id": "PR-4482",
+      "repo": "micps-cobol",
+      "title": "GHOST — ADJUD-BUSINESS-RULES-SPEC documentation attempt",
+      "author": "james.whitfield",
+      "reviewer": "milan.chander",
+      "status": "draft",
+      "created": "2026-08-08T09:00:00Z",
+      "branch": "docs/adjud-business-rules-spec",
+      "files_changed": 1,
+      "additions": 89,
+      "deletions": 0,
+      "description": "DRAFT: First attempt to document MADJDRV0 coverage determination rules. Work in progress — James extracting rules from COBOL logic. Ghost node ADJUD-BUSINESS-RULES-SPEC in progress.",
+      "labels": ["ghost-node", "documentation", "tribal-knowledge"],
+      "linked_story": "GHOST-ADJUD-RULES"
+    }
+  ],
+  "recent_commits": [
+    {
+      "id": "a1b2c3d",
+      "repo": "micps-cobol",
+      "message": "MPRVEXC0: Apply monthly OIG LEIE update — August 2026",
+      "author": "ops.automation",
+      "timestamp": "2026-08-08T02:00:00Z",
+      "files": ["src/cobol/provider/MPRVEXC0.cbl"]
+    },
+    {
+      "id": "e4f5g6h",
+      "repo": "micps-modernization",
+      "message": "MICPS-4471: All 13 JUnit tests passing — shadow mode ready",
+      "author": "ezhil.murugan",
+      "timestamp": "2026-08-07T16:45:00Z",
+      "files": ["src/java/duplicate-detection/"]
+    },
+    {
+      "id": "i7j8k9l",
+      "repo": "micps-cobol",
+      "message": "MAENCDR0: Fix RAF calculation rounding — COMP-3 precision issue",
+      "author": "james.whitfield",
+      "timestamp": "2026-08-06T11:30:00Z",
+      "files": ["src/cobol/ma/MARAFCL0.cbl"]
+    },
+    {
+      "id": "m1n2o3p",
+      "repo": "mivan-provider-service",
+      "message": "ProviderValidationOrchestrator: Add short-circuit on exclusion",
+      "author": "dev.team",
+      "timestamp": "2026-08-05T14:20:00Z",
+      "files": ["src/java/provider/orchestrator/ProviderValidationOrchestrator.java"]
+    }
+  ],
+  "open_issues": [
+    {
+      "id": "ISSUE-892",
+      "repo": "micps-cobol",
+      "title": "GHOST NODE: ADJUD-BUSINESS-RULES-SPEC — coverage determination rules undocumented",
+      "author": "milan.chander",
+      "status": "open",
+      "priority": "critical",
+      "created": "2026-08-01T09:00:00Z",
+      "labels": ["ghost-node", "tribal-knowledge", "blocks-wave-5"],
+      "description": "James Whitfield retiring 2027. Coverage determination rules in MADJDRV0 exist only in COBOL logic. Must be extracted and documented before Wave 5 migration can begin."
+    },
+    {
+      "id": "ISSUE-893",
+      "repo": "micps-cobol",
+      "title": "GHOST NODE: ACCUM-FILE-LAYOUT — record layout partially undocumented",
+      "author": "milan.chander",
+      "status": "open",
+      "priority": "critical",
+      "created": "2026-08-01T09:15:00Z",
+      "labels": ["ghost-node", "tribal-knowledge", "blocks-wave-2"],
+      "description": "ACCUM-FILE VSAM record layout partially documented. Family vs individual accumulator structure unclear. Blocks Wave 2 accumulator service migration."
+    },
+    {
+      "id": "ISSUE-901",
+      "repo": "micps-modernization",
+      "title": "Shadow mode discrepancy — MARAFCL0 RAF score differs by 0.0002",
+      "author": "ezhil.murugan",
+      "status": "open",
+      "priority": "high",
+      "created": "2026-08-07T11:00:00Z",
+      "labels": ["shadow-mode", "ma-encounter", "wave-2"],
+      "description": "EncounterDataOrchestrator RAF calculation differs from MARAFCL0 by 0.0002 on COMP-3 packed decimal rounding. Java BigDecimal vs COBOL COMP-3 precision mismatch. Investigating."
+    }
+  ]
+}
