@@ -7124,11 +7124,40 @@ function showContribute(){
   h += CTR_P2.map(ctrGhostCard).join('');
   h += '</div>';
 
+  // MEM contributions actually persisted on disk (source of truth)
+  h += '<div class="ctr-sec-title">MEM Contributions on Disk</div>';
+  h += '<div id="ctr-disk"><div class="ctr-meta">Loading…</div></div>';
+
   if (pending.length){
     h += '<div style="margin-top:22px;"><button class="ctr-gray" onclick="ctrShowReview()">Review Contributions ('+pending.length+') →</button></div>';
   }
   h += '</div>';
   document.getElementById('content').innerHTML = h;
+  ctrLoadDisk();
+}
+
+function ctrLoadDisk(){
+  var el = document.getElementById('ctr-disk');
+  if (!el) return;
+  fetch(BACKEND_HTTP_URL + '/contributions/list')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var files = (d && d.contributions) || [];
+      if (!files.length){
+        el.innerHTML = '<div class="ctr-meta">No contributions persisted yet. Approving a contribution writes it here (knowledge/MEM/contributions/).</div>';
+        return;
+      }
+      el.innerHTML = '<div class="ctr-cards">' + files.map(function(f){
+        var kb = Math.round((f.size/1024)*10)/10;
+        return '<div class="ctr-card"><div class="ctr-badges"><span class="ctr-pill" style="background:#5aa2ff22;color:#5aa2ff;">ON DISK</span></div>'+
+          '<h4 style="font-size:13px;word-break:break-all;">'+ctrEsc(f.filename)+'</h4>'+
+          '<div class="ctr-meta">'+ctrEsc(f.ghostNodeId)+' · '+kb+' KB · '+ctrEsc((f.modified||'').slice(0,10))+'</div>'+
+          '<div class="ctr-meta" style="color:var(--muted);word-break:break-all;">'+ctrEsc(f.path)+'</div></div>';
+      }).join('') + '</div>';
+    })
+    .catch(function(){
+      el.innerHTML = '<div class="ctr-note" style="border-color:#eda100;background:rgba(237,161,0,.08);">Cannot reach backend — showing local session state only. Approved contributions have not been persisted.</div>';
+    });
 }
 
 function ctrGhostCard(g){
@@ -7338,42 +7367,90 @@ function ctrSubmit(){
 }
 
 // ── Review panel ──
+var CTR_STATE = {
+  pending_review:     {label:'PENDING REVIEW',    color:'#eda100'},
+  changes_requested:  {label:'CHANGES REQUESTED', color:'#eda100'},
+  saved:              {label:'SAVED TO MEM',      color:'#5aa2ff'},
+  graduated:          {label:'GRADUATED',         color:'#1baf7a'}
+};
+function ctrGraduatePrompt(filename, targetLayer, ghostNodeId){
+  return 'Read knowledge/MEM/contributions/'+filename+'.\n'+
+    'Graduate it to '+targetLayer+':\n'+
+    '- Create the target knowledge file with proper frontmatter and bidirectional links\n'+
+    '- Resolve or carry forward all VALIDATE flags\n'+
+    '- Update ghost-nodes.md status for '+ghostNodeId+'\n'+
+    '- Update the portal KNOWLEDGE_BASE, Knowledge Graph, and Ghost Node Map\n'+
+    '- Produce a change plan first and wait for confirmation before executing';
+}
+
 function ctrShowReview(){
   setActive('contribute');
   setBc('Contribute — Review');
   document.getElementById('cwrap').scrollTop = 0;
-  var pending = ctrPendingList().filter(function(c){ return c.status === 'pending_review'; });
+  var recs = ctrPendingList();  // all records
   var h = '<div class="lc-page"><button class="ctr-gray" onclick="showContribute()">← Back</button>';
   h += '<div class="lc-page-hdr" style="margin-top:12px"><div><h2>Review Contributions</h2>'+
-       '<p>Pending SME contributions awaiting '+CTR_REVIEWER+'\'s approval</p></div></div>';
-  if (!pending.length){ h += '<div class="ctr-note">No contributions pending review.</div></div>'; document.getElementById('content').innerHTML=h; return; }
-  pending.forEach(function(c){
+       '<p>SME contributions awaiting '+CTR_REVIEWER+'\'s approval, and those already saved to the MEM layer</p></div></div>';
+  if (!recs.length){ h += '<div class="ctr-note">No contributions yet.</div></div>'; document.getElementById('content').innerHTML=h; return; }
+  recs.forEach(function(c){
     var g = ctrFindGhost(c.ghostNodeId) || {title:c.ghostNodeId, layer:'MEM'};
+    var st = CTR_STATE[c.status] || CTR_STATE.pending_review;
+    var actionable = (c.status === 'pending_review' || c.status === 'changes_requested');
     h += '<div class="ctr-draft">'+
       '<div class="ctr-badges"><span class="ctr-pill" style="background:'+ctrLayerColor(g.layer)+'22;color:'+ctrLayerColor(g.layer)+';">'+g.layer+'</span>'+
-        '<span class="ctr-pill" style="background:#E24B4A22;color:#E24B4A;">PENDING</span></div>'+
+        '<span class="ctr-pill" style="background:'+st.color+'22;color:'+st.color+';">'+st.label+'</span></div>'+
       '<h4 style="font-size:15px;font-weight:700;color:var(--text);margin:8px 0 4px;">'+ctrEsc(g.title)+' <span style="font-size:12px;color:var(--muted);font-weight:400;">('+ctrEsc(c.ghostNodeId)+')</span></h4>'+
       '<div class="ctr-meta">'+ctrEsc(c.contributorName)+' · '+ctrEsc((c.submittedAt||'').slice(0,10))+'</div>'+
-      '<div class="md" style="margin:10px 0;border-top:1px solid var(--border);padding-top:10px;">'+marked.parse(c.draft||'')+'</div>'+
-      '<div class="ctr-btn-row">'+
+      '<div class="md" style="margin:10px 0;border-top:1px solid var(--border);padding-top:10px;">'+marked.parse(c.draft||'')+'</div>';
+    if (actionable){
+      h += '<div class="ctr-btn-row" id="act-'+c._key+'">'+
         '<button class="ctr-primary" style="background:#1baf7a;" onclick="ctrApprove(\''+c._key+'\')">Approve</button>'+
         '<button class="ctr-outline" style="color:#eda100;border-color:#eda100;" onclick="ctrRequestChanges(\''+c._key+'\')">Request Changes</button>'+
         '<button class="ctr-outline" style="color:#E24B4A;border-color:#E24B4A;" onclick="ctrReject(\''+c._key+'\')">Reject</button>'+
-      '</div>'+
-      '<div id="fb-'+c._key+'"></div>'+
       '</div>';
+    } else if (c.status === 'saved'){
+      var fname = (c.path||'').split('/').pop();
+      h += '<div class="ctr-meta" style="color:#5aa2ff;">Saved to '+ctrEsc(c.path||'')+'</div>'+
+        '<div class="ctr-note" style="border-color:#5aa2ff;background:rgba(90,162,255,.08);">In MEM. Not yet part of L1-L6. Run the graduation pass in Claude Code to promote it.</div>'+
+        '<details style="margin-top:8px;"><summary style="cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;">How to graduate →</summary>'+
+          '<div class="rd-code"><button class="rd-copy" onclick="rdCopy(this)">Copy</button><pre>'+ctrEsc(ctrGraduatePrompt(fname, g.layer, c.ghostNodeId))+'</pre></div>'+
+        '</details>';
+    } else if (c.status === 'graduated'){
+      h += '<div class="ctr-note" style="border-color:#1baf7a;background:rgba(27,175,122,.08);">Graduated to '+g.layer+'. This contribution is now part of the formal knowledge layer.</div>';
+    }
+    h += '<div id="fb-'+c._key+'"></div></div>';
   });
   h += '</div>';
   document.getElementById('content').innerHTML = h;
 }
-function ctrApprove(key){
+
+async function ctrApprove(key){
   var rec; try{ rec = JSON.parse(sessionStorage.getItem(key)); }catch(e){ return; }
-  rec.status = 'approved'; rec.approvedAt = new Date().toISOString();
-  sessionStorage.setItem(key, JSON.stringify(rec));
-  ctrRecountPending();
-  var g = ctrFindGhost(rec.ghostNodeId) || {};
-  alert('Approved. In a real deployment this would commit to knowledge/MEM/contributions/'+rec.ghostNodeId.toLowerCase()+'-'+ctrToday()+'.md and update ghost-nodes.md status to IN-FLIGHT.');
-  ctrShowReview();
+  var g = ctrFindGhost(rec.ghostNodeId) || {title:rec.ghostNodeId, layer:'MEM'};
+  var act = document.getElementById('act-'+key);
+  if (act) act.innerHTML = '<span class="ctr-meta"><span class="spinner" style="display:inline-block;vertical-align:middle;margin-right:6px;"></span>Saving to disk…</span>';
+  try {
+    var resp = await fetch(BACKEND_HTTP_URL + '/contributions/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        ghostNodeId: rec.ghostNodeId, contributorName: rec.contributorName,
+        targetLayer: g.layer, markdown: rec.draft, submittedAt: rec.submittedAt
+      })
+    });
+    var data = {}; try { data = await resp.json(); } catch(e){}
+    if (!resp.ok || !data.saved) throw new Error(data.detail || ('HTTP '+resp.status));
+    rec.status = 'saved'; rec.path = data.path; rec.savedAt = new Date().toISOString(); rec.targetLayer = g.layer;
+    sessionStorage.setItem(key, JSON.stringify(rec));   // decrement badge only on real success
+    ctrRecountPending();
+    ctrShowReview();
+    var box = document.getElementById('fb-'+key);
+    if (box) box.innerHTML = '<div class="ctr-success" style="margin-top:10px;">✓ Saved to '+ctrEsc(data.path)+'<br>This contribution is now in the MEM layer. Graduate it to '+g.layer+' when the VALIDATE flags have been confirmed with Mivan stakeholders.</div>';
+  } catch(err){
+    // Nothing was written — keep status pending and surface the real error.
+    ctrShowReview();
+    var box2 = document.getElementById('fb-'+key);
+    if (box2) box2.innerHTML = '<div class="ctr-note" style="border-color:#E24B4A;background:rgba(226,75,74,.08);margin-top:10px;">⚠ Not saved — nothing was written to disk. '+ctrEsc(err.message||'error')+'. Fix the backend and click Approve again.</div>';
+  }
 }
 function ctrRequestChanges(key){
   var box = document.getElementById('fb-'+key);

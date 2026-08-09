@@ -11,10 +11,12 @@ Run:  python app.py    (from the backend/ directory)
 
 import asyncio
 import json
+import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from claude_agent_sdk import (
@@ -166,6 +168,75 @@ def all_connectors_status():
         "mock_mode": True,
         "note": "Running in mock mode. Set MOCK_MODE=false and configure credentials for live data."
     }
+
+
+# ── Contributions (Knowledge Contribution Framework) ──
+# Approve writes the curated draft to the MEM layer on disk. Graduation to a
+# formal L1-L6 node is a deliberate, separate, agent-driven pass — NOT automated.
+CONTRIB_DIR = PROJECT_ROOT / "knowledge" / "MEM" / "contributions"
+GHOST_ID_RE = re.compile(r"^[A-Z0-9-]+$")
+
+
+@app.post("/contributions/save")
+def save_contribution(payload: dict):
+    # 1. Validate required, non-empty fields.
+    required = ["ghostNodeId", "contributorName", "targetLayer", "markdown", "submittedAt"]
+    missing = [k for k in required if not str(payload.get(k, "")).strip()]
+    if missing:
+        raise HTTPException(status_code=400, detail="Missing or empty field(s): " + ", ".join(missing))
+
+    ghost_id = str(payload["ghostNodeId"]).strip()
+    # 2. Path-traversal guard — reject anything that is not uppercase alnum + hyphens.
+    if not GHOST_ID_RE.match(ghost_id):
+        raise HTTPException(
+            status_code=400,
+            detail="ghostNodeId must be uppercase letters, digits, and hyphens only (got: " + ghost_id + ")",
+        )
+
+    markdown = payload["markdown"]
+    try:
+        # 3. Build path + ensure directory exists.
+        CONTRIB_DIR.mkdir(parents=True, exist_ok=True)
+        datestr = datetime.now().strftime("%Y-%m-%d")
+        stem = f"{ghost_id}-{datestr}"
+        target = CONTRIB_DIR / f"{stem}.md"
+        # 4. Never overwrite — append a numeric suffix.
+        n = 2
+        while target.exists():
+            target = CONTRIB_DIR / f"{stem}-{n}.md"
+            n += 1
+        # 5. Write UTF-8.
+        target.write_text(markdown, encoding="utf-8")
+    except Exception as e:  # 7. Surface the real error.
+        raise HTTPException(status_code=500, detail="Filesystem error: " + str(e))
+
+    rel = target.relative_to(PROJECT_ROOT).as_posix()
+    # 6. Success.
+    return {
+        "saved": True,
+        "path": rel,
+        "message": "Contribution saved to MEM layer. Graduate to a formal layer when validated.",
+    }
+
+
+@app.get("/contributions/list")
+def list_contributions():
+    if not CONTRIB_DIR.exists():
+        return {"contributions": []}
+    name_re = re.compile(r"^(.*)-(\d{4}-\d{2}-\d{2})(?:-\d+)?\.md$")
+    out = []
+    for f in sorted(CONTRIB_DIR.glob("*.md")):
+        st = f.stat()
+        m = name_re.match(f.name)
+        out.append({
+            "filename": f.name,
+            "path": f.relative_to(PROJECT_ROOT).as_posix(),
+            "ghostNodeId": m.group(1) if m else f.stem,
+            "date": m.group(2) if m else None,
+            "size": st.st_size,
+            "modified": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
+        })
+    return {"contributions": out}
 
 
 # Minimal prompt for the curation path — it synthesizes the supplied Q&A and must
