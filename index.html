@@ -7228,42 +7228,83 @@ function ctrSystemPrompt(g, name){
     '- A Summary section at the top\n\n'+
     'Ghost node being addressed: '+g.id+'\nTarget layer: '+g.layer+'\nContributor: '+name;
 }
+// One-shot curation call over a fresh WebSocket. Sends mode:"curate" so the
+// backend uses the no-tools, larger-turn-budget curation path. Send happens
+// only inside onopen. 180s timeout; rejects Error('timeout') or the real error.
 function ctrCurateBackend(systemPrompt, userMsg){
   return new Promise(function(resolve, reject){
     var sock; try { sock = new WebSocket(BACKEND_WS_URL); } catch(e){ return reject(e); }
     var acc='', done=false;
-    var to = setTimeout(function(){ if(!done){ done=true; try{sock.close();}catch(e){} reject(new Error('timeout')); } }, 120000);
-    sock.onopen = function(){ sock.send(JSON.stringify({ message:userMsg, system:systemPrompt, page_context:'contribute', session_id:null })); };
-    sock.onerror = function(){ if(!done){ done=true; clearTimeout(to); reject(new Error('unreachable')); } };
+    var to = setTimeout(function(){ if(!done){ done=true; try{sock.close();}catch(e){} reject(new Error('timeout')); } }, 180000);
+    sock.onopen = function(){
+      sock.send(JSON.stringify({ message:userMsg, system:systemPrompt, mode:'curate', page_context:'contribute', session_id:null }));
+    };
+    sock.onerror = function(){ if(!done){ done=true; clearTimeout(to); reject(new Error('backend unreachable at '+BACKEND_WS_URL)); } };
     sock.onmessage = function(ev){
       var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
       if (m.type==='stream_text') acc += m.text;
-      else if (m.type==='complete'){ done=true; clearTimeout(to); try{sock.close();}catch(e){} resolve(acc.trim()); }
+      else if (m.type==='complete'){ done=true; clearTimeout(to); try{sock.close();}catch(e){} resolve(ctrStripFence(acc.trim())); }
       else if (m.type==='error'){ done=true; clearTimeout(to); try{sock.close();}catch(e){} reject(new Error(m.message||'error')); }
     };
   });
 }
+function ctrStripFence(s){
+  var t = (s || '').trim();
+  var m = t.match(/^```[a-zA-Z-]*\n([\s\S]*?)\n```$/);
+  return m ? m[1].trim() : t;
+}
+function ctrFrontmatter(g, name){
+  return '---\nlayer: '+g.layer+'\nnode_type: domain\ndomain: claims\nsource: sme-interview\nlast_synced: '+ctrToday()+'\nvalidated_by: '+name+'\nfidelity: DRAFT\nghost_node_id: '+g.id+'\n---';
+}
 function ctrRawDraft(g, name, qa){
-  return '---\nlayer: '+g.layer+'\nnode_type: domain\ndomain: claims\nsource: sme-interview\nlast_synced: '+ctrToday()+'\nvalidated_by: '+name+'\nfidelity: DRAFT\nghost_node_id: '+g.id+'\n---\n\n# '+g.title+'\n\n> Backend curator unavailable — raw interview captured. Curate before graduating.\n\n## Interview Q&A\n\n'+qa;
+  return ctrFrontmatter(g, name)+'\n\n# '+g.title+'\n\n> Automatic curation was not completed — raw interview captured. Curate before graduating.\n\n## Interview Q&A\n\n'+qa;
+}
+function ctrSystemPromptChunk(g, name, part, total){
+  return 'You are the Mivan Digital Brain knowledge curator. This is PART '+part+' of '+total+' of a longer contribution interview for ghost node '+g.id+' (target layer '+g.layer+', contributor '+name+').\n\n'+
+    'Synthesize ONLY the Q&A provided into clean markdown body sections (use ## headings). Do NOT include YAML frontmatter or a top-level # title — those are added separately. Factual content only; use VALIDATE: flags where the SME was uncertain. Work only from the supplied content; do not use tools.';
+}
+function ctrLoading(msg){
+  document.getElementById('content').innerHTML = '<div class="lc-page"><div class="loading"><div class="spinner"></div>'+ctrEsc(msg)+'</div></div>';
+  document.getElementById('cwrap').scrollTop = 0;
 }
 
-function ctrCurate(g, questions, answers, name){
-  var content = document.getElementById('content');
-  content.innerHTML = '<div class="lc-page"><div class="loading"><div class="spinner"></div>Digital Brain is curating your contribution…</div></div>';
-  var qa = ctrBuildQA(questions, answers);
-  var sys = ctrSystemPrompt(g, name);
-  var user = 'Here are the interview questions and answers:\n\n'+qa+'\n\nPlease synthesize this into a knowledge entry.';
-  ctrCurateBackend(sys, user)
-    .then(function(md){ ctrRenderDraft(g, name, md || ctrRawDraft(g, name, qa)); })
-    .catch(function(){ ctrRenderDraft(g, name, ctrRawDraft(g, name, qa), true); });
+async function ctrCurate(g, questions, answers, name){
+  var qa = ctrBuildQA(questions, answers);   // full Q&A — preserved for fallback
+  ctrLoading('Curating — this can take 1-2 minutes for long interviews…');
+  try {
+    var md;
+    if (qa.length <= 12000){
+      md = await ctrCurateBackend(ctrSystemPrompt(g, name),
+        'Here are the interview questions and answers:\n\n'+qa+'\n\nPlease synthesize this into a knowledge entry.');
+      md = md || ctrRawDraft(g, name, qa);
+    } else {
+      // Chunked curation for long interviews — two passes, single frontmatter.
+      var mid = Math.ceil(questions.length/2);
+      ctrLoading('Curating part 1 of 2…');
+      var qa1 = ctrBuildQA(questions.slice(0, mid), answers.slice(0, mid));
+      var body1 = await ctrCurateBackend(ctrSystemPromptChunk(g, name, 1, 2),
+        'Interview Q&A (part 1 of 2):\n\n'+qa1+'\n\nSynthesize into markdown body sections only.');
+      ctrLoading('Curating part 2 of 2…');
+      var qa2 = ctrBuildQA(questions.slice(mid), answers.slice(mid));
+      var body2 = await ctrCurateBackend(ctrSystemPromptChunk(g, name, 2, 2),
+        'Interview Q&A (part 2 of 2):\n\n'+qa2+'\n\nSynthesize into markdown body sections only.');
+      md = ctrFrontmatter(g, name)+'\n\n# '+g.title+'\n\n'+(body1||'')+'\n\n'+(body2||'');
+    }
+    ctrRenderDraft(g, name, md);
+  } catch(err){
+    var note = (err && err.message === 'timeout')
+      ? 'Curation timed out after 3 minutes. Your interview answers are preserved below — you can still submit them for review.'
+      : 'Curation failed'+(err && err.message ? (': '+err.message) : '')+'. Your interview answers are preserved below — you can still submit them for review.';
+    ctrRenderDraft(g, name, ctrRawDraft(g, name, qa), note);
+  }
 }
 
-function ctrRenderDraft(g, name, md, fallback){
+function ctrRenderDraft(g, name, md, note){
   window._ctrDraft = { ghostNodeId:g.id, contributorName:name, draft:md };
   var h = '<div class="lc-page">';
   h += '<div class="lc-page-hdr"><div><h2>Curated Draft — '+ctrEsc(g.title)+'</h2>'+
        '<p>Contributor: '+ctrEsc(name)+' · Target layer: '+g.layer+'</p></div></div>';
-  if (fallback) h += '<div class="ctr-note">⚠ The backend curator was unreachable, so this shows your raw interview. You can still submit it for review, or edit it below.</div>';
+  if (note) h += '<div class="ctr-note">⚠ '+ctrEsc(note)+'</div>';
   h += '<div class="ctr-draft"><div class="md" id="ctr-draft-rendered">'+marked.parse(md)+'</div></div>';
   h += '<textarea class="ctr-textarea" id="ctr-draft-edit" rows="16" style="display:none;">'+ctrEsc(md)+'</textarea>';
   h += '<div class="ctr-btn-row" style="margin-top:12px;">'+
@@ -7409,7 +7450,12 @@ function ctrSubmitTemplate(tid){
   content.innerHTML = '<div class="lc-page"><div class="loading"><div class="spinner"></div>Digital Brain is curating your contribution…</div></div>';
   ctrCurateBackend(sys, user)
     .then(function(md){ ctrRenderDraft(g, name, md || ctrRawDraft(g, name, body)); })
-    .catch(function(){ ctrRenderDraft(g, name, ctrRawDraft(g, name, body), true); });
+    .catch(function(err){
+      var note = (err && err.message === 'timeout')
+        ? 'Curation timed out after 3 minutes. Your submission is preserved below — you can still submit it for review.'
+        : 'Curation failed'+(err && err.message ? (': '+err.message) : '')+'. Your submission is preserved below — you can still submit it for review.';
+      ctrRenderDraft(g, name, ctrRawDraft(g, name, body), note);
+    });
 }
 
 contribUpdateBadge();

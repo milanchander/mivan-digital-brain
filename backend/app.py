@@ -168,23 +168,45 @@ def all_connectors_status():
     }
 
 
-def build_options(frontend_system_prompt: str) -> ClaudeAgentOptions:
-    append = BASE_SYSTEM + PRELOADED_CONTEXT
-    if frontend_system_prompt:
-        append += "\n\n--- Additional domain context ---\n\n" + frontend_system_prompt
+# Minimal prompt for the curation path — it synthesizes the supplied Q&A and must
+# NOT read the knowledge layer, which is what burns turns on long inputs.
+CURATE_SYSTEM = """You are the Mivan Digital Brain knowledge curator. A domain expert has completed a knowledge contribution interview (or filled a template). Synthesize the supplied questions and answers into a properly formatted markdown knowledge entry.
+
+Work ONLY from the content provided in the message. Do NOT read files, search the codebase, or use any tools — everything you need is already in the message. Output only the requested markdown."""
+
+
+def build_options(frontend_system_prompt: str = "", mode: str = "chat") -> ClaudeAgentOptions:
+    """Build agent options for a request.
+
+    mode="chat"   → full grounding + file tools, small turn budget (fast Q&A).
+    mode="curate" → minimal prompt, NO tools, larger turn budget (long synthesis).
+    """
+    if mode == "curate":
+        append = CURATE_SYSTEM
+        if frontend_system_prompt:
+            append += "\n\n" + frontend_system_prompt
+        max_turns = 25
+        allowed_tools: list[str] = []          # pure synthesis — no file reads
+    else:
+        append = BASE_SYSTEM + PRELOADED_CONTEXT
+        if frontend_system_prompt:
+            append += "\n\n--- Additional domain context ---\n\n" + frontend_system_prompt
+        max_turns = 8
+        allowed_tools = ["Read", "Grep", "Glob"]
+
     return ClaudeAgentOptions(
         model=MODEL,
         setting_sources=["user", "project", "local"],  # no API key needed
         permission_mode="bypassPermissions",
         cwd=str(PROJECT_ROOT),
-        max_turns=20,
+        max_turns=max_turns,
         include_partial_messages=True,  # token-by-token streaming
         system_prompt={
             "type": "preset",
             "preset": "claude_code",
             "append": append,
         },
-        allowed_tools=["Read", "Grep", "Glob"],
+        allowed_tools=allowed_tools,
         disallowed_tools=["Write", "Edit", "Bash"],  # read-only assistant
     )
 
@@ -233,21 +255,28 @@ async def chat(ws: WebSocket):
     try:
         body = json.loads(await ws.receive_text())
 
-        options = build_options(body.get("system_prompt", ""))
+        mode = body.get("mode", "chat")
+        first = body.get("message", "")
+
+        if mode == "curate":
+            # Curation: the frontend's `system` field is the curator system prompt,
+            # and `message` is the interview Q&A. No page-context wrapping, no tools.
+            options = build_options(body.get("system", ""), mode="curate")
+        else:
+            options = build_options(body.get("system_prompt", ""), mode="chat")
+            # First message — optionally prefix the current page context.
+            # Accept both old ("page_context") and new ("system") field names.
+            page_ctx = (body.get("system") or body.get("page_context") or "").strip()
+            if page_ctx:
+                first = (
+                    "The user is currently viewing this page in the portal:\n\n"
+                    f"<page_context>\n{page_ctx}\n</page_context>\n\n"
+                    f"User question: {first}"
+                )
+
         client = ClaudeSDKClient(options=options)
         await client.connect()
         await send({"type": "status", "message": "Connected to the Digital Brain."})
-
-        # First message — optionally prefix the current page context.
-        # Accept both old ("page_context") and new ("system") field names.
-        first = body.get("message", "")
-        page_ctx = (body.get("system") or body.get("page_context") or "").strip()
-        if page_ctx:
-            first = (
-                "The user is currently viewing this page in the portal:\n\n"
-                f"<page_context>\n{page_ctx}\n</page_context>\n\n"
-                f"User question: {first}"
-            )
 
         await client.query(first)
         await stream_turn(client, send)
