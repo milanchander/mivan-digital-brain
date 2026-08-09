@@ -984,20 +984,20 @@
       <span class="lbl">L1 — Enterprise Context</span>
     </div>
 
-    <div class="nl parent" data-page="l2" data-url="knowledge/L2-domain/health-payer-domain.md" data-exp="1">
+    <div class="nl parent" data-page="l2" data-url="knowledge/L2-domain/commercial-claims.md" data-exp="1">
       <span class="ico">🏥</span>
-      <span class="lbl">L2 — Health Payer Domain</span>
+      <span class="lbl">L2 — Commercial Claims</span>
       <span class="chev">▶</span>
     </div>
     <div class="nc" id="nc-l2">
-      <div class="ncl" data-page="l2-lifecycle"   data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims lifecycle">Claims Lifecycle</div>
-      <div class="ncl" data-page="l2-intake"      data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims intake">Claims Intake &amp; Editing</div>
-      <div class="ncl" data-page="l2-elig"        data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="eligibility">Eligibility &amp; Benefits</div>
-      <div class="ncl" data-page="l2-adj"         data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="adjudication engine">Adjudication Engine</div>
-      <div class="ncl" data-page="l2-pricing"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="pricing">Pricing &amp; Fee Schedules</div>
-      <div class="ncl" data-page="l2-payment"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="claims payment">Claims Payment</div>
-      <div class="ncl" data-page="l2-cob"         data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="coordination of benefits">COB</div>
-      <div class="ncl" data-page="l2-overpay"     data-url="knowledge/L2-domain/health-payer-domain.md"   data-sec="overpayment">Overpayment &amp; Recovery</div>
+      <div class="ncl" data-page="l2-lifecycle"   data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="claims lifecycle">Claims Lifecycle</div>
+      <div class="ncl" data-page="l2-intake"      data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="claims intake">Claims Intake &amp; Editing</div>
+      <div class="ncl" data-page="l2-elig"        data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="eligibility">Eligibility &amp; Benefits</div>
+      <div class="ncl" data-page="l2-adj"         data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="adjudication engine">Adjudication Engine</div>
+      <div class="ncl" data-page="l2-pricing"     data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="pricing">Pricing &amp; Fee Schedules</div>
+      <div class="ncl" data-page="l2-payment"     data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="claims payment">Claims Payment</div>
+      <div class="ncl" data-page="l2-cob"         data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="coordination of benefits">COB</div>
+      <div class="ncl" data-page="l2-overpay"     data-url="knowledge/L2-domain/commercial-claims.md"   data-sec="overpayment">Overpayment &amp; Recovery</div>
     </div>
 
     <div class="nl parent" data-page="l3" data-url="knowledge/L3-systems/mivan-system-landscape.md" data-exp="1">
@@ -1306,17 +1306,104 @@ The Digital Brain is not a side project — it is infrastructure for the transfo
 <script type="text/plain" id="md-l2">
 ---
 layer: L2
-domain: health-payer
+node_type: domain
+domain: commercial-claims
 source: web-research + manual
-last_synced: 2026-08-06
+last_synced: 2026-08-08
+validated_by: Milan Chander
+fidelity: HIGH
+ghost_node_id: null
+links_back:
+  - knowledge/L1-enterprise/mivan-enterprise-context.md
+links_forward:
+  - knowledge/L3-systems/mivan-system-landscape.md
+  - knowledge/L4-application/micps-application-knowledge.md
+  - knowledge/L5-business-rules/claims-business-rules.md
+audience: all
+lob: commercial
 ---
 
-# Health Payer Domain Knowledge — Commercial Claims Processing
+# Commercial Claims — Domain Knowledge
+## Mivan Health Plan — Commercial Line of Business
 
 > **Validation flag legend used in this document:**
 > `> ⚠️ VALIDATE:` marks a statement that requires confirmation against Mivan-specific policy, system behavior, or contractual terms before treating as authoritative.
 
 ---
+
+## 0. Commercial LOB Overview
+
+### What Is Commercial Health Insurance
+
+Commercial health insurance covers individuals and employer groups outside of government programs (Medicare and Medicaid). It is the largest line of business for most national health plans including Mivan.
+
+Mivan's commercial book covers:
+- Fully-insured employer groups — Mivan bears the financial risk; employer pays premium
+- ASO (Administrative Services Only) — employer self-funds the risk; Mivan administers claims for a fee
+- Individual marketplace — ACA exchange plans; CMS regulates benefit design and pricing
+- COBRA continuation coverage — former employees continuing group coverage
+
+### Commercial vs Government Programs
+
+| Dimension | Commercial | Medicare Advantage | Medicaid |
+|---|---|---|---|
+| Who pays Mivan | Employer/member premiums | CMS capitation | State capitation |
+| Who regulates | State insurance dept | CMS — federal | State + CMS joint |
+| Benefit design | Plan designs by Mivan | CMS-mandated baseline | State benefit package |
+| Timely filing | State law / contract | CMS: 365 days | State contract |
+| Prior auth | Plan policy | CMS limits what plans can require | State-directed |
+| COB | Birthday rule, active employment | Medicare Secondary Payer rules | Payer of last resort |
+| Encounter data | Not required | Required — CMS EDPS | Required — state MMIS |
+| Overpayment | Contract-driven | CMS 60-day rule | State look-back limits |
+
+### Fully-Insured vs ASO
+
+**Fully-insured:**
+- Mivan collects premiums and pays claims
+- Mivan bears the financial risk of high claims
+- Subject to state insurance regulations
+- Premium taxes apply
+- State prompt pay laws apply
+- ACA MLR (Medical Loss Ratio) requirements apply
+
+**ASO (Administrative Services Only):**
+- Employer funds claims from their own assets
+- Mivan processes claims and administers benefits for a fee
+- Governed by ERISA — federal law preempts state insurance laws
+- No state prompt pay law applies to ERISA plans
+- No premium tax
+- Different COB rules — ERISA plans can override some state COB rules
+- Mivan still applies plan design and processes claims identically
+- Claims examiners may not know if a claim is fully-insured or ASO
+
+**Developer impact:**
+ASO vs fully-insured status affects:
+- Applicable regulatory requirements in L5
+- Prompt pay timing requirements
+- COB method applicability
+- Overpayment recovery look-back limits
+Always check plan type before assuming a regulatory rule applies.
+
+### ACA Individual Marketplace
+
+ACA marketplace plans (exchange plans) have additional requirements:
+- Essential Health Benefits — 10 categories must be covered (ambulatory, emergency, hospitalization, maternity, mental health, prescription drugs, rehabilitative, laboratory, preventive, pediatric)
+- Preventive services — covered at 100% before deductible (USPSTF A/B recommendations)
+- Annual out-of-pocket maximum — ACA sets annual limits ($9,450 individual / $18,900 family for 2026)
+- No lifetime or annual dollar limits on essential health benefits
+- Cost-sharing reduction (CSR) plans — enhanced benefits for low-income members
+- Metal tiers — Bronze, Silver, Gold, Platinum based on actuarial value
+
+**Developer impact:**
+ACA preventive service coverage at 100% before deductible is a specific coding requirement in the adjudication engine. Claims for USPSTF A/B-rated preventive services must bypass deductible application. This is a common source of incorrect cost-share calculations.
+
+### COBRA Continuation Coverage
+
+- Former employees may continue group coverage for up to 18-36 months by paying full premium
+- Same benefits as active employees
+- Mivan processes COBRA claims identically to active employee claims
+- Eligibility flag in MEMBER-IDX indicates COBRA status
+- COBRA termination is a common source of retroactive eligibility changes
 
 ## 1. Claims Lifecycle — End to End
 
@@ -2062,6 +2149,61 @@ Providers have the right to dispute overpayment demands. Commercial payer disput
 | TOB | Type of Bill — 3-digit code on 837I identifying facility and claim frequency |
 | POS | Place of Service — 2-digit code on 837P |
 
+## Commercial-Specific Complexity Areas
+
+### Grandfathered Plans
+
+Plans in existence before March 23, 2010 (ACA enactment) may be grandfathered and exempt from certain ACA requirements:
+- Do not need to cover preventive services at 100% before deductible
+- Different cost-sharing rules may apply
+- MiCPS has a grandfathered plan indicator in the benefit parameters table
+- VALIDATE: How many Mivan commercial plans are still grandfathered as of 2026?
+
+### Self-Funded Plan Design Variations
+
+ASO employers have significant flexibility in plan design. Common variations that affect MiCPS processing:
+- Carve-outs — pharmacy, behavioral health, or dental carved out to separate vendors
+- Embedded vs aggregate deductibles — family deductible structure differs
+- Reference-based pricing — allowable set as percentage of Medicare rather than contracted rate
+- Direct contracting — employer contracts directly with specific providers
+- Custom accumulator rules — some employers exclude certain services from deductible
+
+### State Variation in Commercial
+
+Unlike ERISA self-funded plans, fully-insured commercial plans are subject to state mandates:
+- Mandated benefit requirements by state (e.g. infertility coverage, chiropractic, autism treatment)
+- State-specific timely filing limits
+- State-specific COB rules
+- State prompt pay interest rates
+- State surprise billing protections
+
+MiCPS handles state variation through the STATE_CONTRACT table and state-specific business rules in MBUSNED0.
+VALIDATE: How are state mandates implemented in MiCPS — plan-level configuration or state-code logic in COBOL?
+
+### Commercial COB Specifics
+
+Commercial COB follows NAIC model rules:
+- Birthday rule for dependents
+- Active employment rule — active employer coverage is primary over retirement coverage
+- Gender rule — still present in some legacy MiCPS plan configurations (see L4 COB module)
+- COBRA is always secondary to active coverage
+
+Unlike Medicare (MSP federal rules) and Medicaid (payer of last resort), commercial COB is governed by state law and NAIC guidelines — giving plans more flexibility but also more variation.
+
+## Related Lines of Business & Implementation
+
+### Sibling LOB Domain Nodes
+- Medicare Advantage — `knowledge/L2-domain/medicare-advantage.md`
+- Medicaid Managed Care — `knowledge/L2-domain/medicaid-managed-care.md`
+- Provider Data (cross-LOB) — `knowledge/L2-domain/provider-data-lifecycle.md`
+- Healthcare primer (for non-health readers) — `knowledge/L2-domain/health-primer.md`
+
+### Commercial Program Tree
+The commercial claims program tree implements the processing flow described in this document:
+- COBOL: `src/cobol/commercial/` — `MCOMCLDR0` driver plus 5 subprograms *(planned — not yet built)*
+- Java: `src/java/commercial/` — Spring Boot equivalent *(planned — not yet built)*
+
+See L4 (`knowledge/L4-application/micps-application-knowledge.md`) for module-level program detail and L5 (`knowledge/L5-business-rules/claims-business-rules.md`) for the business rules these programs implement.
 </script>
 
 <script type="text/plain" id="md-l3">
@@ -5604,13 +5746,15 @@ You also know the complete MICPS-4471 supporting artifacts:
 - Aurora PostgreSQL schema-postgres.sql: mirrors DB2 DDL exactly -- mivancps.claim_payment and mivancps.near_dup_queue with same constraints and indexes. Applied via Flyway in prod.
 - application.yml: H2 dev profile (MODE=PostgreSQL, MIVANCPS schema), H2 console at /h2-console, Swagger UI at /swagger-ui.html, Actuator exposing health/info/metrics.
 
-You have knowledge of three new program trees built for the Mivan Digital Brain:
+The Digital Brain documents four lines of business, each with an L2 domain knowledge node and a program tree (COBOL driver + Java Spring Boot equivalent):
 
-1. MAENCDR0 — Medicare Advantage encounter data driver. Subprograms: MAELGCK0, MAHCCVL0, MARAFCL0, MAENCBL0, MAEDPSUB0. Java equivalent: EncounterDataOrchestrator in src/java/ma/.
+1. Commercial — MCOMCLDR0 commercial claims driver. Handles fully-insured, ASO (ERISA), ACA marketplace, and COBRA claim processing. Domain node: knowledge/L2-domain/commercial-claims.md (renamed from health-payer-domain.md and enriched with commercial LOB content). PLANNED — the MCOMCLDR0 tree (src/cobol/commercial/, src/java/commercial/) is documented but not yet built.
 
-2. MMCOCLDR0 — Medicaid claim processing driver. Subprograms: MMCOELV0, MMCOTPL0, MMCOLRP0, MMCOENC0, MMCOSSUB0. Key rule: 42 CFR 433.139 Medicaid payer of last resort. Java equivalent: MedicaidClaimOrchestrator in src/java/medicaid/.
+2. MAENCDR0 — Medicare Advantage encounter data driver. Subprograms: MAELGCK0, MAHCCVL0, MARAFCL0, MAENCBL0, MAEDPSUB0. Java equivalent: EncounterDataOrchestrator in src/java/ma/. Domain node: knowledge/L2-domain/medicare-advantage.md.
 
-3. MPRVVLDR0 — Provider validation driver. Subprograms: MPRVNPI0, MPRVCRD0, MPRVEXC0, MPRVNET0, MPRVSANL0. MPRVEXC0 is critical — federal law prohibits payment to excluded providers. Java equivalent: ProviderValidationOrchestrator in src/java/provider/.
+3. MMCOCLDR0 — Medicaid claim processing driver. Subprograms: MMCOELV0, MMCOTPL0, MMCOLRP0, MMCOENC0, MMCOSSUB0. Key rule: 42 CFR 433.139 Medicaid payer of last resort. Java equivalent: MedicaidClaimOrchestrator in src/java/medicaid/. Domain node: knowledge/L2-domain/medicaid-managed-care.md.
+
+4. MPRVVLDR0 — Provider validation driver (cross-LOB). Subprograms: MPRVNPI0, MPRVCRD0, MPRVEXC0, MPRVNET0, MPRVSANL0. MPRVEXC0 is critical — federal law prohibits payment to excluded providers. Java equivalent: ProviderValidationOrchestrator in src/java/provider/. Domain node: knowledge/L2-domain/provider-data-lifecycle.md.
 
 You can explain any program, its paragraphs, DB2 tables, VSAM files, Java equivalent, and how it fits into the Mivan modernization wave sequence.`;
 
@@ -5843,9 +5987,9 @@ function showOverview() {
           <h3>Enterprise Context</h3>
           <p>Org structure, technology landscape, and transformation mandate.</p>
         </div>
-        <div class="card" onclick="loadPage('l2','knowledge/L2-domain/health-payer-domain.md',null,'L2 — Health Payer Domain')">
+        <div class="card" onclick="loadPage('l2','knowledge/L2-domain/commercial-claims.md',null,'L2 — Commercial Claims')">
           <div class="cbadge">L2</div>
-          <h3>Health Payer Domain</h3>
+          <h3>Commercial Claims</h3>
           <p>End-to-end claims lifecycle, adjudication, COB, and overpayment.</p>
         </div>
         <div class="card" onclick="loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md',null,'L3 — System Landscape')">
@@ -6568,7 +6712,7 @@ function showReadme() {
     '<div class="rd-pills">' +
     '<span class="rd-pill">L1–L6 Knowledge Layers</span>' +
     '<span class="rd-pill">7 AI-Native Skills</span>' +
-    '<span class="rd-pill">3 Program Trees</span>' +
+    '<span class="rd-pill">4 Program Trees</span>' +
     '</div></div><hr class="rd-divider">';
 
   // 2 — WHAT IS THIS
@@ -6601,7 +6745,7 @@ function showReadme() {
   h += '<div class="rd-sec"><h2>What Is In the Digital Brain?</h2>';
   h += '<div class="md"><table><thead><tr><th>Layer</th><th>Content</th><th>Files</th><th>Fidelity</th></tr></thead><tbody>' +
     '<tr><td>L1 Enterprise</td><td>Mivan org structure, transformation mandate, stakeholders</td><td>1</td><td>HIGH</td></tr>' +
-    '<tr><td>L2 Domain</td><td>Claims lifecycle, Medicare Advantage, Medicaid, Provider Data, Health Primer</td><td>6</td><td>HIGH/DRAFT</td></tr>' +
+    '<tr><td>L2 Domain</td><td>Commercial Claims, Medicare Advantage, Medicaid, Provider Data, Health Primer</td><td>5</td><td>HIGH/DRAFT</td></tr>' +
     '<tr><td>L3 Systems</td><td>MiCPS architecture, CICS, VSAM, DB2, batch feeds, modernization roadmap</td><td>1</td><td>HIGH</td></tr>' +
     '<tr><td>L4 Application</td><td>7 MiCPS modules — programs, tables, VSAM files, complexity areas</td><td>1</td><td>PARTIAL</td></tr>' +
     '<tr><td>L5 Business Rules</td><td>Claims editing, adjudication, COB, overpayment rules, CKF routing map</td><td>2</td><td>PARTIAL</td></tr>' +
@@ -6609,6 +6753,7 @@ function showReadme() {
     '<tr><td>MEM Memory</td><td>Architecture decisions, SME session notes, deployment plans</td><td>5</td><td>DRAFT</td></tr>' +
     '</tbody></table></div>';
   h += '<div class="rd-cards3">' +
+    '<div class="rd-card"><span class="tag">Commercial</span><h4>MCOMCLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>Fully-insured, ASO, ACA, COBRA — <em>planned, not yet built</em></p></div>' +
     '<div class="rd-card"><span class="tag">Medicare Advantage</span><h4>MAENCDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>HCC validation, RAF calculation, EDPS submission</p></div>' +
     '<div class="rd-card"><span class="tag">Medicaid</span><h4>MMCOCLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>TPL identification, payer of last resort, state MMIS</p></div>' +
     '<div class="rd-card"><span class="tag">Provider Validation</span><h4>MPRVVLDR0 driver + 5 subprograms</h4><p>COBOL + Java Spring Boot<br>NPI lookup, credentialing, OIG exclusion, network verify</p></div>' +
@@ -7560,7 +7705,7 @@ function kgNavigateTo(nav) {
   if (!nav) return;
   var routes = {
     'l1':       function() { loadPage('l1','knowledge/L1-enterprise/mivan-enterprise-context.md',null,'L1 — Enterprise Context'); },
-    'l2':       function() { loadPage('l2','knowledge/L2-domain/health-payer-domain.md',null,'L2 — Health Payer Domain'); },
+    'l2':       function() { loadPage('l2','knowledge/L2-domain/commercial-claims.md',null,'L2 — Commercial Claims'); },
     'l3':       function() { loadPage('l3','knowledge/L3-systems/mivan-system-landscape.md',null,'L3 — System Landscape'); },
     'l4':       function() { loadPage('l4','knowledge/L4-application/micps-application-knowledge.md',null,'L4 — Application Knowledge'); },
     'l5':       function() { loadPage('l5','knowledge/L5-business-rules/claims-business-rules.md',null,'L5 — Business Rules'); },
@@ -7648,7 +7793,8 @@ function initKnowledgeGraph() {
     {id:'PRV-NPI', label:'MPRVNPI0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'NPI lookup — reads PROV-MSTR VSAM first, DB2 fallback. Returns network status and fee schedule pointer.', nav:null},
     {id:'PRV-EXCL', label:'MPRVEXC0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Exclusion check — checks OIG LEIE, SAM, state lists. CRITICAL: federal law prohibits payment to excluded providers.', nav:null},
     {id:'PRV-NET', label:'MPRVNET0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Network verification — returns INN/OON status, tier assignment, fee schedule ID.', nav:null},
-    {id:'PRV-CRED', label:'MPRVCRD0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Credentialing check — validates license, DEA, malpractice, board cert, CAQH status.', nav:null}
+    {id:'PRV-CRED', label:'MPRVCRD0', layer:'Provider', color:'#eda100', r:12, ghost:false, desc:'Credentialing check — validates license, DEA, malpractice, board cert, CAQH status.', nav:null},
+    {id:'COM-Driver', label:'MCOMCLDR0', layer:'Commercial', color:'#1baf7a', r:16, ghost:true, desc:'Commercial Claims Driver — fully-insured, ASO, ACA, COBRA processing. Driver + 5 subprograms. PLANNED — not yet built.', nav:'l2'}
   ];
 
   var edgesData = [
@@ -7691,7 +7837,8 @@ function initKnowledgeGraph() {
     {source:'PRV-Driver', target:'PRV-NET', type:'containment'},
     {source:'PRV-Driver', target:'PRV-CRED', type:'containment'},
     {source:'L4a', target:'PRV-Driver', type:'links_forward'},
-    {source:'MICPS4471', target:'PRV-Driver', type:'lateral'}
+    {source:'MICPS4471', target:'PRV-Driver', type:'lateral'},
+    {source:'L2a', target:'COM-Driver', type:'implements'}
   ];
 
   // Clone to prevent D3 mutation on re-init
@@ -7908,7 +8055,13 @@ var blastData = {
     wave: 'Wave 2',
     direct: ['OIG_EXCLUSION_LIST DB2','SAM_EXCLUSION_LIST DB2','STATE_EXCLUSION_LIST DB2','PROVIDER_SANCTION_LOG DB2'],
     indirect: ['All claim payments to providers','Federal penalty exposure','Monthly OIG update dependency','State Medicaid compliance'],
-    ghost: ['PROVIDER-SANCTIONS — OIG/SAM checking process in MiCPS not fully documented']
+    ghost: []
+  },
+  'MCOMCLDR0 (planned)': {
+    wave: 'Planned — Commercial program tree not yet built',
+    direct: ['Commercial claim intake','Plan-type resolution (fully-insured vs ASO)','ACA preventive / cost-share logic','BENEFIT_PARAMS DB2','MEMBER-IDX'],
+    indirect: ['All commercial adjudication','State mandate application (MBUSNED0)','Commercial COB (birthday / active-employment rule)','Prompt-pay compliance'],
+    ghost: ['MCOMCLDR0 subprogram inventory — PLANNED, not yet built (src/cobol/commercial/, src/java/commercial/)']
   }
 };
 
@@ -8087,14 +8240,15 @@ var ghostData = [
   {id:'MA-PROGRAM-TREE',           layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicare Advantage program tree — MAENCDR0 driver and 5 subprograms built'},
   {id:'MEDICAID-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Medicaid program tree — MMCOCLDR0 driver and 5 subprograms built'},
   {id:'PROVIDER-PROGRAM-TREE',     layer:'L4', severity:'high',     owner:'Digital Brain team', status:'complete', blocks:'',              desc:'Provider validation program tree — MPRVVLDR0 driver and 5 subprograms built'},
+  {id:'COMMERCIAL-PROGRAM-TREE',   layer:'L4', severity:'high',     owner:'Digital Brain team', status:'ghost',    blocks:'',              desc:'Commercial claims program tree — MCOMCLDR0 driver and 5 subprograms PLANNED, not yet built'},
   {id:'UTILIZATION-MANAGEMENT',    layer:'L2', severity:'high',     owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Prior authorization workflow, concurrent review, UM criteria sets'},
   {id:'L6-TASK-INTELLIGENCE',      layer:'L6', severity:'high',     owner:'QE team',         status:'ghost',    blocks:'',                 desc:'Defect patterns, incident history, sprint velocity — requires real Jira and ServiceNow data'},
   {id:'NCCI-TABLE-MANAGEMENT',     layer:'L4', severity:'high',     owner:'Senior edit analyst', status:'ghost', blocks:'',               desc:'How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented'},
   {id:'BATCH-DEPENDENCY-COMPLETE', layer:'L3', severity:'high',     owner:'Operations team', status:'ghost',    blocks:'',                 desc:'Complete batch job dependency chain — full map exists only in CA7 scheduler'},
   {id:'STATE-SPECIFIC-CLAIM-RULES',layer:'L5', severity:'medium',   owner:'Compliance team', status:'ghost',    blocks:'',                 desc:'State-level claim rules — prompt pay laws, timely filing by state, recoupment look-back periods'},
-  {id:'PROVIDER-SANCTIONS',        layer:'L2', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'OIG and SAM exclusion checking in claims — how MiCPS handles sanctioned providers'},
+  {id:'PROVIDER-SANCTIONS',        layer:'L2', severity:'medium',   owner:'Digital Brain team', status:'complete', blocks:'',              desc:'OIG and SAM exclusion checking — covered by MPRVEXC0 and provider-data-lifecycle.md'},
   {id:'HEALTH-PRIMER',             layer:'L2', severity:'medium',   owner:'Milan Chander',   status:'complete', blocks:'',                 desc:'Plain English healthcare primer for non-health technology professionals'},
-  {id:'REGULATORY-LANDSCAPE',      layer:'L2', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'HIPAA transaction standards, ACA requirements, CMS regulations affecting commercial claims'},
+  {id:'REGULATORY-LANDSCAPE',      layer:'L2', severity:'medium',   owner:'Digital Brain team', status:'complete', blocks:'',              desc:'ACA requirements, CMS regulations — covered by commercial-claims.md ACA sections'},
   {id:'INTRADAY-BATCH-DETAIL',     layer:'L3', severity:'medium',   owner:'Operations team', status:'ghost',    blocks:'',                 desc:'Full intraday batch cycle documentation — morning, midday, afternoon cycles'},
   {id:'CLAIM-ADJUSTMENT-WORKFLOW', layer:'L4', severity:'medium',   owner:'TBD',             status:'ghost',    blocks:'',                 desc:'Full claim adjustment and void workflow — frequency code 7/8, ICN matching, cascade impacts'}
 ];
