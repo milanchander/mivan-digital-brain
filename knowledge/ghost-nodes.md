@@ -48,7 +48,7 @@ fidelity: PARTIAL
 | NCCI-TABLE-MANAGEMENT | L4 | How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented | Senior edit analyst | High | GHOST |
 | BATCH-DEPENDENCY-COMPLETE | L3 | Complete batch job dependency chain — full map exists only in CA7 scheduler; no human-readable documentation | Operations team | High | GHOST |
 | MIFCT-CONFIGURATION | L3 | MiFCT (TriZetto Facets) configuration and benefit-plan build documentation for MA and Medicaid — how plans, benefits, and adjudication rules are configured in Facets | MiFCT operations team | High | GHOST |
-| FACETS-LOB-ROUTING-TABLE | L3 | MiEDI LOB routing table contents and maintenance procedure — how members map to COM/MA/MC, effective-date handling for mid-year LOB changes, and actual queue names | MiEDI operations team | High | GHOST |
+| FACETS-LOB-ROUTING-TABLE | L3 | MiEDI LOB routing table contents and maintenance procedure — how members map to COM/MA/MC, effective-date handling for mid-year LOB changes, and actual queue names. Extraction draft in progress from MEDIRTR0 (knowledge/MEM/contributions/MEDIRTR0-2026-08-09.md) — surfaced a doc-vs-code gap: no effective/term-date check in the payer-contract path. Awaiting SME validation. | MiEDI operations team | High | IN-FLIGHT |
 | MIFCT-POSTADJ-INTEGRATION | L3 | MiFCT → post-adjudication service REST integration contract — request/response schemas, retry/error handling, and SLA between MiFCT and MaPostAdjudicationService / MedicaidStateReportingService | Integration team | High | GHOST |
 
 ---

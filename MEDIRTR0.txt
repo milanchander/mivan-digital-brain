@@ -1,0 +1,172 @@
+Full IBM Enterprise COBOL 6.x program.
+
+IDENTIFICATION DIVISION header comment block:
+- PROGRAM: MEDIRTR0 - MiEDI LOB Claim Router
+- PURPOSE: Routes edited claims to the correct
+  claims platform based on line of business.
+  Commercial claims route to MiCPS. Medicare
+  Advantage and Medicaid route to MiFCT.
+- UPSTREAM: Sterling B2B edit process (MEDIEDT0)
+- DOWNSTREAM: MiCPS intake (MINTAKE0),
+  MiFCT MA intake, MiFCT Medicaid intake
+- JCL JOB: MEDIJB00
+
+ENVIRONMENT DIVISION — FILE-CONTROL:
+- EDITED-CLAIM-IN: sequential input, edited claims
+- PAYER-CONTRACT: indexed, random access,
+  key PCT-CONTRACT-ID
+- COMMERCIAL-OUT: sequential output
+- MA-OUT: sequential output
+- MEDICAID-OUT: sequential output
+All with FILE STATUS fields.
+
+DATA DIVISION:
+- FD entries for all five files
+- COPY all three copybooks
+- EXEC SQL INCLUDE SQLCA
+- EXEC SQL DECLARE TABLE for ROUTING_AUDIT:
+    CLAIM_ID CHAR(20) NOT NULL
+    ROUTE_DT DATE
+    ROUTE_TIME TIME
+    LOB_CODE CHAR(3)
+    PLATFORM_CD CHAR(5)
+    ROUTE_METHOD CHAR(10)
+    PAYER_CONTRACT_ID CHAR(10)
+    CMS_CONTRACT_ID CHAR(5)
+    PROGRAM_ID CHAR(8)
+
+PROCEDURE DIVISION paragraphs:
+
+0000-MAIN
+    PERFORM 1000-INIT
+    PERFORM 2000-PROCESS UNTIL END-OF-FILE
+    PERFORM 9000-FINALIZE
+    STOP RUN
+
+1000-INIT
+    Open all five files, check each FILE STATUS,
+    ABEND on any non-zero. Initialize counters.
+    Read first record.
+
+2000-PROCESS
+    Increment claims-read counter.
+    PERFORM 3000-DETERMINE-LOB
+    PERFORM 3500-CHECK-CLAIM-AGE
+    PERFORM 4000-ROUTE-CLAIM
+    PERFORM 5000-WRITE-AUDIT
+    Read next record.
+
+3000-DETERMINE-LOB
+    MOVE SPACES TO WS-LOB-CODE
+    PERFORM 3100-CHECK-CMS-CONTRACT
+    IF LOB-UNDETERMINED
+        PERFORM 3200-CHECK-PAYER-CONTRACT
+    END-IF
+    IF LOB-UNDETERMINED
+        PERFORM 3300-APPLY-DEFAULT
+    END-IF
+
+3100-CHECK-CMS-CONTRACT
+    Comment: "CMS contract ID prefix identifies
+    Medicare Advantage plan type"
+    IF ECL-CMS-CONTRACT-ID NOT = SPACES
+        EVALUATE ECL-CMS-CONTRACT-ID(1:1)
+            WHEN 'H'  → MOVE 'MA ' TO WS-LOB-CODE
+            WHEN 'R'  → MOVE 'MA ' TO WS-LOB-CODE
+            WHEN 'S'  → MOVE 'MA ' TO WS-LOB-CODE
+            WHEN 'E'  → MOVE 'MA ' TO WS-LOB-CODE
+            WHEN 'N'  → MOVE 'MC ' TO WS-LOB-CODE
+            WHEN OTHER
+                CONTINUE
+        END-EVALUATE
+    END-IF
+    MOVE 'CMS-ID' TO WS-ROUTE-METHOD when determined
+
+3200-CHECK-PAYER-CONTRACT
+    MOVE ECL-PAYER-CONTRACT-ID TO PCT-CONTRACT-ID
+    READ PAYER-CONTRACT
+        INVALID KEY
+            CONTINUE
+        NOT INVALID KEY
+            IF PCT-STATUS-CD = 'AC'
+                MOVE PCT-LOB-CODE TO WS-LOB-CODE
+                MOVE 'CONTRACT' TO WS-ROUTE-METHOD
+            END-IF
+    END-READ
+    Note: no check that ECL-DOS-FROM falls within
+    PCT-EFFECTIVE-DT and PCT-TERM-DT. Write the
+    code without that check.
+
+3300-APPLY-DEFAULT
+    Comment: "* SHOULD NEVER OCCUR - ALL CLAIMS
+    SHOULD HAVE EITHER A CMS CONTRACT ID OR A
+    MAPPED PAYER CONTRACT"
+    MOVE 'COM' TO WS-LOB-CODE
+    MOVE 'DEFAULT' TO WS-ROUTE-METHOD
+    ADD 1 TO WS-DEFAULT-COUNT
+    DISPLAY 'WARN: DEFAULTED CLAIM ' ECL-CLAIM-ID
+
+3500-CHECK-CLAIM-AGE
+    Compute days between ECL-DOS-FROM and
+    ECL-RECEIPT-DT. If greater than
+    WS-STALE-CLAIM-DAYS, increment the
+    high-dollar... no — increment WS-STALE-COUNT
+    and DISPLAY a warning. Do not change routing.
+
+4000-ROUTE-CLAIM
+    IF ECL-BILLED-AMT > WS-HIGH-DOLLAR-LIMIT
+        ADD 1 TO WS-HIGH-DOLLAR-COUNT
+        DISPLAY 'HIGH DOLLAR CLAIM ' ECL-CLAIM-ID
+    END-IF
+    EVALUATE TRUE
+        WHEN LOB-COMMERCIAL
+            PERFORM 4100-WRITE-COMMERCIAL
+        WHEN LOB-MEDICARE-ADV
+            PERFORM 4200-WRITE-MA
+        WHEN LOB-MEDICAID
+            PERFORM 4300-WRITE-MEDICAID
+        WHEN OTHER
+            PERFORM 9100-ROUTING-ERROR
+    END-EVALUATE
+
+4100-WRITE-COMMERCIAL
+    Comment: "* ROUTE TO MICPS COMMERCIAL INTAKE"
+    MOVE 'MICPS' TO WS-PLATFORM-CD
+    WRITE COMMERCIAL-CLAIM-REC FROM EDITED-CLAIM-REC
+    Check FILE STATUS, ABEND on failure
+    ADD 1 TO WS-COMMERCIAL-COUNT
+
+4200-WRITE-MA
+    Comment: "* ROUTE TO FACETS MA INTAKE"
+    MOVE 'MIFCT' TO WS-PLATFORM-CD
+    WRITE MA-CLAIM-REC FROM EDITED-CLAIM-REC
+    Check FILE STATUS, ABEND on failure
+    ADD 1 TO WS-MA-COUNT
+
+4300-WRITE-MEDICAID
+    Comment: "* ROUTE TO STATELINK MCO PLATFORM"
+    MOVE 'MIFCT' TO WS-PLATFORM-CD
+    WRITE MEDICAID-CLAIM-REC FROM EDITED-CLAIM-REC
+    Check FILE STATUS, ABEND on failure
+    ADD 1 TO WS-MEDICAID-COUNT
+
+    NOTE: leave that comment exactly as written.
+    It references a system name that is no longer
+    accurate. This is intentional — it reflects
+    how real legacy comments drift.
+
+5000-WRITE-AUDIT
+    EXEC SQL INSERT INTO MIVANCPS.ROUTING_AUDIT
+    with all routing detail. Check SQLCODE.
+
+9000-FINALIZE
+    Close all files. DISPLAY all counters with
+    labels. MOVE WS-ERRORS TO RETURN-CODE.
+
+9100-ROUTING-ERROR
+    DISPLAY error with claim ID and LOB code.
+    ADD 1 TO WS-ERRORS.
+
+9999-ABEND
+    DISPLAY WS-ABEND-MSG, MOVE 16 TO RETURN-CODE,
+    STOP RUN.
