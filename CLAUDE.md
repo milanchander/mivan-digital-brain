@@ -101,7 +101,7 @@ mivan-digital-brain/
 │   ├── L4-application/
 │   ├── L5-business-rules/
 │   └── L6-task-intelligence/
-├── skills/                   # 7 Java/COBOL Claude Code skills
+├── skills/                   # 8 Java/COBOL Claude Code skills
 └── src/                      # Live implementation (MICPS-4471)
     ├── cobol/
     ├── java/duplicate-detection/
@@ -116,7 +116,7 @@ mivan-digital-brain/
 
 ## Skills
 
-This project has seven Claude Code skills. Claude Code automatically activates the appropriate skill based on developer intent.
+This project has eight Claude Code skills. Claude Code automatically activates the appropriate skill based on developer intent.
 
 Always read the relevant skill file completely before activating it. Never skip the validation or analysis steps defined in each skill.
 
@@ -151,6 +151,10 @@ Activate when: Developer provides a COBOL program and says "generate tests", "wr
 #### Skill 7 — COBOL Code Reviewer
 File: `skills/cobol-code-reviewer.md`
 Activate when: Developer provides COBOL code and says "review this", "code review", or "check this COBOL"
+
+#### Skill 8 — COBOL Knowledge Extractor
+File: `skills/cobol-knowledge-extractor.md`
+Activate when: Developer provides a COBOL program and says "extract knowledge", "document this", or "what does this program actually do" — produces a MEM knowledge-node draft (dependency map, business logic, migration-risk assessment, shadow-mode test scenarios) with OBSERVABLE vs INFERRED discipline for SME confirmation
 
 ## Conventions
 
