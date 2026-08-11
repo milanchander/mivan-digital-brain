@@ -283,3 +283,14 @@ context-selection routing, provenance).
 Overall: the knowledge *model* and *disciplines* align closely with the framework;
 the *automation and ingestion* layers are the principal divergence and the stated
 next build.
+
+---
+
+## 10. Roadmap — target state
+
+This document is the **as-is**. The **to-be** design that closes the §9
+divergences (manual routing, no live ingestion, thin L6) is
+`docs/next-gen-architecture.md` — three enhancements (L6 operational memory,
+event-driven live ingestion with a two-dimension confidence vector + PHI gate,
+and an executable impact-analysis engine) plus the integration seam. It is a
+design proposal, not built.

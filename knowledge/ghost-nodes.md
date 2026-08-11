@@ -47,6 +47,7 @@ fidelity: PARTIAL
 | L6-TASK-INTELLIGENCE | L6 | Defect patterns, incident history, sprint velocity baselines, QE coverage gaps — requires real Jira and ServiceNow data | QE team | High | GHOST |
 | NCCI-TABLE-MANAGEMENT | L4 | How NCCI-TABLE KSDS is loaded, versioned, and overridden — quarterly update process undocumented | Senior edit analyst | High | GHOST |
 | BATCH-DEPENDENCY-COMPLETE | L3 | Complete batch job dependency chain — full map exists only in CA7 scheduler; no human-readable documentation | Operations team | High | GHOST |
+| FEE-SCHED-OVERRIDE-LOGIC | L4 | Manual fee schedule override logic applied via a separate KSDS file — undocumented (see L3 §7a). Distinct from FEE-SCHED-LAYOUT (record layout); this is the override *rules*. Surfaced as the emergence example in docs/next-gen-architecture.md | 2 senior engineers | High | GHOST |
 | MIFCT-CONFIGURATION | L3 | MiFCT (TriZetto Facets) configuration and benefit-plan build documentation for MA and Medicaid — how plans, benefits, and adjudication rules are configured in Facets | MiFCT operations team | High | GHOST |
 | FACETS-LOB-ROUTING-TABLE | L3 | MiEDI LOB routing table contents and maintenance procedure — how members map to COM/MA/MC, effective-date handling for mid-year LOB changes, and actual queue names. Extraction draft in progress from MEDIRTR0 (knowledge/MEM/contributions/MEDIRTR0-2026-08-09.md). SME-confirmed 2026-08-09: effective-date handling is upstream in MEDIEDT0 (not a router defect); CMS-prefix mapping H/R/S/E→MA, N→MC confirmed; STATELINK comment is correctable legacy drift. Still blocked on 3 COPYBOOK layouts + WS-STALE-CLAIM-DAYS/WS-HIGH-DOLLAR-LIMIT values, routing-table maintenance, and the file-vs-queue handoff before graduation to L3. | MiEDI operations team | High | IN-FLIGHT |
 | MIFCT-POSTADJ-INTEGRATION | L3 | MiFCT → post-adjudication service REST integration contract — request/response schemas, retry/error handling, and SLA between MiFCT and MaPostAdjudicationService / MedicaidStateReportingService | Integration team | High | GHOST |
@@ -64,6 +65,8 @@ fidelity: PARTIAL
 | INTRADAY-BATCH-DETAIL | L3 | Full intraday batch cycle documentation — morning, midday, afternoon cycles | Operations team | Medium | GHOST |
 | CLAIM-ADJUSTMENT-WORKFLOW | L4 | Full claim adjustment and void workflow — frequency code 7/8 processing, ICN matching, cascade impacts | TBD | Medium | GHOST |
 | MIFCT-MODERNIZATION | L3 | MiFCT (Facets) modernization program — AWS deployment of TriZetto Facets; separate from the MiCPS Wave 1–5 plan and not yet scoped | Transformation program office | Medium | GHOST |
+| PLATFORM-DR-RTO-RPO | PLATFORM | Disaster-recovery / failover configuration and RTO/RPO targets — undefined for MiCPS (see L3 frontmatter) and for the next-gen Digital Brain platform itself. Registered per docs/next-gen-architecture.md "What to eliminate" | Platform / Transformation program office | Medium | GHOST |
+| GRAPH-DB-SELECTION | PLATFORM | Next-gen graph-DB technology choice (e.g. Neptune vs. a property/RDF store) for the knowledge-graph projection over the Markdown system-of-truth — open design decision, not yet made. Registered per docs/next-gen-architecture.md | Chief Architect | Medium | GHOST |
 
 ---
 

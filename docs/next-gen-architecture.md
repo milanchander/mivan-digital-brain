@@ -1,6 +1,8 @@
 # Mivan Digital Brain — Next-Generation Architecture
 
-*Design proposal for review. Status: DRAFT. Not committed at time of authoring. Date: 2026-08-10.*
+*Design proposal for review. Status: DRAFT (to-be). Date: 2026-08-10.*
+
+*Companion: `docs/brain-overview.md` is the as-is state; this document is the target state that closes the divergences catalogued there (§9/§10).*
 
 **Epistemic legend (this document obeys the platform's own discipline).** Every material factual or quantitative claim is tagged `[grounded: <source>]` (verifiable in the repo today) or `[assumption]` (a stated design premise, not a Mivan fact). Genuine unknowns are registered as **proposed ghost nodes** rather than invented. No dollar figures appear anywhere — we have no grounded financial data.
 

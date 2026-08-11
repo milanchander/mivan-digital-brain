@@ -13,7 +13,7 @@ AI-native knowledge layer for Mivan Health Plan, instantiated from Accenture's p
 | L3 | Systems | Architecture of Mivan Health Plan's systems — APIs, data models, integrations |
 | L4 | Application | Application-specific behavior, configs, and runbooks |
 | L5 | Business Rules | Adjudication rules, eligibility logic, provider network rules |
-| L6 | Task Intelligence | Step-by-step procedural knowledge for recurring developer and QE tasks |
+| L6 | Task Intelligence | Operational memory + procedural knowledge — incidents, defects, outages, change/audit findings and SME interventions captured as typed events/patterns/runbooks, plus step-by-step procedures for recurring developer and QE tasks. Target design: `docs/next-gen-architecture.md` (Enhancement #1) |
 
 Knowledge lives under `knowledge/L{1-6}-*/`.
 
@@ -113,6 +113,11 @@ mivan-digital-brain/
 - **Built and populated**: `knowledge/`, `skills/`, `src/`, `backend/`
 - **Scaffolding only (empty)**: `config/`, `connectors/`, `harnesses/`
 - **Next to build**: `connectors/` and `harnesses/`, once AWS access is confirmed
+
+## Roadmap
+
+- **Current state**: `docs/brain-overview.md` — factual as-is overview for technical review.
+- **Target state**: `docs/next-gen-architecture.md` — next-generation design across three enhancements (L6 operational memory, live event-driven ingestion, impact-analysis & agentic reasoning) plus the integration seam. Built on the existing primitives (ghost lifecycle, links graph, MEM pipeline, Skill 8, Blast Radius) and obeys the OBSERVABLE/INFERRED discipline.
 
 ## Skills
 
