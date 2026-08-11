@@ -33,6 +33,20 @@ Two hard truths this skill is built around:
 
 ---
 
+## Technical register vs Business register
+
+This skill produces knowledge at two altitudes, kept visibly separate and never blended:
+
+**TECHNICAL REGISTER (existing)** — for the developer rebuilding the program. Precise, cited, OBSERVABLE or INFERRED. *"3400-EDIT-ELIG lines 2210–2265 rejects WS-MBR-STATUS not in ('A','L')."*
+
+**BUSINESS REGISTER (new)** — for the SME confirming that the rules are correct. Plain business language, no COBOL. *"Mivan pays claims only for members who are Active or on approved Leave. All other statuses are denied."*
+
+Same underlying fact, different altitude. The business register is permitted to make AGGRESSIVE inferences about business meaning BECAUSE every business finding is routed to an SME as a question to confirm, never presented as established fact. The aggression is in generating candidate rules; the discipline is in presenting them as hypotheses for review.
+
+The two registers must never contaminate each other. The technical register keeps its cautious OBSERVABLE/INFERRED discipline unchanged. The business register is a separate, clearly labeled interpretive layer.
+
+---
+
 ## Input Contract
 
 | Input | Required | Effect on extraction |
@@ -138,6 +152,32 @@ Track which sections have been extracted so nothing is silently skipped. If a se
 ### Pass 3 — Synthesis and boundary statement
 
 Consolidate. Produce the findings (ranked by materiality), the risk assessment (STEP 3B), the MEM output (STEP 4), and — critically — the boundary statement (the Knowledge Boundary section).
+
+### Pass 4 — Business knowledge extraction
+
+Using the technical findings as source material, translate them into business meaning. Do NOT re-read the program from scratch — work from what the technical passes already established, so every business rule is traceable back to a cited technical finding. This pass produces the **business register** (see "Technical register vs Business register"); it must not alter any technical finding's OBSERVABLE/INFERRED classification.
+
+Systematically mine these COBOL constructs for business meaning — in payer COBOL these are where the rules live:
+
+- **88-level condition names → business vocabulary.** A condition name like `ELIGIBLE-MEMBER` or `DENY-DUPLICATE` is a business term the program's authors chose. Capture it as domain vocabulary.
+- **EVALUATE / nested IF over business fields → decision rules.** Translate the branch logic into "when X, the business does Y."
+- **Hardcoded literals in business conditions → candidate business parameters.** A literal compared against a date, amount, count, or code is almost always a business rule with a real-world meaning. Infer that meaning aggressively.
+- **Date arithmetic against literals → candidate regulatory or contractual deadlines** (timely filing, look-back periods, effective dating).
+- **Reject / deny / suspend paths → the program's business rules** about what it will not pay and why.
+- **Computed fields → the business calculations** (cost share, allowed amount, coordination).
+- **Table lookups → the reference data the business depends on.**
+
+For EACH business rule extracted, produce:
+- A plain-language statement of the rule
+- The business rationale — your AGGRESSIVE inference of WHY the rule exists (this is the useful part)
+- Confidence: LIKELY / PLAUSIBLE / SPECULATIVE
+- The technical finding it derives from (program + lines)
+- Whether it maps to any known regulation or domain concept in the knowledge layer (check L2 and L5)
+- A confirmation question for the SME
+
+Be aggressive in offering business meaning. A hardcoded `180` in a date comparison should produce: *"PLAUSIBLE: appears to enforce a 180-day timely filing window. Commercial timely filing commonly ranges 90–365 days. CONFIRM: is 180 days Mivan's timely filing limit for this claim type, and which contract or regulation sets it?"* — not *"180-day threshold, meaning undetermined."*
+
+The cost of an aggressive wrong guess is one SME correction. The cost of timidity is an SME's expertise wasted on rules the skill could have proposed. Lean aggressive.
 
 ---
 
@@ -258,6 +298,10 @@ called_programs_not_supplied: [count]
 copybooks_not_supplied: [count]
 unresolved_dynamic_calls: [count]
 material_findings: [count]
+business_rules_extracted: [count]
+business_rules_material: [count]
+domain_terms_captured: [count]
+rules_with_no_known_mapping: [count]
 sme_confirmation_required: true
 ---
 
@@ -269,11 +313,55 @@ sme_confirmation_required: true
 
 # Extraction Summary — [PROGRAM-ID]
 
-Lead with completeness, not findings: "Extracted [N] of [M] sections. [K] called
-programs and [J] copybooks were not supplied and are listed in the Knowledge
-Boundary. [P] dynamic calls could not be resolved from source." THEN 2–3
-sentences on what the program is, its processing mode, and the headline of the
-migration-risk assessment. State plainly what is known vs unknown.
+Cover BOTH registers. Technical completeness first: "Extracted [N] of [M]
+sections. [K] called programs and [J] copybooks were not supplied and are listed
+in the Knowledge Boundary. [P] dynamic calls could not be resolved from source."
+THEN the business register: "Extracted [B] business rules for SME confirmation,
+[Bm] material, [Bu] with no mapping to existing knowledge (candidate ghost
+nodes)." THEN 2–3 sentences on what the program is, its processing mode, and the
+headline of the migration-risk assessment. State plainly what is known vs unknown.
+
+---
+## ══ BUSINESS REGISTER — for SME confirmation (plain language, interpretive) ══
+
+*Aggressive business inference; every item is a QUESTION for the SME. This
+register never alters the technical findings below and never states business
+meaning as fact.*
+
+### Business Summary
+[≤200 words, plain business language — no program names, no COBOL, no jargon
+beyond standard payer terms. What does this program do to a claim, in business
+terms? An SME/BA should understand the program's purpose from this alone.]
+
+## Business Rules for SME Confirmation
+[Ordered by materiality — payment, eligibility, and compliance rules first. One
+block per rule. This checklist feeds the Contribution Framework: a confirmed rule
+becomes a validated L5 rule; a corrected one captures the SME's correction; an
+unmappable one becomes a registered ghost node.]
+
+### BR-001: [plain-language rule name]
+- **Rule:** [plain business language, no COBOL]
+- **Likely rationale:** [aggressive inference of WHY the rule exists]
+- **Confidence:** LIKELY | PLAUSIBLE | SPECULATIVE
+- **Derived from:** [program] [paragraph] lines [range]
+- **Maps to:** [L2/L5 concept or regulation, or "no known mapping — candidate ghost node"]
+- **CONFIRM:** [specific yes/no or fill-in question for the SME]
+- [ ] Confirmed as stated
+- [ ] Needs correction (SME notes: ______)
+- [ ] Rule is obsolete / dead code
+
+## Domain Vocabulary
+[Business vocabulary the program encodes — 88-level condition names, status
+codes, reason/denial codes, LOB-specific terms. Often the clearest domain
+glossary that exists for the program, because the authors encoded their business
+language directly in condition names.]
+
+| Term | Meaning (as encoded in the program) | Confidence | SME confirm |
+|---|---|---|---|
+| [ELIGIBLE-MEMBER] | [members with status 'A' or 'L'] | LIKELY | [question] |
+
+---
+## ══ TECHNICAL REGISTER — for the developer (cited, OBSERVABLE / INFERRED) ══
 
 ## Program Classification
 - Target layer: [L3 / L4 / L5]
@@ -374,6 +462,12 @@ Rules, in order of importance:
 9. Never let volume create false confidence. Extracting 400 OBSERVABLE facts about data movement does not mean the program is understood. Understanding lives in the business rules and the coupling, which are the hardest and least certain parts. Weight the summary accordingly.
 
 10. If asked whether the program is "safe to migrate" or "fully understood," the answer is never yes from static extraction alone. State what would be required to reach that confidence: SME confirmation of INFERRED items, resolution of the boundary list, and runtime validation of dynamic behavior.
+
+11. The business register may infer aggressively, but every business inference is a QUESTION for the SME, never a stated fact. Phrase them as "appears to / likely / CONFIRM:" — never as "Mivan does X." The SME decides what is true; the skill proposes.
+
+12. A business rule with SPECULATIVE confidence is still worth surfacing — but it must be labeled SPECULATIVE and the SME question must acknowledge the uncertainty. Do not suppress a useful guess out of caution; do not dress a guess as certainty.
+
+13. Never let the business register's interpretive freedom leak into the technical register. A business inference labeled LIKELY does not make the underlying technical finding anything other than what it is — OBSERVABLE or INFERRED as originally classified.
 
 ---
 
