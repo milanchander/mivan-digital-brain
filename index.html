@@ -6152,6 +6152,24 @@ document.querySelectorAll('.ncl[data-page]').forEach(el => {
 
 document.getElementById('nav-ask').addEventListener('click', openChat);
 
+// ── FRONTMATTER STRIP (render-time only; source files keep frontmatter) ──
+function stripFrontmatter(md) {
+  // Remove a leading YAML frontmatter block delimited
+  // by --- on its own line at the very start of the content
+  if (md.trimStart().startsWith('---')) {
+    const withoutLeading = md.trimStart();
+    const end = withoutLeading.indexOf('\n---', 3);
+    if (end !== -1) {
+      // find the end of that closing --- line
+      const after = withoutLeading.indexOf('\n', end + 1);
+      return after !== -1
+        ? withoutLeading.slice(after + 1)
+        : '';
+    }
+  }
+  return md;
+}
+
 // ── PAGE LOAD ──
 function loadPage(page, relUrl, sec, label) {
   setActive(page);
@@ -6163,8 +6181,7 @@ function loadPage(page, relUrl, sec, label) {
     content.innerHTML = '<div class="loading" style="color:#f85149">Content not found.</div>';
     return;
   }
-  const md = KNOWLEDGE_BASE[key].replace(/^---[\s\S]*?---\n/, '');
-  content.innerHTML = '<div class="md">' + marked.parse(md) + '</div>';
+  content.innerHTML = '<div class="md">' + marked.parse(stripFrontmatter(KNOWLEDGE_BASE[key])) + '</div>';
   content.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
   if (sec) {
     setTimeout(() => scrollTo(sec), 80);
