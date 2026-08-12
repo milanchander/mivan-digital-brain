@@ -242,6 +242,10 @@ For every extracted item, tag it OBSERVABLE or INFERRED:
 - The **existence** of a branch, value, or computation is OBSERVABLE.
 - The **business meaning or purpose** of that branch, value, or computation is INFERRED unless a source comment or prior SME confirmation (L4/MEM) supports it — and INFERRED items carry a confidence level per the OUTPUT STANDARDS.
 
+### Declared-but-never-set state (high-value, easy to miss)
+
+Check for 88-level condition names and status/reason/method codes that are **DEFINED** (in copybooks or working storage) but **never `SET` or `MOVE`d anywhere** in the program. A status vocabulary broader than what the program actually writes is a strong signal — either **another program sets those states** (an undeclared coupling / shared table or file) or they are **vestigial / dead**. The same applies to counters and report fields that are displayed but never incremented. Record each as an OBSERVABLE finding (the value exists; it is never written here) and route it to the business register as an **L6 (operational reality)** item with an SME question about who sets it downstream vs. whether it is dead. This pattern recurs across real payer programs and is often among the most valuable findings.
+
 Collect anything that cannot be resolved into a running list of open questions for the SME (used in STEP 4).
 
 ---

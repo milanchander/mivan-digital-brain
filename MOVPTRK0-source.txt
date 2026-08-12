@@ -1,0 +1,1226 @@
+===============================================================================
+MIVAN HEALTH PLAN - OVERPAYMENT TRACKING SYSTEM
+MOVPTRK0 SOURCE PACKAGE
+===============================================================================
+
+Split into separate files as marked. COBOL is fixed format:
+column 7 = indicator area (* = comment), Area A = col 8, Area B = col 12.
+
+  1. src/cobol/commercial/COPYBOOKS/MOVPSRC.cpy
+  2. src/cobol/commercial/COPYBOOKS/MOVPADJ.cpy
+  3. src/cobol/commercial/COPYBOOKS/MOVPCAS.cpy
+  4. src/cobol/commercial/COPYBOOKS/MOVPRTN.cpy
+  5. src/cobol/commercial/COPYBOOKS/MOVPWRK.cpy
+  6. src/cobol/commercial/MOVPTRK0.cbl
+  7. src/cobol/commercial/MOVPJB00.jcl
+  8. src/cobol/commercial/DDL/OVERPAY_CASE.sql
+
+===============================================================================
+FILE 1 OF 8: src/cobol/commercial/COPYBOOKS/MOVPSRC.cpy
+===============================================================================
+
+      *****************************************************************
+      * COPYBOOK: MOVPSRC                                             *
+      * OVERPAYMENT SOURCE RECORD - FROM POST-PAYMENT AUDIT PROCESSES *
+      * ONE RECORD PER IDENTIFIED OVERPAYMENT                         *
+      *****************************************************************
+       01  OVERPAY-SOURCE-REC.
+           05  SRC-CLAIM-ID          PIC X(20).
+           05  SRC-MEMBER-ID         PIC X(15).
+           05  SRC-PROV-NPI          PIC X(10).
+           05  SRC-PAID-AMT          PIC S9(9)V99 COMP-3.
+           05  SRC-CORRECTED-AMT     PIC S9(9)V99 COMP-3.
+           05  SRC-REASON-CD         PIC X(03).
+           05  SRC-IDENT-DT          PIC 9(08).
+           05  SRC-SOURCE-CD         PIC X(04).
+               88  SRC-POST-AUDIT      VALUE 'AUDT'.
+               88  SRC-DUP-DETECT       VALUE 'DUPL'.
+               88  SRC-COB-RECOVERY     VALUE 'COBR'.
+               88  SRC-SELF-REPORT      VALUE 'SELF'.
+           05  SRC-FILLER            PIC X(20).
+
+===============================================================================
+FILE 2 OF 8: src/cobol/commercial/COPYBOOKS/MOVPADJ.cpy
+===============================================================================
+
+      *****************************************************************
+      * COPYBOOK: MOVPADJ                                             *
+      * ADJUDICATION-FLAGGED CLAIM - FROM THE ADJUDICATION LOOP       *
+      * CLAIMS FLAGGED DURING ADJUDICATION AS POTENTIAL OVERPAYMENTS  *
+      *****************************************************************
+       01  ADJ-FLAGGED-REC.
+           05  ADJ-CLAIM-ID          PIC X(20).
+           05  ADJ-MEMBER-ID         PIC X(15).
+           05  ADJ-PROV-NPI          PIC X(10).
+           05  ADJ-PAID-AMT          PIC S9(9)V99 COMP-3.
+           05  ADJ-CORRECTED-AMT     PIC S9(9)V99 COMP-3.
+           05  ADJ-PAY-STATE         PIC X(04).
+               88  ADJ-HELD             VALUE 'HELD'.
+               88  ADJ-PAID             VALUE 'PAID'.
+           05  ADJ-RULE-ID           PIC X(08).
+           05  ADJ-REASON-CD         PIC X(03).
+           05  ADJ-CYCLE-CNT         PIC 9(02).
+           05  ADJ-OTS-REVIEWED      PIC X(01).
+               88  ADJ-ALREADY-REVIEWED VALUE 'Y'.
+               88  ADJ-NOT-REVIEWED     VALUE 'N'.
+           05  ADJ-IDENT-DT          PIC 9(08).
+           05  ADJ-FILLER            PIC X(15).
+
+===============================================================================
+FILE 3 OF 8: src/cobol/commercial/COPYBOOKS/MOVPCAS.cpy
+===============================================================================
+
+      *****************************************************************
+      * COPYBOOK: MOVPCAS                                             *
+      * OVERPAYMENT CASE RECORD - THE TRACKED CASE                    *
+      * MIRRORS THE OVERPAY_CASE DB2 TABLE                            *
+      *****************************************************************
+       01  OVERPAY-CASE-REC.
+           05  CAS-CASE-ID           PIC X(12).
+           05  CAS-CLAIM-ID          PIC X(20).
+           05  CAS-MEMBER-ID         PIC X(15).
+           05  CAS-PROV-NPI          PIC X(10).
+           05  CAS-PAID-AMT          PIC S9(9)V99 COMP-3.
+           05  CAS-CORRECTED-AMT     PIC S9(9)V99 COMP-3.
+           05  CAS-RECOVERABLE-AMT   PIC S9(9)V99 COMP-3.
+           05  CAS-REASON-CD         PIC X(03).
+           05  CAS-METHOD-CD         PIC X(04).
+               88  CAS-METH-OFFSET      VALUE 'OFST'.
+               88  CAS-METH-DEMAND      VALUE 'DEMD'.
+               88  CAS-METH-WRITEOFF    VALUE 'WROF'.
+               88  CAS-METH-NONE        VALUE 'NONE'.
+           05  CAS-STATUS-CD         PIC X(04).
+               88  CAS-NEW              VALUE 'NEW '.
+               88  CAS-ACTIVE           VALUE 'ACTV'.
+               88  CAS-PENDING-APPR     VALUE 'PAPP'.
+               88  CAS-BELOW-THRESH     VALUE 'BLTH'.
+               88  CAS-ESCALATED        VALUE 'ESCL'.
+               88  CAS-SIU-REFERRED     VALUE 'SIU '.
+               88  CAS-RECOVERED        VALUE 'RECV'.
+               88  CAS-WRITTEN-OFF      VALUE 'WROF'.
+               88  CAS-DUPLICATE        VALUE 'DUPL'.
+               88  CAS-HELD-PREPAY      VALUE 'HPRE'.
+               88  CAS-RTN-RELEASE      VALUE 'RREL'.
+               88  CAS-RTN-ADJUST       VALUE 'RADJ'.
+               88  CAS-RTN-DENY         VALUE 'RDEN'.
+               88  CAS-PENDING-RTN      VALUE 'PRTN'.
+               88  CAS-LOOP-BREACH      VALUE 'LOOP'.
+               88  CAS-ORPHANED         VALUE 'ORPH'.
+               88  CAS-HELD-ELIG        VALUE 'HELG'.
+           05  CAS-SOURCE-CD         PIC X(04).
+           05  CAS-PAY-STATE         PIC X(04).
+           05  CAS-CYCLE-CNT         PIC 9(02).
+           05  CAS-PREPAY-PREVENT    PIC X(01).
+               88  CAS-WAS-PREVENTED    VALUE 'Y'.
+           05  CAS-IDENT-DT          PIC 9(08).
+           05  CAS-CREATE-DT         PIC 9(08).
+           05  CAS-FILLER            PIC X(20).
+
+===============================================================================
+FILE 4 OF 8: src/cobol/commercial/COPYBOOKS/MOVPRTN.cpy
+===============================================================================
+
+      *****************************************************************
+      * COPYBOOK: MOVPRTN                                             *
+      * RETURN DISPOSITION TO ADJUDICATION                            *
+      * THE RETURN HALF OF THE LOOP - OTS HANDS THE CLAIM BACK        *
+      *****************************************************************
+       01  ADJ-RETURN-REC.
+           05  RTN-CLAIM-ID          PIC X(20).
+           05  RTN-DISPOSITION       PIC X(24).
+           05  RTN-CORRECTED-AMT     PIC S9(9)V99 COMP-3.
+           05  RTN-CASE-ID           PIC X(12).
+           05  RTN-OTS-REVIEWED      PIC X(01).
+           05  RTN-REASON-CD         PIC X(03).
+           05  RTN-DISP-REASON       PIC X(04).
+           05  RTN-FILLER            PIC X(10).
+
+===============================================================================
+FILE 5 OF 8: src/cobol/commercial/COPYBOOKS/MOVPWRK.cpy
+===============================================================================
+
+      *****************************************************************
+      * COPYBOOK: MOVPWRK - WORKING STORAGE FOR MOVPTRK0             *
+      *****************************************************************
+
+       01  WS-PROGRAM-CONSTANTS.
+           05  WS-PROGRAM-ID         PIC X(08) VALUE 'MOVPTRK0'.
+      *    OPERATIONAL LIMITS - NOT PARAMETERIZED. AGING LIMIT HAS
+      *    BEEN 45 DAYS SINCE THE RECOVERY UNIT SET IT.
+           05  WS-AGING-LIMIT-DAYS   PIC 9(03) COMP VALUE 45.
+           05  WS-MAX-CYCLE-CNT      PIC 9(02) COMP VALUE 3.
+           05  WS-RETRY-LIMIT        PIC 9(02) COMP VALUE 5.
+
+      *    DOLLAR THRESHOLDS ARE READ FROM THE THRESHOLD PARMLIB
+      *    AT INIT - SEE 1200-LOAD-THRESHOLDS
+       01  WS-THRESHOLDS.
+           05  WS-MIN-RECOVERY-AMT   PIC S9(7)V99 COMP-3 VALUE 0.
+           05  WS-HIGH-DOLLAR-AMT    PIC S9(9)V99 COMP-3 VALUE 0.
+
+       01  WS-COUNTERS.
+           05  WS-SRC-READ           PIC 9(09) COMP VALUE 0.
+           05  WS-ADJ-READ           PIC 9(09) COMP VALUE 0.
+           05  WS-CASES-CREATED      PIC 9(09) COMP VALUE 0.
+           05  WS-REJECTED           PIC 9(07) COMP VALUE 0.
+           05  WS-DUPLICATES         PIC 9(07) COMP VALUE 0.
+           05  WS-BELOW-THRESH       PIC 9(07) COMP VALUE 0.
+           05  WS-HIGH-DOLLAR        PIC 9(07) COMP VALUE 0.
+           05  WS-OFFSET-CASES       PIC 9(07) COMP VALUE 0.
+           05  WS-DEMAND-CASES       PIC 9(07) COMP VALUE 0.
+           05  WS-WRITEOFF-CASES     PIC 9(07) COMP VALUE 0.
+           05  WS-SIU-REFERRED       PIC 9(07) COMP VALUE 0.
+           05  WS-ESCALATED          PIC 9(07) COMP VALUE 0.
+           05  WS-HELD-PREPAY        PIC 9(07) COMP VALUE 0.
+           05  WS-RTN-RELEASE        PIC 9(07) COMP VALUE 0.
+           05  WS-RTN-ADJUST         PIC 9(07) COMP VALUE 0.
+           05  WS-RTN-DENY           PIC 9(07) COMP VALUE 0.
+           05  WS-RTN-RECOVER        PIC 9(07) COMP VALUE 0.
+           05  WS-RTN-FAILURES       PIC 9(07) COMP VALUE 0.
+           05  WS-LOOP-BREACH        PIC 9(07) COMP VALUE 0.
+           05  WS-ORPHANED           PIC 9(07) COMP VALUE 0.
+           05  WS-ELIG-HOLD          PIC 9(07) COMP VALUE 0.
+           05  WS-ERRORS             PIC 9(07) COMP VALUE 0.
+
+       01  WS-ACCUMULATORS.
+           05  WS-TOT-OFFSET-AMT     PIC S9(11)V99 COMP-3 VALUE 0.
+           05  WS-TOT-DEMAND-AMT     PIC S9(11)V99 COMP-3 VALUE 0.
+           05  WS-TOT-WRITEOFF-AMT   PIC S9(11)V99 COMP-3 VALUE 0.
+
+       01  WS-WORK-FIELDS.
+           05  WS-RECOVERABLE-AMT    PIC S9(9)V99 COMP-3 VALUE 0.
+           05  WS-CASE-SEQ           PIC 9(09) COMP VALUE 0.
+           05  WS-NEW-CASE-ID        PIC X(12) VALUE SPACES.
+           05  WS-CURRENT-DT         PIC 9(08) VALUE 0.
+           05  WS-IDENT-INT          PIC S9(09) COMP VALUE 0.
+           05  WS-CURRENT-INT        PIC S9(09) COMP VALUE 0.
+           05  WS-CASE-AGE-DAYS      PIC S9(09) COMP VALUE 0.
+           05  WS-RETRY-ATTEMPTS     PIC 9(02) COMP VALUE 0.
+           05  WS-RETURN-OK          PIC X(01) VALUE 'N'.
+               88  RETURN-SUCCEEDED     VALUE 'Y'.
+               88  RETURN-FAILED        VALUE 'N'.
+
+       01  WS-REASON-CATEGORY        PIC X(04) VALUE SPACES.
+           88  RC-STANDARD              VALUE 'STD '.
+           88  RC-EXPEDITED             VALUE 'EXPD'.
+           88  RC-SIU                   VALUE 'SIU '.
+           88  RC-RETRO-TERM            VALUE 'RTO '.
+
+       01  WS-PROVIDER-INFO.
+           05  WS-PROV-STATUS        PIC X(01).
+               88  PROV-ACTIVE          VALUE 'A'.
+               88  PROV-INACTIVE        VALUE 'I'.
+               88  PROV-TERMINATED      VALUE 'T'.
+           05  WS-PROV-ACTIVITY      PIC X(01).
+               88  PROV-HAS-ACTIVITY    VALUE 'Y'.
+               88  PROV-NO-ACTIVITY     VALUE 'N'.
+           05  WS-PROV-FOUND         PIC X(01).
+               88  PROV-FOUND           VALUE 'Y'.
+               88  PROV-NOT-FOUND       VALUE 'N'.
+
+       01  WS-FLAGS.
+           05  WS-SRC-EOF            PIC X(01) VALUE 'N'.
+               88  SRC-EOF              VALUE 'Y'.
+           05  WS-ADJ-EOF            PIC X(01) VALUE 'N'.
+               88  ADJ-EOF              VALUE 'Y'.
+           05  WS-VALID-REC          PIC X(01) VALUE 'Y'.
+               88  REC-VALID            VALUE 'Y'.
+               88  REC-INVALID          VALUE 'N'.
+           05  WS-DUP-FLAG           PIC X(01) VALUE 'N'.
+               88  IS-DUPLICATE         VALUE 'Y'.
+
+       01  WS-FILE-STATUS.
+           05  WS-SRC-STATUS         PIC X(02) VALUE '00'.
+           05  WS-ADJ-STATUS         PIC X(02) VALUE '00'.
+           05  WS-PROV-STATUS-FS     PIC X(02) VALUE '00'.
+           05  WS-CASE-STATUS-FS     PIC X(02) VALUE '00'.
+           05  WS-WORK-STATUS        PIC X(02) VALUE '00'.
+           05  WS-OFST-STATUS        PIC X(02) VALUE '00'.
+           05  WS-DEMD-STATUS        PIC X(02) VALUE '00'.
+           05  WS-RTN-STATUS         PIC X(02) VALUE '00'.
+           05  WS-EXCP-STATUS        PIC X(02) VALUE '00'.
+
+       01  WS-ABEND-MSG             PIC X(80) VALUE SPACES.
+
+===============================================================================
+FILE 6 OF 8: src/cobol/commercial/MOVPTRK0.cbl
+===============================================================================
+
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID.    MOVPTRK0.
+       AUTHOR.        MIVAN HEALTH PLAN.
+       DATE-WRITTEN.  2026-08-10.
+      *****************************************************************
+      * PROGRAM: MOVPTRK0 - OVERPAYMENT TRACKING SYSTEM              *
+      *****************************************************************
+      * IDENTIFIES, RECORDS, AND MANAGES RECOVERY OF OVERPAYMENTS ON  *
+      * ADJUDICATED COMMERCIAL CLAIMS.                                *
+      *                                                               *
+      * TWO INPUT STREAMS:                                            *
+      *   ADJFLAG - CLAIMS FLAGGED DURING ADJUDICATION (THE LOOP).    *
+      *             MAY BE HELD (PRE-PAY) OR PAID (POST-PAY).         *
+      *   OVERPAY - POST-PAYMENT AUDIT SOURCE RECORDS.                *
+      *                                                               *
+      * OTS DOES NOT ADJUDICATE AND DOES NOT ISSUE PAYMENTS. IT       *
+      * MANAGES THE RECOVERY LIFECYCLE AND, FOR LOOP CLAIMS, RETURNS  *
+      * A DISPOSITION TO ADJUDICATION.                                *
+      *                                                               *
+      * COMMERCIAL LOB ONLY. GOVERNMENT OVERPAYMENTS FOLLOW DIFFERENT *
+      * REGULATORY RECOVERY RULES AND ARE HANDLED ELSEWHERE.          *
+      *                                                               *
+      * JCL JOB: MOVPJB00                                             *
+      *****************************************************************
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+           SELECT ADJ-FLAGGED-IN
+               ASSIGN TO ADJFLAG
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-ADJ-STATUS.
+
+           SELECT OVERPAY-SOURCE-IN
+               ASSIGN TO OVERPAY
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-SRC-STATUS.
+
+           SELECT PROVIDER-FILE
+               ASSIGN TO PROVIDR
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS RANDOM
+               RECORD KEY IS PRV-NPI
+               FILE STATUS IS WS-PROV-STATUS-FS.
+
+           SELECT OFFSET-OUT
+               ASSIGN TO OFFSETO
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-OFST-STATUS.
+
+           SELECT DEMAND-OUT
+               ASSIGN TO DEMANDO
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-DEMD-STATUS.
+
+           SELECT ADJ-RETURN-OUT
+               ASSIGN TO ADJRTN
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-RTN-STATUS.
+
+           SELECT EXCEPTION-OUT
+               ASSIGN TO EXCEPTO
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-EXCP-STATUS.
+
+       DATA DIVISION.
+       FILE SECTION.
+
+       FD  ADJ-FLAGGED-IN
+           RECORDING MODE IS F.
+           COPY MOVPADJ.
+
+       FD  OVERPAY-SOURCE-IN
+           RECORDING MODE IS F.
+           COPY MOVPSRC.
+
+       FD  PROVIDER-FILE.
+       01  PROVIDER-REC.
+           05  PRV-NPI               PIC X(10).
+           05  PRV-STATUS            PIC X(01).
+           05  PRV-ACTIVITY-FLAG     PIC X(01).
+           05  PRV-CONTRACT-TYPE     PIC X(04).
+           05  PRV-FILLER            PIC X(84).
+
+       FD  OFFSET-OUT
+           RECORDING MODE IS F.
+       01  OFFSET-REC                PIC X(120).
+
+       FD  DEMAND-OUT
+           RECORDING MODE IS F.
+       01  DEMAND-REC                PIC X(120).
+
+       FD  ADJ-RETURN-OUT
+           RECORDING MODE IS F.
+           COPY MOVPRTN.
+
+       FD  EXCEPTION-OUT
+           RECORDING MODE IS F.
+       01  EXCEPTION-REC             PIC X(200).
+
+       WORKING-STORAGE SECTION.
+           COPY MOVPWRK.
+           COPY MOVPCAS.
+
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+           EXEC SQL
+               DECLARE MIVANCPS.OVERPAY_CASE TABLE
+               (CASE_ID          CHAR(12)      NOT NULL,
+                CLAIM_ID         CHAR(20)      NOT NULL,
+                MEMBER_ID        CHAR(15),
+                PROV_NPI         CHAR(10),
+                PAID_AMT         DECIMAL(11,2),
+                CORRECTED_AMT    DECIMAL(11,2),
+                RECOVERABLE_AMT  DECIMAL(11,2),
+                REASON_CD        CHAR(03),
+                METHOD_CD        CHAR(04),
+                STATUS_CD        CHAR(04),
+                SOURCE_CD        CHAR(04),
+                PAY_STATE        CHAR(04),
+                CYCLE_CNT        SMALLINT,
+                IDENT_DT         DATE,
+                CREATE_DT        DATE)
+           END-EXEC.
+
+           EXEC SQL
+               DECLARE MIVANCPS.THRESHOLD_PARM TABLE
+               (PARM_NAME        CHAR(20)      NOT NULL,
+                PARM_VALUE       DECIMAL(11,2))
+           END-EXEC.
+
+           EXEC SQL
+               DECLARE MIVANCPS.REASON_CODE TABLE
+               (REASON_CD        CHAR(03)      NOT NULL,
+                CATEGORY_CD      CHAR(04),
+                DESCRIPTION      CHAR(40))
+           END-EXEC.
+
+       01  HOST-VARS.
+           05  HV-PARM-NAME     PIC X(20).
+           05  HV-PARM-VALUE    PIC S9(9)V99 COMP-3.
+           05  HV-REASON-CD     PIC X(03).
+           05  HV-CATEGORY-CD   PIC X(04).
+           05  HV-CLAIM-ID      PIC X(20).
+           05  HV-CASE-COUNT    PIC S9(9) COMP.
+
+       PROCEDURE DIVISION.
+
+       0000-MAIN.
+           PERFORM 1000-INIT
+           PERFORM 2000-PROCESS-ADJ-FLAGGED
+               UNTIL ADJ-EOF
+           PERFORM 3000-PROCESS-AUDIT-SOURCE
+               UNTIL SRC-EOF
+           PERFORM 9000-FINALIZE
+           STOP RUN.
+
+      *****************************************************************
+      * 1000-INIT                                                     *
+      *****************************************************************
+       1000-INIT.
+           OPEN INPUT  ADJ-FLAGGED-IN
+           IF WS-ADJ-STATUS NOT = '00'
+               MOVE 'OPEN FAILED: ADJFLAG' TO WS-ABEND-MSG
+               PERFORM 9999-ABEND
+           END-IF
+           OPEN INPUT  OVERPAY-SOURCE-IN
+           IF WS-SRC-STATUS NOT = '00'
+               MOVE 'OPEN FAILED: OVERPAY' TO WS-ABEND-MSG
+               PERFORM 9999-ABEND
+           END-IF
+           OPEN INPUT  PROVIDER-FILE
+           IF WS-PROV-STATUS-FS NOT = '00'
+               MOVE 'OPEN FAILED: PROVIDR' TO WS-ABEND-MSG
+               PERFORM 9999-ABEND
+           END-IF
+           OPEN OUTPUT OFFSET-OUT
+           OPEN OUTPUT DEMAND-OUT
+           OPEN OUTPUT ADJ-RETURN-OUT
+           OPEN OUTPUT EXCEPTION-OUT
+
+           ACCEPT WS-CURRENT-DT FROM DATE YYYYMMDD
+
+           PERFORM 1200-LOAD-THRESHOLDS
+
+           DISPLAY 'MOVPTRK0 STARTED ' WS-CURRENT-DT
+           DISPLAY '  MIN RECOVERY  = ' WS-MIN-RECOVERY-AMT
+           DISPLAY '  HIGH DOLLAR   = ' WS-HIGH-DOLLAR-AMT
+           DISPLAY '  AGING LIMIT   = ' WS-AGING-LIMIT-DAYS
+           DISPLAY '  MAX CYCLES    = ' WS-MAX-CYCLE-CNT
+
+           PERFORM 2900-READ-ADJ
+           PERFORM 3900-READ-SRC.
+
+      *****************************************************************
+      * 1200-LOAD-THRESHOLDS                                          *
+      * READ THE DOLLAR THRESHOLDS FROM THE PARMLIB. THESE MOVED OUT  *
+      * OF THE PROGRAM YEARS AGO SO FINANCE COULD CHANGE THEM WITHOUT *
+      * A CODE PROMOTION.                                             *
+      *****************************************************************
+       1200-LOAD-THRESHOLDS.
+           MOVE 'MIN-RECOVERY'   TO HV-PARM-NAME
+           EXEC SQL
+               SELECT PARM_VALUE INTO :HV-PARM-VALUE
+               FROM   MIVANCPS.THRESHOLD_PARM
+               WHERE  PARM_NAME = :HV-PARM-NAME
+           END-EXEC
+           EVALUATE SQLCODE
+               WHEN 0
+                   MOVE HV-PARM-VALUE TO WS-MIN-RECOVERY-AMT
+               WHEN +100
+                   MOVE 25.00 TO WS-MIN-RECOVERY-AMT
+               WHEN OTHER
+                   MOVE 'THRESHOLD READ FAILED: MIN-RECOVERY'
+                       TO WS-ABEND-MSG
+                   PERFORM 9999-ABEND
+           END-EVALUATE
+
+           MOVE 'HIGH-DOLLAR'    TO HV-PARM-NAME
+           EXEC SQL
+               SELECT PARM_VALUE INTO :HV-PARM-VALUE
+               FROM   MIVANCPS.THRESHOLD_PARM
+               WHERE  PARM_NAME = :HV-PARM-NAME
+           END-EXEC
+           EVALUATE SQLCODE
+               WHEN 0
+                   MOVE HV-PARM-VALUE TO WS-HIGH-DOLLAR-AMT
+               WHEN +100
+                   MOVE 10000.00 TO WS-HIGH-DOLLAR-AMT
+               WHEN OTHER
+                   MOVE 'THRESHOLD READ FAILED: HIGH-DOLLAR'
+                       TO WS-ABEND-MSG
+                   PERFORM 9999-ABEND
+           END-EVALUATE.
+
+      *****************************************************************
+      * 2000-PROCESS-ADJ-FLAGGED - THE ADJUDICATION LOOP             *
+      *****************************************************************
+       2000-PROCESS-ADJ-FLAGGED.
+           ADD 1 TO WS-ADJ-READ
+
+      *    LOOP GUARD - A CLAIM THAT HAS CYCLED TOO MANY TIMES IS
+      *    NOT PROCESSED NORMALLY. ROUTE TO MANUAL EXCEPTION.
+           IF ADJ-CYCLE-CNT > WS-MAX-CYCLE-CNT
+               PERFORM 2600-LOOP-BREACH
+               PERFORM 2900-READ-ADJ
+               GO TO 2000-EXIT
+           END-IF
+
+      *    A CLAIM ALREADY REVIEWED BY OTS FOR THIS REASON SHOULD NOT
+      *    HAVE BEEN RE-FLAGGED. IF IT COMES BACK, TREAT AS EXCEPTION
+      *    RATHER THAN OPENING A SECOND CASE.
+           IF ADJ-ALREADY-REVIEWED
+               PERFORM 2700-ALREADY-REVIEWED
+               PERFORM 2900-READ-ADJ
+               GO TO 2000-EXIT
+           END-IF
+
+           EVALUATE TRUE
+               WHEN ADJ-HELD
+                   PERFORM 2100-PREPAY-HOLD
+               WHEN ADJ-PAID
+                   PERFORM 2200-POSTPAY-RECOVER
+               WHEN OTHER
+                   ADD 1 TO WS-ERRORS
+                   DISPLAY 'BAD PAY STATE ' ADJ-CLAIM-ID
+                           ' ' ADJ-PAY-STATE
+           END-EVALUATE
+
+           PERFORM 2900-READ-ADJ.
+       2000-EXIT.
+           EXIT.
+
+      *****************************************************************
+      * 2100-PREPAY-HOLD - CLAIM HELD BEFORE PAYMENT                 *
+      * PRODUCE A RELEASE / ADJUST / DENY DISPOSITION.               *
+      *****************************************************************
+       2100-PREPAY-HOLD.
+           ADD 1 TO WS-HELD-PREPAY
+           PERFORM 2300-DERIVE-CATEGORY
+
+      *    RECOVERABLE AMOUNT DRIVES THE PRE-PAY DECISION. IF THERE
+      *    IS NO REAL OVERPAYMENT THE FLAG IS NOT SUBSTANTIATED.
+           COMPUTE WS-RECOVERABLE-AMT =
+               ADJ-PAID-AMT - ADJ-CORRECTED-AMT
+
+           EVALUATE TRUE
+               WHEN RC-SIU
+      *            FRAUD - DO NOT RELEASE TO PAY. DENY AND REFER.
+                   PERFORM 2150-PREPAY-DENY
+                   PERFORM 2500-REFER-SIU
+               WHEN WS-RECOVERABLE-AMT <= 0
+                   PERFORM 2140-PREPAY-RELEASE
+               WHEN ADJ-CORRECTED-AMT <= 0
+      *            NOTHING PAYABLE - DENY OUTRIGHT
+                   PERFORM 2150-PREPAY-DENY
+               WHEN OTHER
+      *            OVERPAYMENT CONFIRMED PRE-PAY - PAY CORRECTED AMT
+                   PERFORM 2145-PREPAY-ADJUST
+           END-EVALUATE.
+
+       2140-PREPAY-RELEASE.
+           ADD 1 TO WS-RTN-RELEASE
+           MOVE 'RELEASE' TO RTN-DISPOSITION
+           MOVE 'RLSE'    TO RTN-DISP-REASON
+           MOVE ZEROES    TO RTN-CORRECTED-AMT
+           MOVE SPACES    TO WS-NEW-CASE-ID
+           PERFORM 2800-BUILD-RETURN.
+
+       2145-PREPAY-ADJUST.
+           ADD 1 TO WS-RTN-ADJUST
+      *    CASE CREATED FOR AUDIT HISTORY ONLY - NO DOLLARS TO
+      *    RECOVER, THE OVERPAYMENT WAS PREVENTED.
+           MOVE 'RADJ' TO CAS-STATUS-CD
+           MOVE 'Y'    TO CAS-PREPAY-PREVENT
+           MOVE 'NONE' TO CAS-METHOD-CD
+           PERFORM 6500-CREATE-CASE
+           MOVE 'ADJUST' TO RTN-DISPOSITION
+           MOVE 'ADJ '   TO RTN-DISP-REASON
+           MOVE ADJ-CORRECTED-AMT TO RTN-CORRECTED-AMT
+           MOVE WS-NEW-CASE-ID    TO RTN-CASE-ID
+           PERFORM 2800-BUILD-RETURN.
+
+       2150-PREPAY-DENY.
+           ADD 1 TO WS-RTN-DENY
+           MOVE 'RDEN' TO CAS-STATUS-CD
+           MOVE 'Y'    TO CAS-PREPAY-PREVENT
+           MOVE 'NONE' TO CAS-METHOD-CD
+           PERFORM 6500-CREATE-CASE
+           MOVE 'DENY' TO RTN-DISPOSITION
+           MOVE 'DENY' TO RTN-DISP-REASON
+           MOVE ZEROES TO RTN-CORRECTED-AMT
+           MOVE WS-NEW-CASE-ID TO RTN-CASE-ID
+           PERFORM 2800-BUILD-RETURN.
+
+      *****************************************************************
+      * 2200-POSTPAY-RECOVER - PAID CLAIM FLAGGED IN THE LOOP        *
+      * RUN THE RECOVERY LIFECYCLE, THEN RETURN FOR RE-ADJUDICATION. *
+      *****************************************************************
+       2200-POSTPAY-RECOVER.
+           MOVE ADJ-CLAIM-ID    TO HV-CLAIM-ID
+           PERFORM 6000-DUP-CHECK
+           IF IS-DUPLICATE
+               ADD 1 TO WS-DUPLICATES
+               GO TO 2200-EXIT
+           END-IF
+
+           MOVE ADJ-PAID-AMT      TO CAS-PAID-AMT
+           MOVE ADJ-CORRECTED-AMT TO CAS-CORRECTED-AMT
+           MOVE ADJ-CLAIM-ID      TO CAS-CLAIM-ID
+           MOVE ADJ-MEMBER-ID     TO CAS-MEMBER-ID
+           MOVE ADJ-PROV-NPI      TO CAS-PROV-NPI
+           MOVE ADJ-REASON-CD     TO CAS-REASON-CD
+           MOVE 'PAID'            TO CAS-PAY-STATE
+           MOVE ADJ-CYCLE-CNT     TO CAS-CYCLE-CNT
+           MOVE ADJ-IDENT-DT      TO CAS-IDENT-DT
+           MOVE 'ADJL'            TO CAS-SOURCE-CD
+
+           PERFORM 6100-CALC-RECOVERABLE
+           IF REC-INVALID
+               ADD 1 TO WS-REJECTED
+               GO TO 2200-EXIT
+           END-IF
+
+           PERFORM 2300-DERIVE-CATEGORY
+           PERFORM 6200-APPLY-THRESHOLDS
+           PERFORM 6300-DETERMINE-METHOD
+           PERFORM 6400-REASON-HANDLING
+           PERFORM 6500-CREATE-CASE
+           PERFORM 6600-ROUTE-CASE
+
+      *    RETURN THE CLAIM TO ADJUDICATION FOR RE-ADJUDICATION
+           ADD 1 TO WS-RTN-RECOVER
+           MOVE 'RECOVER-AND-READJUDICATE' TO RTN-DISPOSITION
+           MOVE 'RCVR' TO RTN-DISP-REASON
+           MOVE CAS-CORRECTED-AMT TO RTN-CORRECTED-AMT
+           MOVE WS-NEW-CASE-ID    TO RTN-CASE-ID
+           PERFORM 2800-BUILD-RETURN.
+       2200-EXIT.
+           EXIT.
+
+      *****************************************************************
+      * 2300-DERIVE-CATEGORY - MAP REASON CODE TO HANDLING CATEGORY  *
+      *****************************************************************
+       2300-DERIVE-CATEGORY.
+           MOVE SPACES TO WS-REASON-CATEGORY
+           MOVE ADJ-REASON-CD TO HV-REASON-CD
+           IF ADJ-REASON-CD = SPACES
+               MOVE SRC-REASON-CD TO HV-REASON-CD
+           END-IF
+
+           EXEC SQL
+               SELECT CATEGORY_CD INTO :HV-CATEGORY-CD
+               FROM   MIVANCPS.REASON_CODE
+               WHERE  REASON_CD = :HV-REASON-CD
+           END-EXEC
+
+           EVALUATE SQLCODE
+               WHEN 0
+                   MOVE HV-CATEGORY-CD TO WS-REASON-CATEGORY
+               WHEN +100
+      *            UNKNOWN REASON CODE - TREAT AS STANDARD RECOVERY
+                   MOVE 'STD ' TO WS-REASON-CATEGORY
+               WHEN OTHER
+                   MOVE 'STD ' TO WS-REASON-CATEGORY
+           END-EVALUATE.
+
+      *****************************************************************
+      * 2500-REFER-SIU                                               *
+      *****************************************************************
+       2500-REFER-SIU.
+           ADD 1 TO WS-SIU-REFERRED
+           MOVE 'SIU ' TO CAS-STATUS-CD
+           MOVE 'NONE' TO CAS-METHOD-CD
+           PERFORM 6500-CREATE-CASE.
+
+      *****************************************************************
+      * 2600-LOOP-BREACH                                             *
+      *****************************************************************
+       2600-LOOP-BREACH.
+           ADD 1 TO WS-LOOP-BREACH
+           MOVE SPACES TO EXCEPTION-REC
+           STRING 'LOOP-BREACH '   DELIMITED BY SIZE
+                  ADJ-CLAIM-ID      DELIMITED BY SIZE
+                  ' CYCLES='        DELIMITED BY SIZE
+                  ADJ-CYCLE-CNT     DELIMITED BY SIZE
+               INTO EXCEPTION-REC
+           WRITE EXCEPTION-REC
+           DISPLAY 'LOOP LIMIT BREACH ' ADJ-CLAIM-ID
+                   ' CYCLES ' ADJ-CYCLE-CNT.
+
+      *****************************************************************
+      * 2700-ALREADY-REVIEWED                                        *
+      *****************************************************************
+       2700-ALREADY-REVIEWED.
+           MOVE SPACES TO EXCEPTION-REC
+           STRING 'ALREADY-REVIEWED ' DELIMITED BY SIZE
+                  ADJ-CLAIM-ID         DELIMITED BY SIZE
+                  ' RULE='             DELIMITED BY SIZE
+                  ADJ-RULE-ID          DELIMITED BY SIZE
+               INTO EXCEPTION-REC
+           WRITE EXCEPTION-REC.
+
+      *****************************************************************
+      * 2800-BUILD-RETURN - WRITE THE DISPOSITION BACK TO ADJUD      *
+      *****************************************************************
+       2800-BUILD-RETURN.
+           MOVE ADJ-CLAIM-ID TO RTN-CLAIM-ID
+           MOVE ADJ-REASON-CD TO RTN-REASON-CD
+           MOVE 'Y' TO RTN-OTS-REVIEWED
+
+           PERFORM 2850-ATTEMPT-RETURN
+
+           IF RETURN-FAILED
+               PERFORM 2860-RETURN-FAILURE
+           END-IF.
+
+      *****************************************************************
+      * 2850-ATTEMPT-RETURN                                          *
+      * WRITE TO THE ADJUDICATION RETURN QUEUE. RETRY ON FAILURE.    *
+      *****************************************************************
+       2850-ATTEMPT-RETURN.
+           MOVE 'N' TO WS-RETURN-OK
+           MOVE 0 TO WS-RETRY-ATTEMPTS
+           PERFORM UNTIL RETURN-SUCCEEDED
+                      OR WS-RETRY-ATTEMPTS >= WS-RETRY-LIMIT
+               WRITE ADJ-RETURN-REC
+               IF WS-RTN-STATUS = '00'
+                   SET RETURN-SUCCEEDED TO TRUE
+               ELSE
+                   ADD 1 TO WS-RETRY-ATTEMPTS
+               END-IF
+           END-PERFORM.
+
+      *****************************************************************
+      * 2860-RETURN-FAILURE - THE RETURN TRIP FAILED                *
+      *****************************************************************
+       2860-RETURN-FAILURE.
+           ADD 1 TO WS-RTN-FAILURES
+           MOVE 'PRTN' TO CAS-STATUS-CD
+           MOVE SPACES TO EXCEPTION-REC
+           STRING 'RETURN-FAILED '  DELIMITED BY SIZE
+                  RTN-CLAIM-ID       DELIMITED BY SIZE
+                  ' DISP='           DELIMITED BY SIZE
+                  RTN-DISPOSITION    DELIMITED BY SIZE
+               INTO EXCEPTION-REC
+           WRITE EXCEPTION-REC
+           DISPLAY 'RETURN FAILED ' RTN-CLAIM-ID.
+
+      *****************************************************************
+      * 2900-READ-ADJ                                               *
+      *****************************************************************
+       2900-READ-ADJ.
+           READ ADJ-FLAGGED-IN
+               AT END SET ADJ-EOF TO TRUE
+           END-READ
+           IF WS-ADJ-STATUS NOT = '00' AND
+              WS-ADJ-STATUS NOT = '10'
+               MOVE 'READ FAILED: ADJFLAG' TO WS-ABEND-MSG
+               PERFORM 9999-ABEND
+           END-IF.
+
+      *****************************************************************
+      * 3000-PROCESS-AUDIT-SOURCE - POST-PAYMENT AUDIT RECORDS       *
+      *****************************************************************
+       3000-PROCESS-AUDIT-SOURCE.
+           ADD 1 TO WS-SRC-READ
+
+           MOVE SRC-CLAIM-ID TO HV-CLAIM-ID
+           PERFORM 6000-DUP-CHECK
+           IF IS-DUPLICATE
+               ADD 1 TO WS-DUPLICATES
+               PERFORM 3900-READ-SRC
+               GO TO 3000-EXIT
+           END-IF
+
+           MOVE SRC-PAID-AMT      TO CAS-PAID-AMT
+           MOVE SRC-CORRECTED-AMT TO CAS-CORRECTED-AMT
+           MOVE SRC-CLAIM-ID      TO CAS-CLAIM-ID
+           MOVE SRC-MEMBER-ID     TO CAS-MEMBER-ID
+           MOVE SRC-PROV-NPI      TO CAS-PROV-NPI
+           MOVE SRC-REASON-CD     TO CAS-REASON-CD
+           MOVE 'PAID'            TO CAS-PAY-STATE
+           MOVE 0                 TO CAS-CYCLE-CNT
+           MOVE SRC-IDENT-DT      TO CAS-IDENT-DT
+           MOVE SRC-SOURCE-CD     TO CAS-SOURCE-CD
+
+           PERFORM 6100-CALC-RECOVERABLE
+           IF REC-INVALID
+               ADD 1 TO WS-REJECTED
+               PERFORM 3900-READ-SRC
+               GO TO 3000-EXIT
+           END-IF
+
+           MOVE SRC-REASON-CD TO ADJ-REASON-CD
+           PERFORM 2300-DERIVE-CATEGORY
+           PERFORM 6200-APPLY-THRESHOLDS
+           PERFORM 6300-DETERMINE-METHOD
+           PERFORM 6400-REASON-HANDLING
+           PERFORM 6500-CREATE-CASE
+           PERFORM 6600-ROUTE-CASE
+
+           PERFORM 3900-READ-SRC.
+       3000-EXIT.
+           EXIT.
+
+      *****************************************************************
+      * 3900-READ-SRC                                               *
+      *****************************************************************
+       3900-READ-SRC.
+           READ OVERPAY-SOURCE-IN
+               AT END SET SRC-EOF TO TRUE
+           END-READ
+           IF WS-SRC-STATUS NOT = '00' AND
+              WS-SRC-STATUS NOT = '10'
+               MOVE 'READ FAILED: OVERPAY' TO WS-ABEND-MSG
+               PERFORM 9999-ABEND
+           END-IF.
+
+      *****************************************************************
+      * 6000-DUP-CHECK - EXISTING CASE ON THE SAME CLAIM            *
+      *****************************************************************
+       6000-DUP-CHECK.
+           MOVE 'N' TO WS-DUP-FLAG
+           EXEC SQL
+               SELECT COUNT(*) INTO :HV-CASE-COUNT
+               FROM   MIVANCPS.OVERPAY_CASE
+               WHERE  CLAIM_ID = :HV-CLAIM-ID
+           END-EXEC
+           IF SQLCODE = 0 AND HV-CASE-COUNT > 0
+               SET IS-DUPLICATE TO TRUE
+           END-IF.
+
+      *****************************************************************
+      * 6100-CALC-RECOVERABLE                                        *
+      *****************************************************************
+       6100-CALC-RECOVERABLE.
+           MOVE 'Y' TO WS-VALID-REC
+           IF CAS-CORRECTED-AMT >= CAS-PAID-AMT
+      *        NO OVERPAYMENT - CORRECTED IS NOT LESS THAN PAID
+               SET REC-INVALID TO TRUE
+               MOVE 0 TO WS-RECOVERABLE-AMT
+           ELSE
+               COMPUTE WS-RECOVERABLE-AMT =
+                   CAS-PAID-AMT - CAS-CORRECTED-AMT
+               MOVE WS-RECOVERABLE-AMT TO CAS-RECOVERABLE-AMT
+           END-IF.
+
+      *****************************************************************
+      * 6200-APPLY-THRESHOLDS - MIN RECOVERY AND HIGH DOLLAR         *
+      *****************************************************************
+       6200-APPLY-THRESHOLDS.
+           IF WS-RECOVERABLE-AMT < WS-MIN-RECOVERY-AMT
+               ADD 1 TO WS-BELOW-THRESH
+               MOVE 'BLTH' TO CAS-STATUS-CD
+               MOVE 'WROF' TO CAS-METHOD-CD
+           ELSE
+               IF WS-RECOVERABLE-AMT > WS-HIGH-DOLLAR-AMT
+                   ADD 1 TO WS-HIGH-DOLLAR
+                   MOVE 'PAPP' TO CAS-STATUS-CD
+               ELSE
+                   MOVE 'NEW ' TO CAS-STATUS-CD
+               END-IF
+           END-IF.
+
+      *****************************************************************
+      * 6300-DETERMINE-METHOD - RECOVERY METHOD FROM PROVIDER STATUS *
+      *****************************************************************
+       6300-DETERMINE-METHOD.
+      *    BELOW-THRESHOLD CASES ARE WRITE-OFF CANDIDATES ALREADY;
+      *    LEAVE THEM. HIGH-DOLLAR CASES STILL NEED A METHOD FOR WHEN
+      *    APPROVAL CLEARS.
+           IF CAS-BELOW-THRESH
+               GO TO 6300-EXIT
+           END-IF
+
+           PERFORM 6350-LOOKUP-PROVIDER
+
+           EVALUATE TRUE
+               WHEN NOT PROV-FOUND
+      *            NO PROVIDER RECORD - CANNOT OFFSET, DEMAND ONLY
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+               WHEN PROV-ACTIVE AND PROV-HAS-ACTIVITY
+                   MOVE 'OFST' TO CAS-METHOD-CD
+               WHEN PROV-ACTIVE AND PROV-NO-ACTIVITY
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+               WHEN PROV-INACTIVE
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+               WHEN PROV-TERMINATED
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+               WHEN OTHER
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+           END-EVALUATE.
+       6300-EXIT.
+           EXIT.
+
+      *****************************************************************
+      * 6350-LOOKUP-PROVIDER                                         *
+      *****************************************************************
+       6350-LOOKUP-PROVIDER.
+           MOVE 'N' TO WS-PROV-FOUND
+           MOVE CAS-PROV-NPI TO PRV-NPI
+           READ PROVIDER-FILE
+               INVALID KEY
+                   MOVE 'N' TO WS-PROV-FOUND
+               NOT INVALID KEY
+                   SET PROV-FOUND TO TRUE
+                   MOVE PRV-STATUS        TO WS-PROV-STATUS
+                   MOVE PRV-ACTIVITY-FLAG TO WS-PROV-ACTIVITY
+           END-READ.
+
+      *****************************************************************
+      * 6400-REASON-HANDLING - REASON-CODE-SPECIFIC ROUTING          *
+      *****************************************************************
+       6400-REASON-HANDLING.
+           EVALUATE TRUE
+               WHEN RC-SIU
+      *            FRAUD - DO NOT PROCESS RECOVERY. REFER AND CLOSE.
+                   PERFORM 2500-REFER-SIU
+               WHEN RC-EXPEDITED
+      *            PROVIDER SELF-REPORT - SKIP DEMAND LETTER, THE
+      *            PROVIDER ALREADY ACKNOWLEDGED. FORCE OFFSET WHERE
+      *            POSSIBLE, ELSE STRAIGHT TO REFUND PROCESSING.
+                   IF CAS-METH-DEMAND
+                       MOVE 'OFST' TO CAS-METHOD-CD
+                   END-IF
+                   IF NOT CAS-PENDING-APPR
+                       MOVE 'ACTV' TO CAS-STATUS-CD
+                   END-IF
+               WHEN RC-RETRO-TERM
+      *            RETRO-TERM OVERPAYMENTS (LEGACY 'RTO' CODE, STILL
+      *            SEEN FROM THE ELIGIBILITY FEED). TREAT AS STANDARD
+      *            BUT NEVER OFFSET - THESE GO OUT AS DEMAND ONLY.
+                   MOVE 'DEMD' TO CAS-METHOD-CD
+               WHEN OTHER
+      *            STANDARD RECOVERY
+                   CONTINUE
+           END-EVALUATE.
+
+      *****************************************************************
+      * 6500-CREATE-CASE - GENERATE CASE ID AND INSERT              *
+      *****************************************************************
+       6500-CREATE-CASE.
+           ADD 1 TO WS-CASE-SEQ
+           STRING 'OVP'                DELIMITED BY SIZE
+                  WS-CURRENT-DT         DELIMITED BY SIZE
+                  WS-CASE-SEQ           DELIMITED BY SIZE
+               INTO WS-NEW-CASE-ID
+           MOVE WS-NEW-CASE-ID TO CAS-CASE-ID
+           MOVE WS-CURRENT-DT  TO CAS-CREATE-DT
+
+           IF CAS-STATUS-CD = SPACES
+               MOVE 'NEW ' TO CAS-STATUS-CD
+           END-IF
+
+           EXEC SQL
+               INSERT INTO MIVANCPS.OVERPAY_CASE
+                   (CASE_ID, CLAIM_ID, MEMBER_ID, PROV_NPI,
+                    PAID_AMT, CORRECTED_AMT, RECOVERABLE_AMT,
+                    REASON_CD, METHOD_CD, STATUS_CD, SOURCE_CD,
+                    PAY_STATE, CYCLE_CNT, IDENT_DT, CREATE_DT)
+               VALUES
+                   (:CAS-CASE-ID, :CAS-CLAIM-ID, :CAS-MEMBER-ID,
+                    :CAS-PROV-NPI, :CAS-PAID-AMT, :CAS-CORRECTED-AMT,
+                    :CAS-RECOVERABLE-AMT, :CAS-REASON-CD,
+                    :CAS-METHOD-CD, :CAS-STATUS-CD, :CAS-SOURCE-CD,
+                    :CAS-PAY-STATE, :CAS-CYCLE-CNT,
+                    :CAS-IDENT-DT, :CAS-CREATE-DT)
+           END-EXEC
+
+           IF SQLCODE = 0
+               ADD 1 TO WS-CASES-CREATED
+           ELSE
+               ADD 1 TO WS-ERRORS
+               DISPLAY 'CASE INSERT FAILED ' CAS-CLAIM-ID
+                       ' SQLCODE ' SQLCODE
+           END-IF.
+
+      *****************************************************************
+      * 6600-ROUTE-CASE - SEND TO THE RIGHT WORKLIST / OUTPUT        *
+      *****************************************************************
+       6600-ROUTE-CASE.
+           PERFORM 6700-CHECK-AGING
+
+           EVALUATE TRUE
+               WHEN CAS-SIU-REFERRED
+                   CONTINUE
+               WHEN CAS-BELOW-THRESH
+                   ADD 1 TO WS-WRITEOFF-CASES
+                   ADD WS-RECOVERABLE-AMT TO WS-TOT-WRITEOFF-AMT
+               WHEN CAS-PENDING-APPR
+      *            HIGH DOLLAR - HELD FOR APPROVAL, NO OUTPUT YET
+                   CONTINUE
+               WHEN CAS-METH-OFFSET
+                   ADD 1 TO WS-OFFSET-CASES
+                   ADD WS-RECOVERABLE-AMT TO WS-TOT-OFFSET-AMT
+                   PERFORM 6800-WRITE-OFFSET
+               WHEN CAS-METH-DEMAND
+                   ADD 1 TO WS-DEMAND-CASES
+                   ADD WS-RECOVERABLE-AMT TO WS-TOT-DEMAND-AMT
+                   PERFORM 6850-WRITE-DEMAND
+               WHEN OTHER
+                   CONTINUE
+           END-EVALUATE.
+
+      *****************************************************************
+      * 6700-CHECK-AGING - ESCALATE STALE CASES                     *
+      *****************************************************************
+       6700-CHECK-AGING.
+           COMPUTE WS-IDENT-INT =
+               FUNCTION INTEGER-OF-DATE (CAS-IDENT-DT)
+           COMPUTE WS-CURRENT-INT =
+               FUNCTION INTEGER-OF-DATE (WS-CURRENT-DT)
+           COMPUTE WS-CASE-AGE-DAYS =
+               WS-CURRENT-INT - WS-IDENT-INT
+
+           IF WS-CASE-AGE-DAYS > WS-AGING-LIMIT-DAYS
+              AND CAS-NEW
+               MOVE 'ESCL' TO CAS-STATUS-CD
+               ADD 1 TO WS-ESCALATED
+           END-IF.
+
+      *****************************************************************
+      * 6800-WRITE-OFFSET                                            *
+      *****************************************************************
+       6800-WRITE-OFFSET.
+           MOVE SPACES TO OFFSET-REC
+           STRING CAS-CASE-ID      DELIMITED BY SIZE
+                  CAS-PROV-NPI      DELIMITED BY SIZE
+                  CAS-CLAIM-ID      DELIMITED BY SIZE
+               INTO OFFSET-REC
+           WRITE OFFSET-REC.
+
+      *****************************************************************
+      * 6850-WRITE-DEMAND                                            *
+      *****************************************************************
+       6850-WRITE-DEMAND.
+           MOVE SPACES TO DEMAND-REC
+           STRING CAS-CASE-ID      DELIMITED BY SIZE
+                  CAS-PROV-NPI      DELIMITED BY SIZE
+                  CAS-CLAIM-ID      DELIMITED BY SIZE
+               INTO DEMAND-REC
+           WRITE DEMAND-REC.
+
+      *****************************************************************
+      * 9000-FINALIZE                                               *
+      *****************************************************************
+       9000-FINALIZE.
+           CLOSE ADJ-FLAGGED-IN
+                 OVERPAY-SOURCE-IN
+                 PROVIDER-FILE
+                 OFFSET-OUT
+                 DEMAND-OUT
+                 ADJ-RETURN-OUT
+                 EXCEPTION-OUT
+
+           DISPLAY '*************************************************'
+           DISPLAY 'MOVPTRK0 COMPLETE'
+           DISPLAY '*************************************************'
+           DISPLAY 'ADJ-FLAGGED READ    : ' WS-ADJ-READ
+           DISPLAY 'AUDIT SOURCE READ   : ' WS-SRC-READ
+           DISPLAY 'CASES CREATED       : ' WS-CASES-CREATED
+           DISPLAY 'REJECTED INVALID    : ' WS-REJECTED
+           DISPLAY 'DUPLICATES SKIPPED  : ' WS-DUPLICATES
+           DISPLAY 'BELOW THRESHOLD     : ' WS-BELOW-THRESH
+           DISPLAY 'HIGH DOLLAR (APPR)  : ' WS-HIGH-DOLLAR
+           DISPLAY 'OFFSET CASES        : ' WS-OFFSET-CASES
+           DISPLAY 'DEMAND CASES        : ' WS-DEMAND-CASES
+           DISPLAY 'WRITE-OFF CASES     : ' WS-WRITEOFF-CASES
+           DISPLAY 'SIU REFERRED        : ' WS-SIU-REFERRED
+           DISPLAY 'ESCALATED           : ' WS-ESCALATED
+           DISPLAY '--- ADJUDICATION LOOP ---'
+           DISPLAY 'HELD PRE-PAY        : ' WS-HELD-PREPAY
+           DISPLAY 'RETURNED RELEASE    : ' WS-RTN-RELEASE
+           DISPLAY 'RETURNED ADJUST     : ' WS-RTN-ADJUST
+           DISPLAY 'RETURNED DENY       : ' WS-RTN-DENY
+           DISPLAY 'RETURNED RECOVER    : ' WS-RTN-RECOVER
+           DISPLAY 'RETURN FAILURES     : ' WS-RTN-FAILURES
+           DISPLAY 'LOOP LIMIT BREACH   : ' WS-LOOP-BREACH
+           DISPLAY 'ORPHANED            : ' WS-ORPHANED
+           DISPLAY 'ELIG-CHANGE HOLDS   : ' WS-ELIG-HOLD
+           DISPLAY '--- DOLLARS ---'
+           DISPLAY 'TOTAL OFFSET   $    : ' WS-TOT-OFFSET-AMT
+           DISPLAY 'TOTAL DEMAND   $    : ' WS-TOT-DEMAND-AMT
+           DISPLAY 'TOTAL WRITEOFF $    : ' WS-TOT-WRITEOFF-AMT
+           DISPLAY 'ERRORS              : ' WS-ERRORS
+           DISPLAY '*************************************************'
+
+           MOVE WS-ERRORS TO RETURN-CODE.
+
+      *****************************************************************
+      * 9999-ABEND                                                  *
+      *****************************************************************
+       9999-ABEND.
+           DISPLAY '*************************************************'
+           DISPLAY 'ABEND IN ' WS-PROGRAM-ID
+           DISPLAY WS-ABEND-MSG
+           DISPLAY '*************************************************'
+           MOVE 16 TO RETURN-CODE
+           STOP RUN.
+
+===============================================================================
+FILE 7 OF 8: src/cobol/commercial/MOVPJB00.jcl
+===============================================================================
+
+//MOVPJB00 JOB (MIVAN),'OVERPAYMENT TRACKING',
+//         CLASS=A,MSGCLASS=X,
+//         NOTIFY=&SYSUID
+//*
+//****************************************************************
+//* JOB:     MOVPJB00                                            *
+//* PROGRAM: MOVPTRK0 - OVERPAYMENT TRACKING SYSTEM              *
+//*                                                              *
+//* PROCESSES ADJUDICATION-FLAGGED CLAIMS (THE LOOP) AND         *
+//* POST-PAYMENT AUDIT SOURCE RECORDS. CREATES AND ROUTES        *
+//* OVERPAYMENT CASES; RETURNS DISPOSITIONS TO ADJUDICATION.     *
+//*                                                              *
+//* SCHEDULE: NIGHTLY, AFTER THE POST-PAYMENT AUDIT EXTRACT AND   *
+//*           THE ADJUDICATION FLAG EXTRACT HAVE COMPLETED.       *
+//****************************************************************
+//*
+//STEP010  EXEC PGM=IKJEFT01,REGION=0M
+//*
+//STEPLIB  DD DSN=MIVAN.CPS.LOADLIB,DISP=SHR
+//         DD DSN=DB2P.SDSNLOAD,DISP=SHR
+//*
+//ADJFLAG  DD DSN=MIVAN.OVERPAY.ADJFLAG.EXTRACT,DISP=SHR
+//OVERPAY  DD DSN=MIVAN.OVERPAY.AUDIT.EXTRACT,DISP=SHR
+//PROVIDR  DD DSN=MIVAN.PROVIDER.MASTER,DISP=SHR
+//*
+//OFFSETO  DD DSN=MIVAN.OVERPAY.OFFSET.INSTR,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(CYL,(10,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=120,BLKSIZE=0)
+//DEMANDO  DD DSN=MIVAN.OVERPAY.DEMAND.LETTERS,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(CYL,(10,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=120,BLKSIZE=0)
+//ADJRTN   DD DSN=MIVAN.OVERPAY.ADJ.RETURN,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(CYL,(10,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=80,BLKSIZE=0)
+//EXCEPTO  DD DSN=MIVAN.OVERPAY.EXCEPTIONS,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(CYL,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=200,BLKSIZE=0)
+//*
+//SYSOUT   DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SYSUDUMP DD SYSOUT=*
+//*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(MOVPTRK0) PLAN(MOVPTRK0) -
+      LIB('MIVAN.CPS.LOADLIB')
+  END
+/*
+//
+
+===============================================================================
+FILE 8 OF 8: src/cobol/commercial/DDL/OVERPAY_CASE.sql
+===============================================================================
+
+-- ***************************************************************
+-- OVERPAY_CASE  - overpayment case master, one row per case
+-- THRESHOLD_PARM - dollar thresholds, read at program init
+-- REASON_CODE    - reason code to handling category map
+-- ***************************************************************
+
+CREATE TABLESPACE TSOVPCAS
+    IN MIVANDB
+    USING STOGROUP SGMIVAN
+    PRIQTY 14400 SECQTY 7200
+    SEGSIZE 64 LOCKSIZE PAGE
+    BUFFERPOOL BP2 CLOSE NO;
+
+CREATE TABLE MIVANCPS.OVERPAY_CASE
+   (CASE_ID          CHAR(12)      NOT NULL,
+    CLAIM_ID         CHAR(20)      NOT NULL,
+    MEMBER_ID        CHAR(15),
+    PROV_NPI         CHAR(10),
+    PAID_AMT         DECIMAL(11,2),
+    CORRECTED_AMT    DECIMAL(11,2),
+    RECOVERABLE_AMT  DECIMAL(11,2),
+    REASON_CD        CHAR(03),
+    METHOD_CD        CHAR(04),
+    STATUS_CD        CHAR(04),
+    SOURCE_CD        CHAR(04),
+    PAY_STATE        CHAR(04),
+    CYCLE_CNT        SMALLINT,
+    IDENT_DT         DATE,
+    CREATE_DT        DATE,
+    CONSTRAINT PK_OVERPAY_CASE PRIMARY KEY (CASE_ID))
+    IN MIVANDB.TSOVPCAS;
+
+CREATE UNIQUE INDEX MIVANCPS.XOVPCAS1
+    ON MIVANCPS.OVERPAY_CASE (CASE_ID ASC)
+    USING STOGROUP SGMIVAN PRIQTY 1440 SECQTY 720 CLUSTER;
+
+CREATE INDEX MIVANCPS.XOVPCAS2
+    ON MIVANCPS.OVERPAY_CASE (CLAIM_ID ASC)
+    USING STOGROUP SGMIVAN PRIQTY 1440 SECQTY 720;
+
+CREATE INDEX MIVANCPS.XOVPCAS3
+    ON MIVANCPS.OVERPAY_CASE (STATUS_CD ASC, CREATE_DT ASC)
+    USING STOGROUP SGMIVAN PRIQTY 720 SECQTY 360;
+
+CREATE TABLE MIVANCPS.THRESHOLD_PARM
+   (PARM_NAME        CHAR(20)      NOT NULL,
+    PARM_VALUE       DECIMAL(11,2),
+    CONSTRAINT PK_THRESHOLD_PARM PRIMARY KEY (PARM_NAME))
+    IN MIVANDB.TSOVPCAS;
+
+CREATE TABLE MIVANCPS.REASON_CODE
+   (REASON_CD        CHAR(03)      NOT NULL,
+    CATEGORY_CD      CHAR(04),
+    DESCRIPTION      CHAR(40),
+    CONSTRAINT PK_REASON_CODE PRIMARY KEY (REASON_CD))
+    IN MIVANDB.TSOVPCAS;
+
+-- reference data
+INSERT INTO MIVANCPS.THRESHOLD_PARM VALUES ('MIN-RECOVERY', 25.00);
+INSERT INTO MIVANCPS.THRESHOLD_PARM VALUES ('HIGH-DOLLAR', 10000.00);
+
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('DUP','STD ','DUPLICATE PAYMENT');
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('COB','STD ','COORDINATION OF BENEFITS');
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('PRC','STD ','PRICING ERROR');
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('SLF','EXPD','PROVIDER SELF REPORT');
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('FRD','SIU ','FRAUD REFERRAL');
+INSERT INTO MIVANCPS.REASON_CODE VALUES ('RTO','RTO ','RETRO TERM ELIGIBILITY');
+
+GRANT SELECT, INSERT ON MIVANCPS.OVERPAY_CASE TO MIVANAPP;
+GRANT SELECT ON MIVANCPS.THRESHOLD_PARM TO MIVANAPP;
+GRANT SELECT ON MIVANCPS.REASON_CODE TO MIVANAPP;
+
+===============================================================================
+END OF SOURCE PACKAGE
+===============================================================================
