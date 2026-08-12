@@ -39,7 +39,7 @@ This skill produces knowledge at two altitudes, kept visibly separate and never 
 
 **TECHNICAL REGISTER (existing)** — for the developer rebuilding the program. Precise, cited, OBSERVABLE or INFERRED. *"3400-EDIT-ELIG lines 2210–2265 rejects WS-MBR-STATUS not in ('A','L')."*
 
-**BUSINESS REGISTER (new)** — for the SME confirming that the rules are correct. Plain business language, no COBOL. *"Mivan pays claims only for members who are Active or on approved Leave. All other statuses are denied."*
+**BUSINESS REGISTER (new)** — for the SME confirming that the rules are correct. Plain business language, no COBOL. *"Mivan pays claims only for members who are Active or on approved Leave. All other statuses are denied."* It is emitted in the **shared Knowledge Register format** (`skills/shared/knowledge-register-format.md`), id prefix `COBOL`, with per-finding layer tags — so the Knowledge Reconciler can compare it against a document-derived register.
 
 Same underlying fact, different altitude. The business register is permitted to make AGGRESSIVE inferences about business meaning BECAUSE every business finding is routed to an SME as a question to confirm, never presented as established fact. The aggression is in generating candidate rules; the discipline is in presenting them as hypotheses for review.
 
@@ -59,6 +59,22 @@ The two registers must never contaminate each other. The technical register keep
 | `knowledge/ghost-nodes.md` | Read if present | Cross-reference known gaps; a new gap found here may already be registered |
 
 If only the COBOL program is provided, all steps still run — but every missing input becomes an explicit "cannot be determined from source" entry, not a guess.
+
+---
+
+## STEP 0.5 — CLASSIFY PROGRAM TYPE
+
+Before extraction, classify the program. The type changes how to read it and what to expect. Detect and declare the type from these signals:
+
+- **BATCH DRIVER** — sequential file I/O, `PERFORM UNTIL end-of-file`, no CICS. Control flow is linear. Read normally.
+- **CICS ONLINE** — `EXEC CICS` verbs, `DFHCOMMAREA`, `EIBCALEN` checks, `RETURN TRANSID`. Pseudo-conversational. **WARNING: control flow is NOT linear.** State is held across invocations — the same paragraph runs differently on first vs subsequent invocations based on commarea state. Do not read it as a batch program.
+- **CICS-DB2 HYBRID** — CICS plus `EXEC SQL`. Real-time inquiry or update; couples two external systems.
+- **CALLED SUBPROGRAM** — has a `LINKAGE SECTION` and `PROCEDURE DIVISION USING`. Its behavior only makes sense relative to its caller's contract, which is NOT available. Extract the contract (what it expects in, what it returns) and flag that intent depends on the caller.
+- **REPORT WRITER / FORMATTER** — heavy DATA DIVISION, `WRITE` to print files, little branching. LOW business-rule density — say so, and do not manufacture findings.
+- **EDIT / VALIDATION** — dense 88-levels and `EVALUATE` over business fields. HIGHEST business-rule density. This is where aggressive business extraction (Pass 4) pays off most.
+- **FILE CONVERSION / BRIDGE** — reads one layout, writes another. The mapping between the two layouts IS the knowledge.
+
+State the type, the confidence, and how it shapes the extraction approach for this program. If the program is a hybrid or does not fit cleanly, say so.
 
 ---
 
@@ -167,13 +183,18 @@ Systematically mine these COBOL constructs for business meaning — in payer COB
 - **Computed fields → the business calculations** (cost share, allowed amount, coordination).
 - **Table lookups → the reference data the business depends on.**
 
-For EACH business rule extracted, produce:
-- A plain-language statement of the rule
-- The business rationale — your AGGRESSIVE inference of WHY the rule exists (this is the useful part)
-- Confidence: LIKELY / PLAUSIBLE / SPECULATIVE
-- The technical finding it derives from (program + lines)
-- Whether it maps to any known regulation or domain concept in the knowledge layer (check L2 and L5)
-- A confirmation question for the SME
+Emit each finding in the **shared Knowledge Register format** — the single source of truth is `skills/shared/knowledge-register-format.md`; follow it exactly so the Knowledge Reconciler can diff this register against the Document Extractor's. Use id prefix **COBOL** (`COBOL-001`, `COBOL-002`, …). For EACH finding produce every shared field:
+- **statement** — the rule/fact in plain business or system language, no COBOL (one or two sentences)
+- **rationale** — your AGGRESSIVE inference of WHY it exists (the useful part)
+- **confidence** — LIKELY / PLAUSIBLE / SPECULATIVE (how sure you are your interpretation of the source is correct)
+- **materiality** — MATERIAL / NOTABLE / INCIDENTAL
+- **proposed_layer** — L1 | L2 | L3 | L4 | L5 | L6 | SPANS | UNCLEAR. Tag by what the knowledge IS, not that it came from code. A single program emits knowledge across L2–L6: a domain truth is L2, a system/file/flow fact is L3, program-level detail is L4, a specific decision rule is L5, an operational/tribal-knowledge reality is L6. Use the layer guide in the shared format.
+- **layer_confidence** — LIKELY / PLAUSIBLE / SPECULATIVE (a distinct judgment from `confidence`)
+- **source_citation** — program + paragraph + line range
+- **maps_to** — existing L2/L5 node or concept, or "no known mapping — candidate ghost node" (check L2 and L5)
+- **sme_question** — a specific confirm question phrased as a question, never as an assertion
+
+Lead the register output with the **layer coverage summary (View 1)**, then the findings grouped by layer (View 2), materiality-ranked (MATERIAL first) within each group — exactly as the shared format prescribes.
 
 Be aggressive in offering business meaning. A hardcoded `180` in a date comparison should produce: *"PLAUSIBLE: appears to enforce a 180-day timely filing window. Commercial timely filing commonly ranges 90–365 days. CONFIRM: is 180 days Mivan's timely filing limit for this claim type, and which contract or regulation sets it?"* — not *"180-day threshold, meaning undetermined."*
 
@@ -316,9 +337,10 @@ sme_confirmation_required: true
 Cover BOTH registers. Technical completeness first: "Extracted [N] of [M]
 sections. [K] called programs and [J] copybooks were not supplied and are listed
 in the Knowledge Boundary. [P] dynamic calls could not be resolved from source."
-THEN the business register: "Extracted [B] business rules for SME confirmation,
-[Bm] material, [Bu] with no mapping to existing knowledge (candidate ghost
-nodes)." THEN 2–3 sentences on what the program is, its processing mode, and the
+THEN the business register (shared Knowledge Register format, id prefix COBOL):
+"[B] findings for SME confirmation, [Bm] material, [Bu] with no mapping to
+existing knowledge (candidate ghost nodes); layer coverage L2:[n] L3:[n] L4:[n]
+L5:[n] L6:[n]." THEN 2–3 sentences on what the program is, its processing mode, and the
 headline of the migration-risk assessment. State plainly what is known vs unknown.
 
 ---
@@ -333,22 +355,31 @@ meaning as fact.*
 beyond standard payer terms. What does this program do to a claim, in business
 terms? An SME/BA should understand the program's purpose from this alone.]
 
-## Business Rules for SME Confirmation
-[Ordered by materiality — payment, eligibility, and compliance rules first. One
-block per rule. This checklist feeds the Contribution Framework: a confirmed rule
-becomes a validated L5 rule; a corrected one captures the SME's correction; an
-unmappable one becomes a registered ghost node.]
+## Knowledge Register — shared format (for SME confirmation)
+Emitted per `skills/shared/knowledge-register-format.md`, id prefix `COBOL`. Two
+views of the same findings. Feeds the Contribution Framework and is what the
+Knowledge Reconciler diffs against a document-derived register: a confirmed
+finding becomes a validated node at its proposed layer; a corrected one captures
+the SME's correction; an unmappable one becomes a registered ghost node.
 
-### BR-001: [plain-language rule name]
-- **Rule:** [plain business language, no COBOL]
-- **Likely rationale:** [aggressive inference of WHY the rule exists]
-- **Confidence:** LIKELY | PLAUSIBLE | SPECULATIVE
-- **Derived from:** [program] [paragraph] lines [range]
-- **Maps to:** [L2/L5 concept or regulation, or "no known mapping — candidate ghost node"]
-- **CONFIRM:** [specific yes/no or fill-in question for the SME]
-- [ ] Confirmed as stated
-- [ ] Needs correction (SME notes: ______)
-- [ ] Rule is obsolete / dead code
+### View 1 — Layer coverage summary (lead with this)
+`L2: [n] · L3: [n] · L4: [n] · L5: [n] · L6: [n] · SPANS: [n] · UNCLEAR: [n]`
+[one line on where this program's knowledge concentrates and what that implies.]
+
+### View 2 — Findings grouped by layer
+[Findings grouped under L2 / L3 / L4 / L5 / L6 / SPANS / UNCLEAR headings,
+materiality-ranked (MATERIAL first) within each group. One block per finding:]
+
+#### COBOL-001 — [short label]
+- **statement:** [plain business or system language, no COBOL — one or two sentences]
+- **rationale:** [aggressive inference of WHY this rule/fact exists]
+- **confidence:** LIKELY | PLAUSIBLE | SPECULATIVE
+- **materiality:** MATERIAL | NOTABLE | INCIDENTAL
+- **proposed_layer:** L2 | L3 | L4 | L5 | L6 | SPANS | UNCLEAR
+- **layer_confidence:** LIKELY | PLAUSIBLE | SPECULATIVE
+- **source_citation:** [program] [paragraph] lines [range]
+- **maps_to:** [L2/L5 node or concept, or "no known mapping — candidate ghost node"]
+- **sme_question:** [specific confirm question, phrased as a question]
 
 ## Domain Vocabulary
 [Business vocabulary the program encodes — 88-level condition names, status
@@ -403,6 +434,9 @@ below.]
 2. …
 
 ## Suggested Shadow Mode Test Scenarios
+[section below]
+
+## Extraction Self-Assessment
 [section below]
 ```
 
@@ -482,6 +516,9 @@ Rules, in order of importance:
 | Ghost node registry | `knowledge/ghost-nodes.md` |
 | Routing map | `knowledge/routing-map.md` |
 | MEM contribution examples | `knowledge/MEM/contributions/` |
+| Shared register format | `skills/shared/knowledge-register-format.md` |
+| Companion skill (documents) | `skills/document-knowledge-extractor.md` |
+| Companion skill (reconciler) | `skills/knowledge-reconciler.md` |
 
 Informed by Anthropic's COBOL modernization guidance:
 https://claude.com/blog/how-ai-helps-break-cost-barrier-cobol-modernization
@@ -489,3 +526,17 @@ and the Code Modernization Playbook:
 https://resources.anthropic.com/code-modernization-playbook
 
 Key principle adopted: implicit dependencies — shared data structures, file-based coupling, initialization sequences — are the primary source of modernization risk and do not appear in static call-graph analysis.
+
+---
+
+## Extraction Self-Assessment
+
+End every extraction with an honest note on the extraction itself, so the skill can be refined over time. Include it as the final section of the MEM output:
+
+- Program type (from STEP 0.5), and whether the skill's approach fit it
+- Where the extraction was confident vs where it strained
+- Any COBOL construct or pattern encountered that the skill's current guidance did not cover well
+- What additional input (a specific copybook, the caller, the JCL) would most improve this extraction
+- A one-line verdict: was this program type well served by the current skill, or does the skill need refinement for programs like this?
+
+This note is the feedback loop. Patterns that recur across extractions become the next refinement to the skill itself.
